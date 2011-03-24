@@ -199,7 +199,8 @@ melm 652$9      Koha-Auth-Number
 #melm 652       subject-heading,subject-heading:p
 melm 653$a      Index-term-uncontrolled:w,Index-term-uncontrolled:p,Subject,Subject:p
 melm 653$9      Koha-Auth-Number
-melm 653        Subject,Subject:p
+melm 653        Subject,Subject:su-pi
+melm 653$a	Methodology
 melm 654$9      Koha-Auth-Number
 melm 654        Subject,Subject:p
 melm 655$a      Index-term-genre:w,Index-term-genre:p,Subject,Subject:p
@@ -215,6 +216,7 @@ melm 658$c      curriculum:w,curriculum:p,Subject,Subject:p
 melm 658        Subject,Subject:p
 melm 690$9      Koha-Auth-Number
 melm 690        Subject,Subject:p
+melm 690$a	Methodology
 
 melm 700$9      Cross-Reference,Koha-Auth-Number
 melm 700$a      Author,Author:p
@@ -262,6 +264,9 @@ melm 780        Title,Title:p,Title-former,Related-periodical
 melm 785$w      Record-control-number
 melm 785        Title,Title:p,Title-later,Related-periodical
 melm 787$w      Record-control-number
+melm 791$b	PacificaProgram:w,PacificaProgram:p
+melm 796$a	ThesisAdvisor:w,ThesisAdvisor:p
+melm 796$e	ThesisAdvisor:w,ThesisAdvisor:p
 
 melm 800$a      Name-and-title,Title-series:w,Title-series:p
 #melm 800$t     author,Author-title,Name-and-title,Title,Title-series
