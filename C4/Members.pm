@@ -76,7 +76,7 @@ BEGIN {
     #Insert data
     push @EXPORT, qw(
         &AddMember
-    &AddMember_Auto
+        &AddMember_Auto
         &AddMember_Opac
     );
 
