@@ -22,6 +22,8 @@ use Modern::Perl;
 use C4::Debug;
 use C4::Context;
 use Koha::AuthUtils qw(get_script_name);
+use C4::Members qw( AddMember_Auto );
+use C4::Members::Messaging;
 use Koha::Database;
 use C4::Members qw( AddMember_Auto );
 use C4::Members::Messaging;
@@ -52,7 +54,7 @@ sub shib_ok {
 # Logout from Shibboleth
 sub logout_shib {
     my ($query) = @_;
-    my $uri = _get_uri();
+    my $uri = _get_uri($query);
     print $query->redirect( $uri . "/Shibboleth.sso/Logout?return=$uri" );
 }
 
@@ -60,11 +62,11 @@ sub logout_shib {
 sub login_shib_url {
     my ($query) = @_;
 
-    my $param = _get_uri() . get_script_name();
+    my $param = _get_uri($query) . $query->script_name();
     if ( $query->query_string() ) {
         $param = $param . '%3F' . $query->query_string();
     }
-    my $uri = _get_uri() . "/Shibboleth.sso/Login?target=$param";
+    my $uri = _get_uri($query) . "/Shibboleth.sso/Login?target=$param";
     return $uri;
 }
 
@@ -85,6 +87,21 @@ sub get_login_shib {
     $debug and warn $matchAttribute . " value: " . $ENV{$matchAttribute};
 
     return $ENV{$matchAttribute} || '';
+}
+
+sub _autocreate {
+    my ( $config, $userid ) = @_;
+
+    my %borrower = ( userid => $userid );
+
+    while ( my ( $key, $entry ) = each %{$config->{'mapping'}} ) {
+        $borrower{$key} = ( $entry->{'is'} && $ENV{ $entry->{'is'} } ) || $entry->{'content'} || '';
+    }
+
+    %borrower = AddMember_Auto( %borrower );
+    C4::Members::Messaging::SetMessagingPreferencesFromDefaults( { borrowernumber => $borrower{'borrowernumber'}, categorycode => $borrower{'categorycode'} } );
+
+    return ( 1, $borrower{'cardnumber'}, $borrower{'userid'} );
 }
 
 # Checks for password correctness
@@ -129,6 +146,7 @@ sub _autocreate {
 }
 
 sub _get_uri {
+    my ( $query ) = @_;
 
     my $protocol = "https://";
 
@@ -266,7 +284,7 @@ Note: The minimum you need here is a <matchpoint> block, containing a valid colu
 
 =back
 
-It should be as simple as that; you should now be able to login via shibboleth in the opac.
+It should be as simple as that; you should now be able to login via shibboleth.
 
 If you need more help configuring your B<S>ervice B<P>rovider to authenticate against a chosen B<Id>entity B<P>rovider then it might be worth taking a look at the community wiki L<page|http://wiki.koha-community.org/wiki/Shibboleth_Configuration>
 
