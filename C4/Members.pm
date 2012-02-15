@@ -98,6 +98,7 @@ BEGIN {
     #Insert data
     push @EXPORT, qw(
         &AddMember
+        &AddMember_Auto
         &AddMember_Opac
     );
 
@@ -122,7 +123,7 @@ use C4::Members;
 
 =head1 DESCRIPTION
 
-This module contains routines for adding, modifying and deleting members/patrons/borrowers 
+This module contains routines for adding, modifying and deleting members/patrons/borrowers
 
 =head1 FUNCTIONS
 
@@ -265,7 +266,7 @@ The following will be set where applicable:
  $flags->{WAITING}->{message}       Message -- deprecated
  $flags->{WAITING}->{itemlist}      ref-to-array: list of available items
 
-=over 
+=over
 
 =item C<$flags-E<gt>{ODUES}-E<gt>{itemlist}> is a reference-to-array listing the
 overdue items. Its elements are references-to-hash, each describing an
@@ -281,7 +282,7 @@ fields from the reserves table of the Koha database.
 
 =back
 
-All the "message" fields that include language generated in this function are deprecated, 
+All the "message" fields that include language generated in this function are deprecated,
 because such strings belong properly in the display layer.
 
 The "message" field that comes from the DB is OK.
@@ -418,7 +419,7 @@ sub GetMember {
     my $dbh = C4::Context->dbh;
     my $select =
     q{SELECT borrowers.*, categories.category_type, categories.description
-    FROM borrowers 
+    FROM borrowers
     LEFT JOIN categories on borrowers.categorycode=categories.categorycode WHERE };
     my $more_p = 0;
     my @values = ();
@@ -477,8 +478,8 @@ sub GetMemberIssuesAndFines {
     my $issue_count = $sth->fetchrow_arrayref->[0];
 
     $sth = $dbh->prepare(
-        "SELECT COUNT(*) FROM issues 
-         WHERE borrowernumber = ? 
+        "SELECT COUNT(*) FROM issues
+         WHERE borrowernumber = ?
          AND date_due < now()"
     );
     $sth->execute($borrowernumber);
@@ -785,7 +786,7 @@ sub fixup_cardnumber {
         my ($result) = $sth->fetchrow;
         return $result + 1;
     }
-    return $cardnumber;     # just here as a fallback/reminder 
+    return $cardnumber;     # just here as a fallback/reminder
 }
 
 =head2 GetPendingIssues
@@ -904,14 +905,14 @@ sub GetAllIssues {
     my $dbh = C4::Context->dbh;
     my $query =
 'SELECT *, issues.timestamp as issuestimestamp, issues.renewals AS renewals,items.renewals AS totalrenewals,items.timestamp AS itemstimestamp
-  FROM issues 
+  FROM issues
   LEFT JOIN items on items.itemnumber=issues.itemnumber
   LEFT JOIN biblio ON items.biblionumber=biblio.biblionumber
   LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
-  WHERE borrowernumber=? 
+  WHERE borrowernumber=?
   UNION ALL
-  SELECT *, old_issues.timestamp as issuestimestamp, old_issues.renewals AS renewals,items.renewals AS totalrenewals,items.timestamp AS itemstimestamp 
-  FROM old_issues 
+  SELECT *, old_issues.timestamp as issuestimestamp, old_issues.renewals AS renewals,items.renewals AS totalrenewals,items.timestamp AS itemstimestamp
+  FROM old_issues
   LEFT JOIN items on items.itemnumber=old_issues.itemnumber
   LEFT JOIN biblio ON items.biblionumber=biblio.biblionumber
   LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
@@ -947,8 +948,8 @@ sub GetMemberAccountRecords {
     my @acctlines;
     my $numlines = 0;
     my $strsth      = qq(
-                        SELECT * 
-                        FROM accountlines 
+                        SELECT *
+                        FROM accountlines
                         WHERE borrowernumber=?);
     $strsth.=" ORDER BY accountlines_id desc";
     my $sth= $dbh->prepare( $strsth );
@@ -1026,11 +1027,11 @@ sub GetBorNotifyAcctRecord {
     my @acctlines;
     my $numlines = 0;
     my $sth = $dbh->prepare(
-            "SELECT * 
-                FROM accountlines 
-                WHERE borrowernumber=? 
-                    AND notify_id=? 
-                    AND amountoutstanding != '0' 
+            "SELECT *
+                FROM accountlines
+                WHERE borrowernumber=?
+                    AND notify_id=?
+                    AND amountoutstanding != '0'
                 ORDER BY notify_id,accounttype
                 ");
 
@@ -1113,8 +1114,8 @@ sub get_cardnumber_length {
 
   $email = GetFirstValidEmailAddress($borrowernumber);
 
-Return the first valid email address for a borrower, given the borrowernumber.  For now, the order 
-is defined as email, emailpro, B_email.  Returns the empty string if the borrower has no email 
+Return the first valid email address for a borrower, given the borrowernumber.  For now, the order
+is defined as email, emailpro, B_email.  Returns the empty string if the borrower has no email
 addresses.
 
 =cut
@@ -1298,8 +1299,8 @@ sub GetHideLostItemsPreference {
     my $query = "SELECT hidelostitems FROM borrowers,categories WHERE borrowers.categorycode = categories.categorycode AND borrowernumber = ?";
     my $sth = $dbh->prepare($query);
     $sth->execute($borrowernumber);
-    my $hidelostitems = $sth->fetchrow;    
-    return $hidelostitems;    
+    my $hidelostitems = $sth->fetchrow;
+    return $hidelostitems;
 }
 
 =head2 GetBorrowersToExpunge
@@ -1325,11 +1326,11 @@ sub GetBorrowersToExpunge {
     my $filtercategory   = $params->{'category_code'};
     my $filterbranch     = $params->{'branchcode'} ||
                         ((C4::Context->preference('IndependentBranches')
-                             && C4::Context->userenv 
+                             && C4::Context->userenv
                              && !C4::Context->IsSuperLibrarian()
                              && C4::Context->userenv->{branch})
                          ? C4::Context->userenv->{branch}
-                         : "");  
+                         : "");
     my $filterpatronlist = $params->{'patron_list_id'};
 
     my $dbh   = C4::Context->dbh;
@@ -1382,13 +1383,13 @@ sub GetBorrowersToExpunge {
     warn $query if $debug;
 
     my $sth = $dbh->prepare($query);
-    if (scalar(@query_params)>0){  
+    if (scalar(@query_params)>0){
         $sth->execute(@query_params);
     }
     else {
         $sth->execute;
     }
-    
+
     my @results;
     while ( my $data = $sth->fetchrow_hashref ) {
         push @results, $data;
@@ -1407,13 +1408,13 @@ I<$result> is a ref to an array which all elements are a hasref.
 =cut
 
 sub GetBorrowersWhoHaveNeverBorrowed {
-    my $filterbranch = shift || 
+    my $filterbranch = shift ||
                         ((C4::Context->preference('IndependentBranches')
-                             && C4::Context->userenv 
+                             && C4::Context->userenv
                              && !C4::Context->IsSuperLibrarian()
                              && C4::Context->userenv->{branch})
                          ? C4::Context->userenv->{branch}
-                         : "");  
+                         : "");
     my $dbh   = C4::Context->dbh;
     my $query = "
         SELECT borrowers.borrowernumber,max(timestamp) as latestissue
@@ -1422,20 +1423,20 @@ sub GetBorrowersWhoHaveNeverBorrowed {
         WHERE issues.borrowernumber IS NULL
    ";
     my @query_params;
-    if ($filterbranch && $filterbranch ne ""){ 
+    if ($filterbranch && $filterbranch ne ""){
         $query.=" AND borrowers.branchcode= ?";
         push @query_params,$filterbranch;
     }
     warn $query if $debug;
-  
+
     my $sth = $dbh->prepare($query);
-    if (scalar(@query_params)>0){  
+    if (scalar(@query_params)>0){
         $sth->execute(@query_params);
-    } 
+    }
     else {
         $sth->execute;
-    }      
-    
+    }
+
     my @results;
     while ( my $data = $sth->fetchrow_hashref ) {
         push @results, $data;
@@ -1457,25 +1458,25 @@ This hashref is containt the number of time this borrowers has borrowed before I
 sub GetBorrowersWithIssuesHistoryOlderThan {
     my $dbh  = C4::Context->dbh;
     my $date = shift ||POSIX::strftime("%Y-%m-%d",localtime());
-    my $filterbranch = shift || 
+    my $filterbranch = shift ||
                         ((C4::Context->preference('IndependentBranches')
-                             && C4::Context->userenv 
+                             && C4::Context->userenv
                              && !C4::Context->IsSuperLibrarian()
                              && C4::Context->userenv->{branch})
                          ? C4::Context->userenv->{branch}
-                         : "");  
+                         : "");
     my $query = "
        SELECT count(borrowernumber) as n,borrowernumber
        FROM old_issues
        WHERE returndate < ?
-         AND borrowernumber IS NOT NULL 
-    "; 
+         AND borrowernumber IS NOT NULL
+    ";
     my @query_params;
     push @query_params, $date;
     if ($filterbranch){
         $query.="   AND branchcode = ?";
         push @query_params, $filterbranch;
-    }    
+    }
     $query.=" GROUP BY borrowernumber ";
     warn $query if $debug;
     my $sth = $dbh->prepare($query);
@@ -1635,6 +1636,16 @@ sub GetBorrowersWithEmail {
     }
     die "Failure searching for borrowers by email address: $sth->errstr" if $sth->err;
     return @result;
+}
+
+sub AddMember_Auto {
+    my ( %borrower ) = @_;
+
+    $borrower{'cardnumber'} ||= fixup_cardnumber();
+
+    $borrower{'borrowernumber'} = AddMember(%borrower);
+
+    return %borrower;
 }
 
 =head2 AddMember_Opac
