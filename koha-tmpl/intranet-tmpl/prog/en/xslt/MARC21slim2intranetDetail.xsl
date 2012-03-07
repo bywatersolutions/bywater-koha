@@ -255,6 +255,7 @@
         </xsl:if>
 
         <!-- Analytics -->
+  <!--
         <xsl:if test="$leader7='s'">
         <span class="results_summary analytics"><span class="label">Analytics: </span>
             <a>
@@ -270,8 +271,10 @@
             </a>
         </span>
         </xsl:if>
+     -->
 
         <!-- Volumes of sets and traced series -->
+        <!--
         <xsl:if test="$materialTypeCode='ST' or substring($controlField008,22,1)='m'">
         <span class="results_summary volumes"><span class="label">Volumes: </span>
             <a>
@@ -287,6 +290,7 @@
             </a>
         </span>
         </xsl:if>
+     -->
 
         <!-- Set -->
         <xsl:if test="$leader19='c'">
