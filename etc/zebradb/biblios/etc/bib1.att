@@ -387,3 +387,6 @@ att 6071    Electronic-Copy-Availability
 att 9026    Accession-number
 att 9022    LC-card-number-active
 att 9023    LC-card-number-canceled
+
+# MassCat specific
+att 9014    Masscat-number
