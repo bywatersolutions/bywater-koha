@@ -1306,6 +1306,94 @@ CREATE TABLE `oai_sets_biblios` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
+-- Table structure for table `old_issues`
+--
+
+DROP TABLE IF EXISTS `old_issues`;
+CREATE TABLE `old_issues` ( -- lists items that were checked out and have been returned
+  `issue_id` int(11) NOT NULL, -- primary key for issues table
+  `borrowernumber` int(11) default NULL, -- foreign key, linking this to the borrowers table for the patron this item was checked out to
+  `itemnumber` int(11) default NULL, -- foreign key, linking this to the items table for the item that was checked out
+  `date_due` datetime default NULL, -- date the item is due (yyyy-mm-dd)
+  `branchcode` varchar(10) default NULL, -- foreign key, linking to the branches table for the location the item was checked out
+  `returndate` datetime default NULL, -- date the item was returned
+  `lastreneweddate` datetime default NULL, -- date the item was last renewed
+  `return` varchar(4) default NULL,
+  `renewals` tinyint(4) default NULL, -- lists the number of times the item was renewed
+  `auto_renew` BOOLEAN default FALSE, -- automatic renewal
+  `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP, -- the date and time this record was last touched
+  `issuedate` datetime default NULL, -- date the item was checked out or issued
+  `onsite_checkout` int(1) NOT NULL default 0, -- in house use flag
+  PRIMARY KEY (`issue_id`),
+  KEY `old_issuesborridx` (`borrowernumber`),
+  KEY `old_issuesitemidx` (`itemnumber`),
+  KEY `branchcode_idx` (`branchcode`),
+  KEY `old_bordate` (`borrowernumber`,`timestamp`),
+  CONSTRAINT `old_issues_ibfk_1` FOREIGN KEY (`borrowernumber`) REFERENCES `borrowers` (`borrowernumber`)
+    ON DELETE SET NULL ON UPDATE SET NULL,
+  CONSTRAINT `old_issues_ibfk_2` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`)
+    ON DELETE SET NULL ON UPDATE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Table structure for table `old_reserves`
+--
+DROP TABLE IF EXISTS `old_reserves`;
+CREATE TABLE `old_reserves` ( -- this table holds all holds/reserves that have been completed (either filled or cancelled)
+  `reserve_id` int(11) NOT NULL, -- primary key
+  `borrowernumber` int(11) default NULL, -- foreign key from the borrowers table defining which patron this hold is for
+  `reservedate` date default NULL, -- the date the hold was places
+  `biblionumber` int(11) default NULL, -- foreign key from the biblio table defining which bib record this hold is on
+  `branchcode` varchar(10) default NULL, -- foreign key from the branches table defining which branch the patron wishes to pick this hold up at
+  `notificationdate` date default NULL, -- currently unused
+  `reminderdate` date default NULL, -- currently unused
+  `cancellationdate` date default NULL, -- the date this hold was cancelled
+  `reservenotes` mediumtext, -- notes related to this hold
+  `priority` smallint(6) default NULL, -- where in the queue the patron sits
+  `found` varchar(1) default NULL, -- a one letter code defining what the status is of the hold is after it has been confirmed
+  `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP, -- the date and time this hold was last updated
+  `itemnumber` int(11) default NULL, -- foreign key from the items table defining the specific item the patron has placed on hold or the item this hold was filled with
+  `waitingdate` date default NULL, -- the date the item was marked as waiting for the patron at the library
+  `expirationdate` DATE DEFAULT NULL, -- the date the hold expires (usually the date entered by the patron to say they don't need the hold after a certain date)
+  `lowestPriority` tinyint(1) NOT NULL, -- has this hold been pinned to the lowest priority in the holds queue (1 for yes, 0 for no)
+  `suspend` BOOLEAN NOT NULL DEFAULT 0, -- in this hold suspended (1 for yes, 0 for no)
+  `suspend_until` DATETIME NULL DEFAULT NULL, -- the date this hold is suspended until (NULL for infinitely)
+  `printed` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`reserve_id`),
+  KEY `old_reserves_borrowernumber` (`borrowernumber`),
+  KEY `old_reserves_biblionumber` (`biblionumber`),
+  KEY `old_reserves_itemnumber` (`itemnumber`),
+  KEY `old_reserves_branchcode` (`branchcode`),
+  CONSTRAINT `old_reserves_ibfk_1` FOREIGN KEY (`borrowernumber`) REFERENCES `borrowers` (`borrowernumber`)
+    ON DELETE SET NULL ON UPDATE SET NULL,
+  CONSTRAINT `old_reserves_ibfk_2` FOREIGN KEY (`biblionumber`) REFERENCES `biblio` (`biblionumber`)
+    ON DELETE SET NULL ON UPDATE SET NULL,
+  CONSTRAINT `old_reserves_ibfk_3` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`)
+    ON DELETE SET NULL ON UPDATE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Table structure for table `opac_news`
+--
+
+DROP TABLE IF EXISTS `opac_news`;
+CREATE TABLE `opac_news` ( -- data from the news tool
+  `idnew` int(10) unsigned NOT NULL auto_increment, -- unique identifier for the news article
+  `branchcode` varchar(10) default NULL, -- branch code users to create branch specific news, NULL is every branch.
+  `title` varchar(250) NOT NULL default '', -- title of the news article
+  `new` text NOT NULL, -- the body of your news article
+  `lang` varchar(25) NOT NULL default '', -- location for the article (koha is the staff client, slip is the circulation receipt and language codes are for the opac)
+  `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP, -- pulibcation date and time
+  `expirationdate` date default NULL, -- date the article is set to expire or no longer be visible
+  `number` int(11) default NULL, -- the order in which this article appears in that specific location
+  `borrowernumber` int(11) default NULL, -- The user who created the news article
+  PRIMARY KEY  (`idnew`),
+  CONSTRAINT `borrowernumber_fk` FOREIGN KEY (`borrowernumber`) REFERENCES `borrowers` (`borrowernumber`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT opac_news_branchcode_ibfk FOREIGN KEY (branchcode) REFERENCES branches (branchcode)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
 -- Table structure for table `overduerules`
 --
 
@@ -1895,6 +1983,7 @@ CREATE TABLE `reserves` ( -- information related to holds/reserves in Koha
   `suspend` BOOLEAN NOT NULL DEFAULT 0,
   `suspend_until` DATETIME NULL DEFAULT NULL,
   `itemtype` VARCHAR(10) NULL DEFAULT NULL, -- If record level hold, the optional itemtype of the item the patron is requesting
+  `printed` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`reserve_id`),
   KEY priorityfoundidx (priority,found),
   KEY `borrowernumber` (`borrowernumber`),
