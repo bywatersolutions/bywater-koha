@@ -1884,6 +1884,7 @@ CREATE TABLE `reserves` ( -- information related to holds/reserves in Koha
   `lowestPriority` tinyint(1) NOT NULL DEFAULT 0,
   `suspend` BOOLEAN NOT NULL DEFAULT 0,
   `suspend_until` DATETIME NULL DEFAULT NULL,
+  `printed` BOOLEAN NULL DEFAULT NULL,
   `itemtype` VARCHAR(10) NULL DEFAULT NULL, -- If record level hold, the optional itemtype of the item the patron is requesting
   PRIMARY KEY (`reserve_id`),
   KEY priorityfoundidx (priority,found),
@@ -1923,6 +1924,7 @@ CREATE TABLE `old_reserves` ( -- this table holds all holds/reserves that have b
   `lowestPriority` tinyint(1) NOT NULL DEFAULT 0, -- has this hold been pinned to the lowest priority in the holds queue (1 for yes, 0 for no)
   `suspend` BOOLEAN NOT NULL DEFAULT 0, -- in this hold suspended (1 for yes, 0 for no)
   `suspend_until` DATETIME NULL DEFAULT NULL, -- the date this hold is suspended until (NULL for infinitely)
+  `printed` BOOLEAN NULL DEFAULT NULL,
   `itemtype` VARCHAR(10) NULL DEFAULT NULL, -- If record level hold, the optional itemtype of the item the patron is requesting
   PRIMARY KEY (`reserve_id`),
   KEY `old_reserves_borrowernumber` (`borrowernumber`),
