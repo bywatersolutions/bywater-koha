@@ -37,6 +37,7 @@ use warnings;
 use CGI qw ( -utf8 );
 use Digest::MD5 qw(md5_base64);
 
+use C4::Context;
 use C4::Auth qw(get_template_and_user checkpw);
 use C4::Koha;
 use C4::Circulation;
@@ -246,6 +247,7 @@ if ($borrower->{cardnumber}) {
         patronid => $patronid,
         patronlogin => $patronlogin,
         patronpw => $patronpw,
+        soundon  => C4::Context->preference("SoundOn"),
         noitemlinks => 1 ,
         borrowernumber => $borrower->{'borrowernumber'},
     );
