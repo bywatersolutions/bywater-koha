@@ -594,6 +594,13 @@ foreach my $subscription (@subscriptions) {
 
 $dat->{'count'} = scalar(@items);
 
+# If there is a lot of items, and the user has not decided
+# to view them all yet, we first warn him
+# TODO: The limit of 50 could be a syspref
+my $viewallitems = $query->param('viewallitems');
+if ($dat->{'count'} >= 200 && !$viewallitems) {
+    $template->param('lotsofitems' => 1);
+}
 
 my (%item_reserves, %priority);
 my ($show_holds_count, $show_priority);
