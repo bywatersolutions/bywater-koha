@@ -39,5 +39,4 @@ $template->param( fast_cataloging => 1 ) if Koha::BiblioFrameworks->find( 'FA' )
 
 $template->{'VARS'}->{'AllowOfflineCirculation'} = C4::Context->preference('AllowOfflineCirculation');
 
-
 output_html_with_http_headers $query, $cookie, $template->output;
