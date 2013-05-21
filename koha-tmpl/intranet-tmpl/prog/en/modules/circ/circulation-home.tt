@@ -22,9 +22,7 @@
         <li><a href="/cgi-bin/koha/circ/circulation.pl">Check out</a></li>
         <li><a href="/cgi-bin/koha/circ/returns.pl">Check in</a></li>
         <li><a href="/cgi-bin/koha/circ/renew.pl">Renew</a></li>
-    [% IF Branches.InIndependentBranchesMode %]
 		<li><a href="/cgi-bin/koha/circ/branchtransfers.pl">Transfer</a></li>
-    [% END %]
     [% UNLESS IndependentBranches %]<li><a href="/cgi-bin/koha/circ/selectbranchprinter.pl">Set library</a></li>[% END %]
 	[% IF ( fast_cataloging ) %]
 	    [% IF ( CAN_user_editcatalogue_fast_cataloging ) %]
