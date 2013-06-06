@@ -39,6 +39,7 @@
                             </li>
                         [% END %]
                     [% END %]
+                    <li><a href="/cgi-bin/koha/circ/delinquent_patrons.pl">Overdues phone list</a></li>
                 </ul>
             </div>
 
