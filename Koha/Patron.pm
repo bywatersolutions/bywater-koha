@@ -110,14 +110,46 @@ Autogenerate next cardnumber from highest value found in database
 =cut
 
 sub fixup_cardnumber {
-    my ( $self ) = @_;
-    my $max = Koha::Patrons->search({
-        cardnumber => {-regexp => '^-?[0-9]+$'}
-    }, {
-        select => \'CAST(cardnumber AS SIGNED)',
-        as => ['cast_cardnumber']
-    })->_resultset->get_column('cast_cardnumber')->max;
-    $self->cardnumber(($max || 0) +1);
+    my ($self) = @_;
+
+    my $branch = Koha::Libraries->find( $self->branchcode );
+    return unless $branch;
+    my $patronbarcodeprefix = $branch->patronbarcodeprefix;
+    my $patronbarcodelength = C4::Context->preference('patronbarcodelength');
+
+    my $max = Koha::Patrons->search(
+        {
+            -and => [
+                cardnumber => { -regexp => '^-?[0-9]+$' },
+                cardnumber => { -regexp => "^$patronbarcodeprefix" },
+                \[ 'LENGTH(cardnumber) = ?', $patronbarcodelength ],
+            ]
+        },
+        {
+            select => \'CAST(cardnumber AS SIGNED)',
+            as     => ['cast_cardnumber']
+        }
+    )->_resultset->get_column('cast_cardnumber')->max;
+    $max =~ s/^$patronbarcodeprefix//;
+    my $next = $max + 1;
+
+    my $prefix_len  = length( $branch->patronbarcodeprefix );
+    my $next_len    = length($next);
+    my $padding_len = $patronbarcodelength - $prefix_len - $next_len;
+    my $padding     = '0' x $padding_len;
+
+    my $cardnumber = $branch->patronbarcodeprefix . $padding . $next;
+
+    while ( my $patron = Koha::Patrons->find( { cardnumber => $cardnumber } ) )
+    {
+        $next++;
+        $next_len    = length($next);
+        $padding_len = $patronbarcodelength - $prefix_len - $next_len;
+        $padding     = '0' x $padding_len;
+        $cardnumber  = $branch->patronbarcodeprefix . $padding . $next;
+    }
+
+    $self->cardnumber( $cardnumber || 0 );
 }
 
 =head3 trim_whitespace
@@ -177,6 +209,13 @@ sub store {
 
     $self->_result->result_source->schema->txn_do(
         sub {
+            # modify cardnumber with prefix, if needed.
+            if ( C4::Context->preference('patronbarcodelength')
+                && defined $self->cardnumber )
+            {
+                $self->cardnumber( _prefix_cardnum( $self->cardnumber ) );
+            }
+
             if (
                 C4::Context->preference("autoMemberNum")
                 and ( not defined $self->cardnumber
@@ -1935,5 +1974,32 @@ Alex Sassmannshausen <alex.sassmannshausen@ptfs-europe.com>
 Martin Renvoize <martin.renvoize@ptfs-europe.com>
 
 =cut
+
+=head2 _prefix_cardnum
+
+$cardnum = _prefix_cardnum($cardnum,$branchcode);
+
+If a system-wide barcode length is defined, and a prefix defined for the passed branch or the user's branch,
+modify the barcode by prefixing and padding.
+
+=cut
+
+sub _prefix_cardnum{
+    my ($cardnum,$branchcode) = @_;
+
+    if(C4::Context->preference('patronbarcodelength') && (length($cardnum) < C4::Context->preference('patronbarcodelength'))) {
+        #if we have a system-wide cardnum length and a branch prefix, prepend the prefix.
+        if( ! $branchcode && defined(C4::Context->userenv) ) {
+            $branchcode = C4::Context->userenv->{'branch'};
+        }
+        return $cardnum unless $branchcode;
+        my $library = Koha::Libraries->find( $branchcode );
+        return $cardnum unless( $library && $library->patronbarcodeprefix );
+        my $prefix = $library->patronbarcodeprefix ;
+        my $padding = C4::Context->preference('patronbarcodelength') - length($prefix) - length($cardnum) ;
+        $cardnum = $prefix . '0' x $padding . $cardnum if($padding >= 0) ;
+   }
+    return $cardnum;
+}
 
 1;
