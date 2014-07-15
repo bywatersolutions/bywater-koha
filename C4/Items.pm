@@ -173,6 +173,7 @@ sub AddItemFromMarc {
     $item_values->{biblionumber} = $biblionumber;
     $item_values->{cn_source} = delete $item_values->{'items.cn_source'}; # Because of C4::Biblio::_disambiguate
     $item_values->{cn_sort}   = delete $item_values->{'items.cn_sort'};   # Because of C4::Biblio::_disambiguate
+    _check_itembarcode( $item_values ) if ( C4::Context->preference( 'itembarcodelength' ) );
     my $item = Koha::Item->new( $item_values )->store({ skip_record_index => $params->{skip_record_index} });
     return ( $item->biblionumber, $item->biblioitemnumber, $item->itemnumber );
 }
@@ -260,6 +261,8 @@ sub AddItemBatchFromMarc {
             push @bad_item_fields, $item_field;
             next ITEMFIELD;
         }
+
+        _check_itembarcode( $item ) if ( C4::Context->preference( 'itembarcodelength' ) );
 
         my $item_object = Koha::Item->new($item)->store;
         push @itemnumbers, $item_object->itemnumber; # FIXME not checking error
@@ -1926,6 +1929,32 @@ sub ToggleNewStatus {
     }
 
     return $report;
+}
+
+=head2 _check_itembarcode
+
+=over 4
+
+&_check_itembarcode
+
+=back
+
+Modifies item barcode value to include prefix defined in branches.itembarcodeprefix
+if the length is less than the syspref itembarcodelength .
+
+=cut
+sub _check_itembarcode {
+    my $item = shift;
+    return(0) unless $item->{'barcode'}; # only modify if we've been passed a barcode.
+    # check item barcode prefix
+    # note this doesn't enforce barcodelength.
+    my $branch_prefix = Koha::Libraries->find( $item->{'homebranch'} )->itembarcodeprefix;
+    if(length($item->{'barcode'}) < C4::Context->preference('itembarcodelength')) {
+        my $padding = C4::Context->preference('itembarcodelength') - length($branch_prefix) - length($item->{'barcode'}) ;
+        $item->{'barcode'} = $branch_prefix .  '0' x $padding . $item->{'barcode'} if($padding >= 0) ;
+    } else {
+      #  $errors{'invalid_barcode'} = $item->{'barcode'};
+    }
 }
 
 1;
