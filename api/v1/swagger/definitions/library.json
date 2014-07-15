@@ -8,6 +8,14 @@
       "type": "string",
       "description": "Printable name of library"
     },
+    "itembarcodeprefix": {
+      "type": ["string", "null"],
+      "description": "Library item barcode prefix"
+    },
+    "patronbarcodeprefix": {
+      "type": ["string", "null"],
+      "description": "Library patron barcode prefix"
+    },
     "address1": {
       "type": ["string", "null"],
       "description": "the first address line of the library"
