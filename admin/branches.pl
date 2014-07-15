@@ -76,6 +76,8 @@ if ( $op eq 'add_form' ) {
       branchip
       branchnotes
       opac_info
+      itembarcodeprefix
+      patronbarcodeprefix
     );
     my $is_a_modif = $input->param('is_a_modif');
 
