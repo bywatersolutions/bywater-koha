@@ -112,6 +112,9 @@ if ($op eq "logout") {
 $barcode = barcodedecode( $barcode ) if $barcode;
 
 my @newissueslist = split /,/, $newissues;
+
+$barcode = barcodedecode($barcode) if ( $barcode && ( C4::Context->preference('itemBarcodeInputFilter') || C4::Context->preference('itembarcodelength') ) );
+
 my $issuenoconfirm = 1; #don't need to confirm on issue.
 my $issuer   = Koha::Patrons->find( $issuerid )->unblessed;
 
@@ -132,6 +135,13 @@ my $patron;
 if ( $patronid ) {
     Koha::Plugins->call( 'patron_barcode_transform', \$patronid );
     $patron = Koha::Patrons->find( { cardnumber => $patronid } );
+
+    unless ( $patron ) {
+        my $temp_patron = Koha::Patron->new( { cardnumber => $patronid } );
+        $temp_patron->fixup_cardnumber( C4::Context->userenv->{branch} );
+        my $patronid_prefixed = $temp_patron->cardnumber;
+        $patron ||= Koha::Patrons->find( { cardnumber => $patronid } );
+    }
 }
 
 undef $jwt unless $patron;
