@@ -45,6 +45,11 @@ my ( $template, $borrowernumber, $cookie ) = get_template_and_user(
     }
 );
 
+$template->param(
+     itembarcodelength   => C4::Context->preference('itembarcodelength'),
+     patronbarcodelength => C4::Context->preference('patronbarcodelength'),
+);
+
 if ( $op eq 'add_form' ) {
     my $library;
     if ($branchcode) {
@@ -76,6 +81,8 @@ if ( $op eq 'add_form' ) {
       branchip
       branchnotes
       opac_info
+      itembarcodeprefix
+      patronbarcodeprefix
     );
     my $is_a_modif = $input->param('is_a_modif');
 
