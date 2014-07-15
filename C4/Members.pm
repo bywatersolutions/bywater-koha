@@ -45,6 +45,8 @@ use Koha::Holds;
 use Koha::List::Patron;
 use Koha::Patrons;
 use Koha::Patron::Categories;
+use Koha::Libraries;
+use Koha::Schema;
 
 our (@ISA,@EXPORT,@EXPORT_OK,$debug);
 
@@ -657,6 +659,36 @@ DELETE FROM borrower_modifications
 WHERE borrowernumber = 0 AND DATEDIFF( NOW(), timestamp ) > ?|;
     my $cnt=$dbh->do($sql, undef, ($days) );
     return $cnt eq '0E0'? 0: $cnt;
+}
+
+=head2 _prefix_cardnum
+
+=over 4
+
+$cardnum = _prefix_cardnum($cardnum,$branchcode);
+
+If a system-wide barcode length is defined, and a prefix defined for the passed branch or the user's branch,
+modify the barcode by prefixing and padding.
+
+=back
+=cut
+
+sub _prefix_cardnum{
+    my ($cardnum,$branchcode) = @_;
+
+    if(C4::Context->preference('patronbarcodelength') && (length($cardnum) < C4::Context->preference('patronbarcodelength'))) {
+        #if we have a system-wide cardnum length and a branch prefix, prepend the prefix.
+        if( ! $branchcode && defined(C4::Context->userenv) ) {
+            $branchcode = C4::Context->userenv->{'branch'};
+        }
+        return $cardnum unless $branchcode;
+        my $library = Koha::Libraries->find( $branchcode );
+        return $cardnum unless( $library && $library->patronbarcodeprefix );
+        my $prefix = $library->patronbarcodeprefix ;
+        my $padding = C4::Context->preference('patronbarcodelength') - length($prefix) - length($cardnum) ;
+        $cardnum = $prefix . '0' x $padding . $cardnum if($padding >= 0) ;
+   }
+    return $cardnum;
 }
 
 END { }    # module clean-up code here (global destructor)

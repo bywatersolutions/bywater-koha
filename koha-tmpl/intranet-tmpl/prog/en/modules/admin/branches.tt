@@ -2,6 +2,7 @@
 [% USE Asset %]
 [% SET footerjs = 1 %]
 [% USE ColumnsSettings %]
+[% USE Koha %]
 [% INCLUDE 'doc-head-open.inc' %]
 <title>Koha &rsaquo; Administration &rsaquo; Libraries
 [% IF op == 'add_form' %]
@@ -145,6 +146,12 @@
                 <li><label for="opac_info">OPAC info: </label><textarea name="opac_info" id="opac_info">[% library.opac_info | $raw %]</textarea></li>
                 <li><label for="branchip">IP: </label><input type="text" name="branchip" id="branchip"  size="15" maxlength="15" value="[% library.branchip | html %]" /> <span class="hint">Can be entered as a single IP, or a subnet such as 192.168.1.*</span></li>
                 <li><label for="marcorgccode">MARC organization code</label> <input type="text" name="marcorgcode" id="marcorgcode" size="16" value="[% library.marcorgcode | html %]" /> <span class="hint">If not filled in defaults to system preference MARCOrgCode. You can obtain your code from <a href="http://www.loc.gov/marc/organizations/orgshome.html" target="_blank">Library of Congress</a>.</span>
+                [% IF Koha.Preference('itembarcodelength') %]
+                   <li><label for="itembarcodeprefix">Item Barcode Prefix</label><input type="text" name="itembarcodeprefix" id="itembarcodeprefix" value="[% library.itembarcodeprefix |html %]" /></li>
+                [% END %]
+                [% IF Koha.Preference('patronbarcodelength') %]
+                   <li><label for="patronbarcodeprefix">Patron Barcode Prefix</label><input type="text" name="patronbarcodeprefix" id="patronbarcodeprefix" value="[% library.patronbarcodeprefix |html %]" /></li>
+                [% END %]
                 <li><label for="branchnotes">Notes: </label><input type="text" name="branchnotes" id="branchnotes" size="80" value="[% library.branchnotes | html %]" /></li>
                 <li><label for="pickup_location">Pickup location: </label>
                     <select name="pickup_location" id="pickup_location">
