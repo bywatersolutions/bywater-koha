@@ -224,6 +224,7 @@ my $message;
 if ($findborrower) {
     Koha::Plugins->call( 'patron_barcode_transform', \$findborrower );
     my $patron = Koha::Patrons->find( { cardnumber => $findborrower } );
+    my $patron ||= Koha::Patrons->find( { cardnumber => C4::Members::_prefix_cardnum( $findborrower ) } );
     if ( $patron ) {
         $borrowernumber = $patron->borrowernumber;
     } else {
