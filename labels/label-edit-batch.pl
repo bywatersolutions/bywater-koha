@@ -89,6 +89,7 @@ elsif ($op eq 'add') {
                 push @item_numbers, $number;
             }
             elsif ($number_type eq "barcode" ) {  # we must test in case an invalid barcode is passed in; we effectively disgard them atm
+                $number = barcodedecode($number) if ( $number && C4::Context->preference('itembarcodelength') );
                 my $item = Koha::Items->find({barcode => $number});
                 push @item_numbers, $item->itemnumber if $item;
             }
