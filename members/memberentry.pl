@@ -123,6 +123,9 @@ foreach my $id ( @delete_guarantor ) {
     $r->delete() if $r;
 }
 
+# BARCODE PREFIXES
+$cardnumber = Koha::Patron::_prefix_cardnum( $cardnumber, $userenv->{branch} ) if $cardnumber;
+
 ## Deal with debarments
 $template->param(
     debarments => scalar GetDebarments( { borrowernumber => $borrowernumber } ) );
@@ -653,6 +656,12 @@ if ( $op eq "duplicate" ) {
     $template->param( updtype => 'I' );
     $template->param( step_1 => 1, step_2 => 1, step_3 => 1, step_4 => 1, step_5 => 1, step_6 => 1, step_7 => 1 ) unless $step;
     $data{'cardnumber'} = "";
+}
+
+if ( ( $op eq 'add' ) or ( $op eq 'duplicate' ) ) {
+    my $temp_patron = Koha::Patron->new( { cardnumber => $cardnumber } );
+    $temp_patron->fixup_cardnumber( C4::Context->userenv->{branch} );
+    $data{cardnumber} = $temp_patron->cardnumber;
 }
 
 if(!defined($data{'sex'})){
