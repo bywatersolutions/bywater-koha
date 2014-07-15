@@ -110,6 +110,9 @@ my ($op, $patronid, $patronlogin, $patronpw, $barcode, $confirmed, $newissues) =
 );
 
 my @newissueslist = split /,/, $newissues;
+
+$barcode = barcodedecode($barcode) if ( $barcode && ( C4::Context->preference('itemBarcodeInputFilter') || C4::Context->preference('itembarcodelength') ) );
+
 my $issuenoconfirm = 1; #don't need to confirm on issue.
 my $issuer   = Koha::Patrons->find( $issuerid )->unblessed;
 my $item     = Koha::Items->find({ barcode => $barcode });
@@ -120,8 +123,14 @@ if (C4::Context->preference('SelfCheckoutByLogin') && !$patronid) {
 }
 
 my ( $borrower, $patron );
-if ( $patronid ) {
-    $patron = Koha::Patrons->find( { cardnumber => $patronid } );
+if ($patronid) {
+    # For BARCODE PREFIXES
+    my $temp_patron = Koha::Patron->new( { cardnumber => $patronid } );
+    $temp_patron->fixup_cardnumber( C4::Context->userenv->{branch} );
+    my $patronid_prefixed = $temp_patron->cardnumber;
+
+    $patron = Koha::Patrons->find( { cardnumber => $patronid_prefixed } );
+    $patron ||= Koha::Patrons->find( { cardnumber => $patronid } );
     $borrower = $patron->unblessed if $patron;
 }
 
