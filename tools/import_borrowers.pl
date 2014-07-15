@@ -340,7 +340,12 @@ if ( $uploadborrowers && length($uploadborrowers) > 0 ) {
             # FIXME: fixup_cardnumber says to lock table, but the web interface doesn't so this doesn't either.
             # At least this is closer to AddMember than in members/memberentry.pl
             if (!$borrower{'cardnumber'}) {
-                $borrower{'cardnumber'} = fixup_cardnumber(undef);
+              my $onlymine=(C4::Context->preference('IndependantBranches') &&
+              C4::Context->userenv &&
+              C4::Context->userenv->{flags} % 2 !=1  &&
+              C4::Context->userenv->{branch}?1:0);
+
+              $borrower{'cardnumber'} = fixup_cardnumber( undef, Koha::Libraries->find($borrower{'branchcode'})->unblessed );
             }
             if ($borrowernumber = AddMember(%borrower)) {
 
