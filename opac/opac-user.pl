@@ -36,6 +36,7 @@ use C4::Letters;
 use C4::Branch; # GetBranches
 use Koha::DateUtils;
 use Koha::Borrower::Debarments qw(IsDebarred);
+use Koha::Database;
 
 use constant ATTRIBUTE_SHOW_BARCODE => 'SHOW_BCODE';
 
@@ -47,6 +48,7 @@ use Date::Calc qw(
 );
 
 my $query = new CGI;
+my $schema = Koha::Database->new()->schema();
 
 BEGIN {
     if (C4::Context->preference('BakerTaylorEnabled')) {
@@ -163,6 +165,7 @@ my @overdues;
 my @issuedat;
 my $itemtypes = GetItemTypes();
 my $issues = GetPendingIssues($borrowernumber);
+my $account_debit_rs = $schema->resultset('AccountDebit');
 if ($issues){
     foreach my $issue ( sort { $b->{date_due}->datetime() cmp $a->{date_due}->datetime() } @{$issues} ) {
         # check for reserves
@@ -171,21 +174,9 @@ if ($issues){
             $issue->{'reserved'} = 1;
         }
 
-        my ( $total , $accts, $numaccts) = GetMemberAccountRecords( $borrowernumber );
-        my $charges = 0;
-        foreach my $ac (@$accts) {
-            if ( $ac->{'itemnumber'} == $issue->{'itemnumber'} ) {
-                $charges += $ac->{'amountoutstanding'}
-                  if $ac->{'accounttype'} eq 'F';
-                $charges += $ac->{'amountoutstanding'}
-                  if $ac->{'accounttype'} eq 'FU';
-                $charges += $ac->{'amountoutstanding'}
-                  if $ac->{'accounttype'} eq 'L';
-            }
-        }
-        $issue->{'charges'} = $charges;
         my $marcrecord = GetMarcBiblio( $issue->{'biblionumber'} );
         $issue->{'subtitle'} = GetRecordValue('subtitle', $marcrecord, GetFrameworkCode($issue->{'biblionumber'}));
+        $issue->{'charges'} = $account_debit_rs->search({ borrowernumber => $borrowernumber, itemnumber => $issue->{'itemnumber'} })->get_column('amount_outstanding')->sum();
         # check if item is renewable
         my ($status,$renewerror) = CanBookBeRenewed( $borrowernumber, $issue->{'itemnumber'} );
         ($issue->{'renewcount'},$issue->{'renewsallowed'},$issue->{'renewsleft'}) = GetRenewCount($borrowernumber, $issue->{'itemnumber'});
