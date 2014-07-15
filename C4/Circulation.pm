@@ -29,7 +29,6 @@ use C4::Reserves;
 use C4::Biblio;
 use C4::Items;
 use C4::Members;
-use C4::Accounts;
 use Koha::Accounts;
 use Koha::Accounts::CreditTypes;
 use C4::ItemCirculationAlertPreference;
