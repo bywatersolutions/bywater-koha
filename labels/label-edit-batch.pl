@@ -25,6 +25,7 @@ use CGI qw ( -utf8 );
 
 use C4::Auth qw(get_template_and_user);
 use C4::Output qw(output_html_with_http_headers);
+use C4::Circulation qw(barcodedecode);
 use C4::Creators;
 use C4::Labels;
 
@@ -92,6 +93,7 @@ elsif ($op eq 'add') {
                 push @item_numbers, $number;
             }
             elsif ($number_type eq "barcode" ) {  # we must test in case an invalid barcode is passed in; we effectively disgard them atm
+                $number = barcodedecode($number) if ( $number && C4::Context->preference('itembarcodelength') );
                 my $item = Koha::Items->find({barcode => $number});
                 push @item_numbers, $item->itemnumber if $item;
             }
