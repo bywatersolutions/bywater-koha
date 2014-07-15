@@ -28,7 +28,6 @@ use C4::Biblio;
 use C4::Members;
 use C4::Items;
 use C4::Circulation;
-use C4::Accounts;
 
 # for _koha_notify_reserve
 use C4::Members::Messaging;
@@ -202,7 +201,7 @@ sub AddReserve {
 
     # add a reserve fee if needed
     my $fee = GetReserveFee( $borrowernumber, $biblionumber );
-    ChargeReserveFee( $borrowernumber, $fee, $title );
+    ChargeReserveFee( $borrowernumber, $fee, $title, $checkitem, $biblionumber );
 
     _FixPriority({ biblionumber => $biblionumber});
 
@@ -662,14 +661,19 @@ sub GetOtherReserves {
 =cut
 
 sub ChargeReserveFee {
-    my ( $borrowernumber, $fee, $title ) = @_;
-    return if !$fee || $fee==0; # the last test is needed to include 0.00
-    my $accquery = qq{
-INSERT INTO accountlines ( borrowernumber, accountno, date, amount, description, accounttype, amountoutstanding ) VALUES (?, ?, NOW(), ?, ?, 'Res', ?)
-    };
-    my $dbh = C4::Context->dbh;
-    my $nextacctno = &getnextacctno( $borrowernumber );
-    $dbh->do( $accquery, undef, ( $borrowernumber, $nextacctno, $fee, "Reserve Charge - $title", $fee ) );
+    my ( $borrowernumber, $fee, $title, $checkitem, $biblionumber ) = @_;
+    if ( $fee > 0 ) {
+        AddDebit(
+            {
+                borrowernumber => $borrowernumber,
+                itemnumber     => $checkitem,
+                amount         => $fee,
+                type           => Koha::Accounts::DebitTypes::Hold(),
+                description    => "Hold fee - $title",
+                notes          => "Record ID: $biblionumber",
+            }
+        );
+    }
 }
 
 =head2 GetReserveFee
