@@ -241,6 +241,18 @@ Libraries &rsaquo; Administration &rsaquo; Koha
                     <input type="text" name="branchip" id="branchip"  size="15" maxlength="15" value="[% library.branchip | html %]" />
                     <div class="hint">Can be entered as a single IP, or a subnet such as 192.168.1.*</div>
                 </li>
+                [% IF Koha.Preference('itembarcodelength') %]
+                   <li>
+                       <label for="itembarcodeprefix">Item Barcode Prefix</label>
+                       <input type="text" name="itembarcodeprefix" id="itembarcodeprefix" value="[% library.itembarcodeprefix |html %]" />
+                   </li>
+                [% END %]
+                [% IF Koha.Preference('patronbarcodelength') %]
+                   <li>
+                       <label for="patronbarcodeprefix">Patron Barcode Prefix</label>
+                       <input type="text" name="patronbarcodeprefix" id="patronbarcodeprefix" value="[% library.patronbarcodeprefix |html %]" />
+                   </li>
+                [% END %]
                 <li>
                     <label for="marcorgcode">MARC organization code</label>
                     <input type="text" name="marcorgcode" id="marcorgcode" size="16" maxlength="16" value="[% library.marcorgcode | html %]" />

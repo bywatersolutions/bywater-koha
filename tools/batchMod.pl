@@ -367,6 +367,12 @@ if ($op eq "show"){
         if ( my $list = $input->param('barcodelist') ) {
             my @barcodelist = grep /\S/, ( split /[$split_chars]/, $list );
             @barcodelist = uniq @barcodelist;
+
+            # BARCODE PREFIXES
+            if ( C4::Context->preference('itembarcodelength') ) { 
+                @barcodelist = map { barcodedecode( $_ ) } @barcodelist
+            }
+
             # Note: adding lc for case insensitivity
             my %itemdata = map { lc($_->{barcode}) => $_->{itemnumber} } @{ Koha::Items->search({ barcode => \@barcodelist }, { columns => [ 'itemnumber', 'barcode' ] } )->unblessed };
             @itemnumbers = map { exists $itemdata{lc $_} ? $itemdata{lc $_} : () } @barcodelist;
