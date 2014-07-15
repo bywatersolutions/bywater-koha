@@ -46,9 +46,15 @@ use Koha::Holds;
 use Koha::List::Patron;
 use Koha::Patrons;
 use Koha::Patron::Categories;
+use Koha::Libraries;
 use Koha::Schema;
 
 our (@ISA,@EXPORT,@EXPORT_OK,$debug);
+
+use Module::Load;
+if ( C4::Context->preference('NorwegianPatronDBEnable') && C4::Context->preference('NorwegianPatronDBEnable') == 1 ) {
+    load Koha::NorwegianPatronDB, qw( NLUpdateHashedPIN NLEncryptPIN NLSync );
+}
 
 use Module::Load::Conditional qw( can_load );
 if ( ! can_load( modules => { 'Koha::NorwegianPatronDB' => undef } ) ) {
@@ -307,6 +313,13 @@ sub ModMember {
 
     my $old_categorycode = Koha::Patrons->find( $data{borrowernumber} )->categorycode;
 
+    # modify cardnumber with prefix, if needed.
+    if ( C4::Context->preference('patronbarcodelength')
+        && exists( $data{'cardnumber'} ) )
+    {
+        $data{'cardnumber'} = _prefix_cardnum( $data{'cardnumber'} );
+    }
+
     # get only the columns of a borrower
     my $schema = Koha::Database->new()->schema;
     my @columns = $schema->source('Borrower')->columns;
@@ -443,6 +456,8 @@ sub AddMember {
     # Make a copy of the plain text password for later use
     my $plain_text_password = $data{'password'};
 
+    $data{'cardnumber'} = _prefix_cardnum($data{'cardnumber'}) if(C4::Context->preference('patronbarcodelength'));
+
     # create a disabled account if no password provided
     $data{'password'} = ($data{'password'})? hash_password($data{'password'}) : '!';
 
@@ -489,7 +504,7 @@ mode, to avoid database corruption.
 =cut
 
 sub fixup_cardnumber {
-    my ($cardnumber) = @_;
+    my ($cardnumber,$branch) = @_;
     my $autonumber_members = C4::Context->boolean_preference('autoMemberNum') || 0;
 
     # Find out whether member numbers should be generated
@@ -499,12 +514,49 @@ sub fixup_cardnumber {
     ($autonumber_members) or return $cardnumber;
     my $dbh = C4::Context->dbh;
 
-    my $sth = $dbh->prepare(
-        'SELECT MAX( CAST( cardnumber AS SIGNED ) ) FROM borrowers WHERE cardnumber REGEXP "^-?[0-9]+$"'
-    );
+    # BEGIN BARCODE PREFIXES
+    my $cardlength = C4::Context->preference('patronbarcodelength');
+
+    my $query = 'SELECT MAX( CAST( cardnumber AS SIGNED ) ) FROM borrowers WHERE cardnumber REGEXP "^-?[0-9]+$"'
+
+    my $sth = $dbh->prepare( $query  );
+    if ( $branch->{'patronbarcodeprefix'} && $cardlength ) {
+        my $cardnum_search = $branch->{'patronbarcodeprefix'} . '%';
+        $query .= " AND cardnumber LIKE $cardnum_search";
+        $query .= " AND length(cardnumber) = $cardlength";
+    }
+
     $sth->execute;
     my ($result) = $sth->fetchrow;
-    return $result + 1;
+
+    if ($result) {
+        my $cnt = 0;
+        $result =~ s/^$branch->{'patronbarcodeprefix'}//;
+        while ( $result =~ /([a-zA-Z]*[0-9]*)\z/ )
+        {    # use perl's magical stringcrement behavior (++).
+            my $incrementable = $1;
+            $incrementable++;
+            if ( length($incrementable) > length($1) )
+            {    # carry a digit to next incrementable fragment
+                $cardnumber = substr( $incrementable, 1 ) . $cardnumber;
+                $result = $`;
+            }
+            else {
+                $cardnumber =
+                    $branch->{'patronbarcodeprefix'}
+                  . $`
+                  . $incrementable
+                  . $cardnumber;
+                last;
+            }
+            last if ( ++$cnt > 10 );
+        }
+        return $cardnumber;
+    }
+    else {
+        return $result + 1;
+    }
+
 }
 
 =head2 GetAllIssues
@@ -951,6 +1003,36 @@ DELETE FROM borrower_modifications
 WHERE borrowernumber = 0 AND DATEDIFF( NOW(), timestamp ) > ?|;
     my $cnt=$dbh->do($sql, undef, ($days) );
     return $cnt eq '0E0'? 0: $cnt;
+}
+
+=head2 _prefix_cardnum
+
+=over 4
+
+$cardnum = _prefix_cardnum($cardnum,$branchcode);
+
+If a system-wide barcode length is defined, and a prefix defined for the passed branch or the user's branch,
+modify the barcode by prefixing and padding.
+
+=back
+=cut
+
+sub _prefix_cardnum{
+    my ($cardnum,$branchcode) = @_;
+
+    if(C4::Context->preference('patronbarcodelength') && (length($cardnum) < C4::Context->preference('patronbarcodelength'))) {
+        #if we have a system-wide cardnum length and a branch prefix, prepend the prefix.
+        if( ! $branchcode && defined(C4::Context->userenv) ) {
+            $branchcode = C4::Context->userenv->{'branch'};
+        }
+        return $cardnum unless $branchcode;
+        my $library = Koha::Libraries->find( $branchcode );
+        return $cardnum unless( $library && $library->patronbarcodeprefix );
+        my $prefix = $library->patronbarcodeprefix ;
+        my $padding = C4::Context->preference('patronbarcodelength') - length($prefix) - length($cardnum) ;
+        $cardnum = $prefix . '0' x $padding . $cardnum if($padding >= 0) ;
+   }
+    return $cardnum;
 }
 
 END { }    # module clean-up code here (global destructor)
