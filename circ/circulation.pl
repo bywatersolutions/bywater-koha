@@ -164,7 +164,7 @@ if (C4::Context->preference("DisplayClearScreenButton")) {
 for my $barcode ( @$barcodes ) {
     $barcode =~ s/^\s*|\s*$//g; # remove leading/trailing whitespace
     $barcode = barcodedecode($barcode)
-        if( $barcode && C4::Context->preference('itemBarcodeInputFilter'));
+        if ( $barcode && ( C4::Context->preference('itemBarcodeInputFilter') || C4::Context->preference('itembarcodelength') ) );
 }
 
 my $stickyduedate  = $query->param('stickyduedate') || $session->param('stickyduedate');
@@ -226,7 +226,7 @@ if ( @$barcodes == 0 && $charges eq 'yes' ) {
 #
 my $message;
 if ($findborrower) {
-    my $patron = Koha::Patrons->find( { cardnumber => $findborrower } );
+    my $patron = Koha::Patrons->find( { cardnumber => C4::Members::_prefix_cardnum( $findborrower ) } );
     if ( $patron ) {
         $borrowernumber = $patron->borrowernumber;
     } else {
