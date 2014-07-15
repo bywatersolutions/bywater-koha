@@ -261,6 +261,7 @@ if ($op eq "show"){
         @contentlist = uniq @contentlist;
         if ($filecontent eq 'barcode_file') {
             my $existing_items = Koha::Items->search({ barcode => \@contentlist });
+## BARCODE PREFIXES ## $barcode = barcodedecode( $barcode ) if ( C4::Context->preference('itemBarcodeInputFilter') || C4::Context->preference('itembarcodelength') );
             @itemnumbers = $existing_items->get_column('itemnumber');
             my %exists = map {lc($_)=>1} $existing_items->get_column('barcode');
             # to avoid problems with case sensitivity
@@ -284,6 +285,9 @@ if ($op eq "show"){
         if ( my $list=$input->param('barcodelist')){
             push my @barcodelist, uniq( split(/\s\n/, $list) );
 
+            if ( C4::Context->preference('itembarcodelength') ) }
+                @barcodelist = map { barcodedecode( $_ ) } @barcodelist
+            }
             my $existing_items = Koha::Items->search({ barcode => \@barcodelist });
             @itemnumbers = $existing_items->get_column('itemnumber');
             my @barcodes = $existing_items->get_column('barcode');

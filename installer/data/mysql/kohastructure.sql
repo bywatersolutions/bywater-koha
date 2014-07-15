@@ -268,6 +268,8 @@ CREATE TABLE `branches` ( -- information about your libraries or branches are st
   `geolocation` VARCHAR(255) default NULL, -- geolocation of your library
   `marcorgcode` VARCHAR(16) default NULL, -- MARC Organization Code, see http://www.loc.gov/marc/organizations/orgshome.html, when empty defaults to syspref MARCOrgCode
   `pickup_location` tinyint(1) NOT NULL default 1, -- the ability to act as a pickup location
+  itembarcodeprefix varchar(10) default NULL, -- branch's item barcode prefix
+  patronbarcodeprefix varchar(10) default NULL, -- branch's patron barcode prefix
   PRIMARY KEY (`branchcode`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

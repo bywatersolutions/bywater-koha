@@ -70,6 +70,16 @@ Administration:
               choices:
                   yes: "The logged-in library"
                   no: "All libraries"
+        -
+            - Use branch prefixes to ensure that item barcodes are
+            - pref: itembarcodelength
+              class: integer
+            - digits long
+        -
+            - Use branch prefixes to ensure that patron barcodes are
+            - pref: patronbarcodelength
+              class: integer
+            - digits long
     Login options:
         -
             - "Inactivity timeout in seconds to automatically log out users: "
