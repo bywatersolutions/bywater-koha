@@ -102,6 +102,8 @@ my ($op, $patronid, $patronlogin, $patronpw, $barcode, $confirmed) = (
     $query->param("confirmed")  || '',
 );
 
+$barcode = barcodedecode($barcode) if ( $barcode && ( C4::Context->preference('itemBarcodeInputFilter') || C4::Context->preference('itembarcodelength') ) );
+
 my $issuenoconfirm = 1; #don't need to confirm on issue.
 my $issuer   = Koha::Patrons->find( $issuerid )->unblessed;
 my $item     = GetItem(undef,$barcode);
@@ -245,6 +247,7 @@ elsif ( $patron and $op eq "checkout" ) {
 } # $op
 
 if ($borrower) {
+    fixup_cardnumber( $borrower->{cardnumber} );
 #   warn "issuer's  branchcode: " .   $issuer->{branchcode};
 #   warn   "user's  branchcode: " . $borrower->{branchcode};
     my $borrowername = sprintf "%s %s", ($borrower->{firstname} || ''), ($borrower->{surname} || '');
