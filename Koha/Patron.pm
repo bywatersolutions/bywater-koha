@@ -172,6 +172,13 @@ sub store {
 
     $self->_result->result_source->schema->txn_do(
         sub {
+            # modify cardnumber with prefix, if needed.
+            if ( C4::Context->preference('patronbarcodelength')
+                && defined $self->cardnumber )
+            {
+                $self->cardnumber( _prefix_cardnum( $self->cardnumber ) );
+            }
+
             if (
                 C4::Context->preference("autoMemberNum")
                 and ( not defined $self->cardnumber
@@ -1413,5 +1420,32 @@ Alex Sassmannshausen <alex.sassmannshausen@ptfs-europe.com>
 Martin Renvoize <martin.renvoize@ptfs-europe.com>
 
 =cut
+
+=head2 _prefix_cardnum
+
+$cardnum = _prefix_cardnum($cardnum,$branchcode);
+
+If a system-wide barcode length is defined, and a prefix defined for the passed branch or the user's branch,
+modify the barcode by prefixing and padding.
+
+=cut
+
+sub _prefix_cardnum{
+    my ($cardnum,$branchcode) = @_;
+
+    if(C4::Context->preference('patronbarcodelength') && (length($cardnum) < C4::Context->preference('patronbarcodelength'))) {
+        #if we have a system-wide cardnum length and a branch prefix, prepend the prefix.
+        if( ! $branchcode && defined(C4::Context->userenv) ) {
+            $branchcode = C4::Context->userenv->{'branch'};
+        }
+        return $cardnum unless $branchcode;
+        my $library = Koha::Libraries->find( $branchcode );
+        return $cardnum unless( $library && $library->patronbarcodeprefix );
+        my $prefix = $library->patronbarcodeprefix ;
+        my $padding = C4::Context->preference('patronbarcodelength') - length($prefix) - length($cardnum) ;
+        $cardnum = $prefix . '0' x $padding . $cardnum if($padding >= 0) ;
+   }
+    return $cardnum;
+}
 
 1;
