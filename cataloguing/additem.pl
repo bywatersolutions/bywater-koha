@@ -490,11 +490,21 @@ if ($op eq "additem") {
     if ( $add_submit || $add_duplicate_submit ) {
 
         # check for item barcode # being unique
+        C4::Items::_check_itembarcode( $addedolditem );
         my $exist_itemnumber = get_item_from_barcode( $addedolditem->{'barcode'} );
         push @errors, "barcode_not_unique" if ($exist_itemnumber);
 
         # if barcode exists, don't create, but report The problem.
         unless ($exist_itemnumber) {
+            unless ($addedolditem->{'barcode'}) {
+               use C4::Barcodes;
+               my $barcodeobj = C4::Barcodes->new();
+               my $db_max = $barcodeobj->db_max();
+               my $nextbarcode = $barcodeobj->next_value($db_max);
+               my ($tagfield,$tagsubfield) = &GetMarcFromKohaField("items.barcode",$frameworkcode);
+               $record->field($tagfield)->update($tagsubfield => "$nextbarcode") if ($nextbarcode);
+            }
+
             my ( $oldbiblionumber, $oldbibnum, $oldbibitemnum ) = AddItemFromMarc( $record, $biblionumber );
             set_item_default_location($oldbibitemnum);
 
