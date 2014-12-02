@@ -49,6 +49,7 @@ my ( $template, $borrowernumber, $cookie ) = get_template_and_user(
     }
 );
 
+<<<<<<< HEAD
 my $payment_method = $cgi->param('payment_method');
 my @accountlines = $cgi->multi_param('accountline');
 
@@ -127,4 +128,17 @@ if ( $payment_method eq 'paypal' ) {
     }
 }
 
-output_html_with_http_headers( $cgi, $cookie, $template->output ) if $error;
+my $borrower = GetMemberDetails($borrowernumber);
+
+my @accountline_ids = $query->param('accountline');
+
+my $rs = Koha::Database->new()->schema()->resultset('Accountline');
+my @accountlines = map { $rs->find($_) } @accountline_ids;
+
+$template->param(
+    borrower       => $borrower,
+    payment_method => $query->param('payment_method'),
+    accountlines   => \@accountlines,
+);
+
+output_html_with_http_headers $query, $cookie, $template->output;
