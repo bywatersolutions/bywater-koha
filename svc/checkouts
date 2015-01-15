@@ -79,6 +79,7 @@ my $sql = '
         itemnumber,
         barcode,
         branches2.branchname AS homebranch,
+        items.barcode,
         itemnotes,
         itemnotes_nonpublic,
         itemcallnumber,
