@@ -6,7 +6,7 @@
 [% INCLUDE 'doc-head-close.inc' %]
 <style type="text/css">h3{padding-top: 1em; border-top: 2px solid #CCCCCC;}#exportLabelexportModal_{border-top: 0px;}</style>
 </head>
-<body id="catalog_moredetail" class="catalog">
+<body id="catalog_moredetail" class="catalog" ng-app="Koha">
 [% USE KohaDates %]
 [% INCLUDE 'header.inc' %]
 [% INCLUDE 'cat-search.inc' %]
@@ -189,6 +189,11 @@
             [% END %]
 
             </ol></div>
+
+            <div class="listgroup">
+                <item-messages itemnumber="[% ITEM_DAT.itemnumber %]"></item-messages>
+            </div>
+
             <div class="listgroup"><h4>History</h4>
             <ol class="bibliodetails">
 
@@ -273,6 +278,9 @@
 </div>
 </div>
 [% MACRO jsinclude BLOCK %]
+    [% INCLUDE 'doc-head-angular.inc' %]
+    <script type="text/javascript" src="[% interface %]/prog/en/js/item-messages.js"></script>
+
     [% INCLUDE 'catalog-strings.inc' %]
     <script type="text/javascript" src="[% interface %]/[% theme %]/js/catalog.js"></script>
     [% INCLUDE 'browser-strings.inc' %]
