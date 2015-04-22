@@ -55,7 +55,7 @@ my $library2 = $builder->build({
 });
 my $itemtype = $builder->build(
     {   source => 'Itemtype',
-        value  => { notforloan => undef, rentalcharge => 0 }
+        value  => { notforloan => undef, rentalcharge => 0, defaultreplacecost => undef, processfee => undef }
     }
 )->{itemtype};
 my $patron_category = $builder->build(
@@ -809,6 +809,7 @@ C4::Context->dbh->do("DELETE FROM accountlines");
     # Too many renewals
 
     # set policy to forbid renewals
+    $dbh->do('DELETE FROM accountlines');
     $dbh->do('UPDATE issuingrules SET norenewalbefore = NULL, renewalsallowed = 0');
 
     ( $renewokay, $error ) = CanBookBeRenewed($renewing_borrowernumber, $itemnumber);
@@ -840,12 +841,9 @@ C4::Context->dbh->do("DELETE FROM accountlines");
         undef, $renewing_borrower->{borrowernumber}
     );
 
-    ok( $total_due == 12, 'Borrower only charged replacement fee with both WhenLostForgiveFine and WhenLostChargeReplacementFee enabled' );
+    is( $total_due, '12.000000', 'Borrower only charged replacement fee with both WhenLostForgiveFine and WhenLostChargeReplacementFee enabled' );
 
     C4::Context->dbh->do("DELETE FROM accountlines");
-
-    t::lib::Mocks::mock_preference('WhenLostForgiveFine','0');
-    t::lib::Mocks::mock_preference('WhenLostChargeReplacementFee','0');
 
     C4::Overdues::UpdateFine(
         {
@@ -858,6 +856,9 @@ C4::Context->dbh->do("DELETE FROM accountlines");
         }
     );
 
+    t::lib::Mocks::mock_preference('WhenLostForgiveFine','0');
+    t::lib::Mocks::mock_preference('WhenLostChargeReplacementFee','0');
+
     LostItem( $itemnumber2, 0 );
 
     my $item2 = Koha::Database->new()->schema()->resultset('Item')->find($itemnumber2);
@@ -868,7 +869,7 @@ C4::Context->dbh->do("DELETE FROM accountlines");
         undef, $renewing_borrower->{borrowernumber}
     );
 
-    ok( $total_due == 15, 'Borrower only charged fine with both WhenLostForgiveFine and WhenLostChargeReplacementFee disabled' );
+    is( $total_due, '15.000000', 'Borrower only charged fine with both WhenLostForgiveFine and WhenLostChargeReplacementFee disabled' );
 
     my $future = dt_from_string();
     $future->add( days => 7 );
