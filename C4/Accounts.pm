@@ -27,6 +27,7 @@ use C4::Circulation qw(ReturnLostItem);
 use C4::Log qw(logaction);
 use Koha::Account;
 use Koha::Account::Lines;
+use Koha::Items;
 
 use Data::Dumper qw(Dumper);
 
@@ -125,41 +126,91 @@ sub chargelostitem{
 # FIXME : if no replacement price, borrower just doesn't get charged?
     my $dbh = C4::Context->dbh();
     my ($borrowernumber, $itemnumber, $amount, $description) = @_;
-
+    my $itype = Koha::ItemTypes->find({ itemtype => Koha::Items->find($itemnumber)->effective_itemtype() });
+    my $replacementprice = $amount;
+    my $defaultreplacecost = $itype->defaultreplacecost;
+    my $processfee = $itype->processfee;
+    my $usedefaultreplacementcost = C4::Context->preference("useDefaultReplacementCost");
+    my $processingfeenote = C4::Context->preference("ProcessingFeeNote");
+    if ($usedefaultreplacementcost && $amount == 0 && $defaultreplacecost){
+        $replacementprice = $defaultreplacecost;
+    }
     # first make sure the borrower hasn't already been charged for this item
-    my $sth1=$dbh->prepare("SELECT * from accountlines
-    WHERE borrowernumber=? AND itemnumber=? and accounttype='L'");
-    $sth1->execute($borrowernumber,$itemnumber);
-    my $existing_charge_hashref=$sth1->fetchrow_hashref();
+    # FIXME this should be more exact
+    #       there is no reason a user can't lose an item, find and return it, and lost it again
+    my $existing_charges = Koha::Account::Lines->search(
+        {
+            borrowernumber => $borrowernumber,
+            itemnumber     => $itemnumber,
+            accounttype    => 'L',
+        }
+    )->count();
 
     # OK, they haven't
-    unless ($existing_charge_hashref) {
-        my $manager_id = 0;
-        $manager_id = C4::Context->userenv->{'number'} if C4::Context->userenv;
-        # This item is on issue ... add replacement cost to the borrower's record and mark it returned
-        #  Note that we add this to the account even if there's no replacement price, allowing some other
-        #  process (or person) to update it, since we don't handle any defaults for replacement prices.
-        my $accountno = getnextacctno($borrowernumber);
-        my $sth2=$dbh->prepare("INSERT INTO accountlines
-        (borrowernumber,accountno,date,amount,description,accounttype,amountoutstanding,itemnumber,manager_id)
-        VALUES (?,?,now(),?,?,'L',?,?,?)");
-        $sth2->execute($borrowernumber,$accountno,$amount,
-        $description,$amount,$itemnumber,$manager_id);
+    unless ($existing_charges) {
+        #add processing fee
+        if ($processfee && $processfee > 0){
+            my $accountline = Koha::Account::Line->new(
+                {
+                    borrowernumber    => $borrowernumber,
+                    accountno         => getnextacctno($borrowernumber),
+                    date              => \'NOW()',
+                    amount            => $processfee,
+                    description       => $description,
+                    accounttype       => 'PF',
+                    amountoutstanding => $processfee,
+                    itemnumber        => $itemnumber,
+                    note              => $processingfeenote,
+                    manager_id        => C4::Context->userenv ? C4::Context->userenv->{'number'} : 0,
+                }
+            )->store();
 
-        if ( C4::Context->preference("FinesLog") ) {
-            logaction("FINES", 'CREATE', $borrowernumber, Dumper({
-                action            => 'create_fee',
-                borrowernumber    => $borrowernumber,
-                accountno         => $accountno,
-                amount            => $amount,
-                amountoutstanding => $amount,
-                description       => $description,
-                accounttype       => 'L',
-                itemnumber        => $itemnumber,
-                manager_id        => $manager_id,
-            }));
+            if ( C4::Context->preference("FinesLog") ) {
+                logaction("FINES", 'CREATE',$borrowernumber,Dumper({
+                    action            => 'create_fee',
+                    borrowernumber    => $accountline->borrowernumber,,
+                    accountno         => $accountline->accountno,
+                    amount            => $accountline->amount,
+                    description       => $accountline->description,
+                    accounttype       => $accountline->accounttype,
+                    amountoutstanding => $accountline->amountoutstanding,
+                    note              => $accountline->note,
+                    itemnumber        => $accountline->itemnumber,
+                    manager_id        => $accountline->manager_id,
+                }));
+            }
         }
+        #add replace cost
+        if ($replacementprice > 0){
+            my $accountline = Koha::Account::Line->new(
+                {
+                    borrowernumber    => $borrowernumber,
+                    accountno         => getnextacctno($borrowernumber),
+                    date              => \'NOW()',
+                    amount            => $replacementprice,
+                    description       => $description,
+                    accounttype       => 'L',
+                    amountoutstanding => $replacementprice,
+                    itemnumber        => $itemnumber,
+                    manager_id        => C4::Context->userenv ? C4::Context->userenv->{'number'} : 0,
+                }
+            )->store();
 
+            if ( C4::Context->preference("FinesLog") ) {
+                logaction("FINES", 'CREATE',$borrowernumber,Dumper({
+                    action            => 'create_fee',
+                    borrowernumber    => $accountline->borrowernumber,,
+                    accountno         => $accountline->accountno,
+                    amount            => $accountline->amount,
+                    description       => $accountline->description,
+                    accounttype       => $accountline->accounttype,
+                    amountoutstanding => $accountline->amountoutstanding,
+                    note              => $accountline->note,
+                    itemnumber        => $accountline->itemnumber,
+                    manager_id        => $accountline->manager_id,
+                }));
+            }
+        }
     }
 }
 
@@ -190,7 +241,7 @@ should be the empty string.
 #
 
 sub manualinvoice {
-    my ( $borrowernumber, $itemnum, $desc, $type, $amount, $note ) = @_;
+    my ( $borrowernumber, $itemnum, $desc, $type, $amount, $note, $skip_notify ) = @_;
     my $manager_id = 0;
     $manager_id = C4::Context->userenv->{'number'} if C4::Context->userenv;
     my $dbh      = C4::Context->dbh;
@@ -198,6 +249,7 @@ sub manualinvoice {
     my $insert;
     my $accountno  = getnextacctno($borrowernumber);
     my $amountleft = $amount;
+    $skip_notify //= 0;
 
     if (   ( $type eq 'L' )
         or ( $type eq 'F' )
@@ -205,7 +257,7 @@ sub manualinvoice {
         or ( $type eq 'N' )
         or ( $type eq 'M' ) )
     {
-        $notifyid = 1;
+        $notifyid = 1 unless $skip_notify;
     }
 
     if ( $itemnum ) {
@@ -244,19 +296,19 @@ sub manualinvoice {
 }
 
 sub getcharges {
-	my ( $borrowerno, $timestamp, $accountno ) = @_;
-	my $dbh        = C4::Context->dbh;
-	my $timestamp2 = $timestamp - 1;
-	my $query      = "";
-	my $sth = $dbh->prepare(
-			"SELECT * FROM accountlines WHERE borrowernumber=? AND accountno = ?"
+    my ( $borrowerno, $timestamp, $accountno ) = @_;
+    my $dbh        = C4::Context->dbh;
+    my $timestamp2 = $timestamp - 1;
+    my $query      = "";
+    my $sth = $dbh->prepare(
+            "SELECT * FROM accountlines WHERE borrowernumber=? AND accountno = ?"
           );
-	$sth->execute( $borrowerno, $accountno );
-	
+    $sth->execute( $borrowerno, $accountno );
+
     my @results;
     while ( my $data = $sth->fetchrow_hashref ) {
-		push @results,$data;
-	}
+        push @results,$data;
+    }
     return (@results);
 }
 
