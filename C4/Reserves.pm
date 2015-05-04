@@ -1092,6 +1092,30 @@ sub CancelReserve {
         logaction( 'HOLDS', 'CANCEL', $hold->reserve_id, Dumper($hold->unblessed) )
             if C4::Context->preference('HoldsLog');
 
+        # Charge for canceled reserves that have been waiting too long
+        if (   $reserve->{found} eq 'W'
+            && $reserve->{priority} == 0
+            && C4::Context->preference("ExpireReservesMaxPickUpDelay") )
+        {
+            my $max_pickup_delay = C4::Context->preference("ReservesMaxPickUpDelay");
+
+            my $now          = dt_from_string();
+            my $waitingdate  = dt_from_string( $reserve->{waitingdate} );
+            my $duration     = $waitingdate->delta_days($now);
+            my $days_waiting = $duration->in_units('days');
+            if ( $days_waiting > $max_pickup_delay ) {
+                my $charge = C4::Context->preference("ExpireReservesMaxPickUpDelayCharge");
+                if ($charge) {
+                    manualinvoice(
+                        $reserve->{'borrowernumber'},
+                        $reserve->{'itemnumber'},
+                        'Hold waiting too long',
+                        'F', $charge
+                    );
+                }
+            }
+        }
+
         my $query = "
             UPDATE reserves
             SET    cancellationdate = now(),
