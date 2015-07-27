@@ -47,6 +47,9 @@ my $data = GetMember( 'borrowernumber' => $borrowernumber );
 my $roadtype =
   C4::Koha::GetAuthorisedValueByCode( 'ROADTYPE', $data->{streettype} );
 
+my @account_debits = $schema->resultset('AccountDebit')->search({ borrowernumber => $borrowernumber });
+my @account_credits = $schema->resultset('AccountCredit')->search({ borrowernumber => $borrowernumber });
+
 our $totalprice = 0;
 my $total_format = '';
 
@@ -56,8 +59,8 @@ $template->param(
     borrowernumber => $borrowernumber,
 
     account_balance => $data->{account_balance},
-    account_debits => $schema->resultset('AccountDebit')->search({ borrowernumber => $borrowernumber }),
-    account_credits => $schema->resultset('AccountDebit')->search({ borrowernumber => $borrowernumber }),
+    account_debits => \@account_debits, 
+    account_credits => \@account_credits,
 
     issues     => build_issue_data( GetPendingIssues($borrowernumber) ),
     totalprice => $totalprice,
