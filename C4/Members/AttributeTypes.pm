@@ -37,6 +37,8 @@ C4::Members::AttributeTypes - mananage extended patron attribute types
   $attr_type->repeatable($repeatable);
   $attr_type->unique_id($unique_id);
   $attr_type->opac_display($opac_display);
+  $attr_type->opac_editable($opac_editable);
+  $attr_type->password_allowed($password_allowed);
   $attr_type->staff_searchable($staff_searchable);
   $attr_type->authorised_value_category($authorised_value_category);
   $attr_type->store();
@@ -122,6 +124,8 @@ sub new {
     $self->{'repeatable'} = 0;
     $self->{'unique_id'} = 0;
     $self->{'opac_display'} = 0;
+    $self->{'opac_editable'} = 0;
+    $self->{'password_allowed'} = 0;
     $self->{'staff_searchable'} = 0;
     $self->{'display_checkout'} = 0;
     $self->{'authorised_value_category'} = '';
@@ -163,6 +167,8 @@ sub fetch {
     $self->{'repeatable'}                = $row->{'repeatable'};
     $self->{'unique_id'}                 = $row->{'unique_id'};
     $self->{'opac_display'}              = $row->{'opac_display'};
+    $self->{'opac_editable'}             = $row->{'opac_editable'};
+    $self->{'password_allowed'}          = $row->{'password_allowed'};
     $self->{'staff_searchable'}          = $row->{'staff_searchable'};
     $self->{'display_checkout'}          = $row->{'display_checkout'};
     $self->{'authorised_value_category'} = $row->{'authorised_value_category'};
@@ -203,6 +209,8 @@ sub store {
                                          repeatable = ?,
                                          unique_id = ?,
                                          opac_display = ?,
+                                         opac_editable = ?,
+                                         password_allowed = ?,
                                          staff_searchable = ?,
                                          authorised_value_category = ?,
                                          display_checkout = ?,
@@ -211,23 +219,24 @@ sub store {
                                      WHERE code = ?");
     } else {
         $sth = $dbh->prepare_cached("INSERT INTO borrower_attribute_types 
-                                        (description, repeatable, unique_id, opac_display,
+                                        (description, repeatable, unique_id, opac_display, opac_editable, password_allowed,
                                          staff_searchable, authorised_value_category, display_checkout, category_code, class, code)
                                         VALUES (?, ?, ?, ?,
                                                 ?, ?, ?, ?, ?, ?)");
     }
-    $sth->execute(
-        $self->{description},
-        $self->{repeatable},
-        $self->{unique_id},
-        $self->{opac_display},
-        $self->{staff_searchable},
-        $self->{authorised_value_category},
-        $self->{display_checkout},
-        $self->{category_code} || undef,
-        $self->{class},
-        $self->{code},
-    );
+    $sth->bind_param(1, $self->{'description'});
+    $sth->bind_param(2, $self->{'repeatable'});
+    $sth->bind_param(3, $self->{'unique_id'});
+    $sth->bind_param(4, $self->{'opac_display'});
+    $sth->bind_param(5, $self->{'opac_editable'});
+    $sth->bind_param(6, $self->{'password_allowed'});
+    $sth->bind_param(7, $self->{'staff_searchable'});
+    $sth->bind_param(8, $self->{'authorised_value_category'});
+    $sth->bind_param(9, $self->{'display_checkout'});
+    $sth->bind_param(10, $self->{'category_code'} || undef);
+    $sth->bind_param(11, $self->{'class'});
+    $sth->bind_param(12, $self->{'code'});
+    $sth->execute;
 
     if ( defined $$self{branches} ) {
         $sth = $dbh->prepare("DELETE FROM borrower_attribute_types_branches WHERE bat_code = ?");
@@ -334,6 +343,27 @@ sub opac_display {
     my $self = shift;
     @_ ? $self->{'opac_display'} = ((shift) ? 1 : 0) : $self->{'opac_display'};
 }
+=head2 opac_editable
+
+  my $opac_editable = $attr_type->opac_editable();
+  $attr_type->opac_editable($opac_editable);
+
+Accessor.  The C<$opac_editable> argument
+is interpreted as a Perl boolean.
+
+=cut
+
+sub opac_editable {
+    my $self = shift;
+    @_ ? $self->{'opac_editable'} = ((shift) ? 1 : 0) : $self->{'opac_editable'};
+}
+=head2 password_allowed
+
+  my $password_allowed = $attr_type->password_allowed();
+  $attr_type->password_allowed($password_allowed);
+
+Accessor.  The C<$password_allowed> argument
+is interpreted as a Perl boolean.
 
 =head2 staff_searchable
 
