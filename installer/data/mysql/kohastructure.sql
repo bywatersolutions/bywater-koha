@@ -862,6 +862,7 @@ CREATE TABLE `issuingrules` ( -- circulation and fine rules
   cap_fine_to_replacement_price BOOLEAN NOT NULL DEFAULT  '0', -- cap the fine based on item's replacement price
   onshelfholds tinyint(1) NOT NULL default 0, -- allow holds for items that are on shelf
   opacitemholds char(1) NOT NULL default 'N', -- allow opac users to place specific items on hold
+  article_requests enum('no','yes','bib_only','item_only') NOT NULL DEFAULT 'no', -- allow article requests to be placed,
   PRIMARY KEY  (`branchcode`,`categorycode`,`itemtype`),
   KEY `categorycode` (`categorycode`),
   KEY `itemtype` (`itemtype`)
@@ -3774,6 +3775,103 @@ CREATE TABLE `hold_fill_targets` (
     REFERENCES `items` (`itemnumber`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `hold_fill_targets_ibfk_4` FOREIGN KEY (`source_branchcode`)
     REFERENCES `branches` (`branchcode`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Table structure for table `housebound_profile`
+--
+
+DROP TABLE IF EXISTS `housebound_profile`;
+CREATE TABLE `housebound_profile` (
+  `borrowernumber` int(11) NOT NULL, -- Number of the borrower associated with this profile.
+  `day` text NOT NULL,  -- The preferred day of the week for delivery.
+  `frequency` text NOT NULL, -- The Authorised_Value definining the pattern for delivery.
+  `fav_itemtypes` text default NULL, -- Free text describing preferred itemtypes.
+  `fav_subjects` text default NULL, -- Free text describing preferred subjects.
+  `fav_authors` text default NULL, -- Free text describing preferred authors.
+  `referral` text default NULL, -- Free text indicating how the borrower was added to the service.
+  `notes` text default NULL, -- Free text for additional notes.
+  PRIMARY KEY  (`borrowernumber`),
+  CONSTRAINT `housebound_profile_bnfk`
+    FOREIGN KEY (`borrowernumber`)
+    REFERENCES `borrowers` (`borrowernumber`)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Table structure for table `housebound_visit`
+--
+
+DROP TABLE IF EXISTS `housebound_visit`;
+CREATE TABLE `housebound_visit` (
+  `id` int(11) NOT NULL auto_increment, -- ID of the visit.
+  `borrowernumber` int(11) NOT NULL, -- Number of the borrower, & the profile, linked to this visit.
+  `appointment_date` date default NULL, -- Date of visit.
+  `day_segment` varchar(10),  -- Rough time frame: 'morning', 'afternoon' 'evening'
+  `chooser_brwnumber` int(11) default NULL, -- Number of the borrower to choose items  for delivery.
+  `deliverer_brwnumber` int(11) default NULL, -- Number of the borrower to deliver items.
+  PRIMARY KEY  (`id`),
+  CONSTRAINT `houseboundvisit_bnfk`
+    FOREIGN KEY (`borrowernumber`)
+    REFERENCES `housebound_profile` (`borrowernumber`)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT `houseboundvisit_bnfk_1`
+    FOREIGN KEY (`chooser_brwnumber`)
+    REFERENCES `borrowers` (`borrowernumber`)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT `houseboundvisit_bnfk_2`
+    FOREIGN KEY (`deliverer_brwnumber`)
+    REFERENCES `borrowers` (`borrowernumber`)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Table structure for table `housebound_role`
+--
+
+DROP TABLE IF EXISTS `housebound_role`;
+CREATE TABLE IF NOT EXISTS `housebound_role` (
+  `borrowernumber_id` int(11) NOT NULL, -- borrowernumber link
+  `housebound_chooser` tinyint(1) NOT NULL DEFAULT 0, -- set to 1 to indicate this patron is a housebound chooser volunteer
+  `housebound_deliverer` tinyint(1) NOT NULL DEFAULT 0, -- set to 1 to indicate this patron is a housebound deliverer volunteer
+  PRIMARY KEY (`borrowernumber_id`),
+  CONSTRAINT `houseboundrole_bnfk`
+    FOREIGN KEY (`borrowernumber_id`)
+    REFERENCES `borrowers` (`borrowernumber`)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Table structure for table 'article_requests'
+--
+
+CREATE TABLE `article_requests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `borrowernumber` int(11) NOT NULL,
+  `biblionumber` int(11) NOT NULL,
+  `itemnumber` int(11) DEFAULT NULL,
+  `branchcode` varchar(10) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+  `title` text,
+  `author` text,
+  `volume` text,
+  `issue` text,
+  `date` text,
+  `pages` text,
+  `chapters` text,
+  `patron_notes` text,
+  `status` enum('PENDING','PROCESSING','COMPLETED','CANCELED') NOT NULL DEFAULT 'PENDING',
+  `notes` text,
+  `created_on` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_on` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `borrowernumber` (`borrowernumber`),
+  KEY `biblionumber` (`biblionumber`),
+  KEY `itemnumber` (`itemnumber`),
+  KEY `branchcode` (`branchcode`),
+  CONSTRAINT `article_requests_ibfk_1` FOREIGN KEY (`borrowernumber`) REFERENCES `borrowers` (`borrowernumber`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `article_requests_ibfk_2` FOREIGN KEY (`biblionumber`) REFERENCES `biblio` (`biblionumber`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `article_requests_ibfk_3` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `article_requests_ibfk_4` FOREIGN KEY (`branchcode`) REFERENCES `branches` (`branchcode`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
