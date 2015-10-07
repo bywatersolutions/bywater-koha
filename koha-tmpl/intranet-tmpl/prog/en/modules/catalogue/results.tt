@@ -591,6 +591,10 @@ var holdForPatron = function () {
                                 [% IF ( holdfor ) %] <span class="holdforlink">| <a href="/cgi-bin/koha/reserve/request.pl?biblionumber=[% SEARCH_RESULT.biblionumber %]&amp;findborrower=[% holdfor_cardnumber %]">Place hold for [% holdfor_firstname %] [% holdfor_surname %] ([% holdfor_cardnumber %])</a></span>[% END %]
                             [% END %]
 
+                              [% IF Koha.Preference('ArticleRequests') %]
+                                  | <a id="requst_article_[% SEARCH_RESULT.biblionumber %]" href="/cgi-bin/koha/circ/request-article.pl?biblionumber=[% SEARCH_RESULT.biblionumber %]">Request article</a>
+                              [% END %]
+
                                 [% IF Koha.Preference('intranetbookbag') == 1 %]
                                     [% IF ( SEARCH_RESULT.incart ) %]
                                         | <a class="addtocart" id="cart[% SEARCH_RESULT.biblionumber %]" href="#">In your cart</a> <a class="cartRemove" id="cartR[% SEARCH_RESULT.biblionumber %]" href="#">(remove)</a>

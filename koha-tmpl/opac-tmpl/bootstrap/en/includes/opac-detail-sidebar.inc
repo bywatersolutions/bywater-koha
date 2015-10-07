@@ -1,3 +1,4 @@
+[% USE Biblio %]
 <ul id="action">
     [% UNLESS ( norequests ) %]
         [% IF Koha.Preference( 'opacuserlogin' ) == 1 %]
@@ -9,6 +10,11 @@
         [% END %]
     [% END %]
     <li><a class="print-large" href="#">Print</a></li>
+    [% IF Koha.Preference( 'opacuserlogin' ) == 1 %]
+        [% IF Koha.Preference('ArticleRequests') %]
+            <li><a class="article_request" href="/cgi-bin/koha/opac-request-article.pl?biblionumber=[% biblionumber %]">Request article</a></li>
+        [% END %]
+    [% END %]
     [% IF Koha.Preference( 'virtualshelves' ) == 1 %]
         [% IF ( ( Koha.Preference( 'opacuserlogin' ) == 1 ) && loggedinusername ) %]
             <li><a class="addtoshelf" href="/cgi-bin/koha/opac-addbybiblionumber.pl?biblionumber=[% biblionumber %]">Save to your lists</a></li>
