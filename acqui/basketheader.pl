@@ -144,6 +144,7 @@ if ( $op eq 'add_form' ) {
             $input->param('basketbooksellerid'),
             $input->param('deliveryplace'),
             $input->param('billingplace'),
+            $input->param('create_items'),
             $input->param('is_standing') ? 1 : undef,
         );
     } else { #New basket
@@ -156,6 +157,7 @@ if ( $op eq 'add_form' ) {
             $input->param('basketcontractnumber') || undef,
             $input->param('deliveryplace'),
             $input->param('billingplace'),
+            $input->param('create_items'),
             $input->param('is_standing') ? 1 : undef,
         );
     }
