@@ -384,6 +384,7 @@ if ( $op eq 'list' ) {
     }
 
     $template->param(
+        basket               => $basket,
         basketno             => $basketno,
         basket               => $basket,
         basketname           => $basket->{'basketname'},
