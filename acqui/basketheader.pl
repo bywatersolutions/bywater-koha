@@ -159,6 +159,7 @@ if ( $op eq 'add_form' ) {
             $input->param('deliveryplace'),
             $input->param('billingplace'),
             $input->param('is_standing') ? 1 : undef,
+            $input->param('create_items'),
         );
     } else { #New basket
         $basketno = NewBasket(
@@ -171,6 +172,7 @@ if ( $op eq 'add_form' ) {
             $input->param('deliveryplace'),
             $input->param('billingplace'),
             $input->param('is_standing') ? 1 : undef,
+            $input->param('create_items'),
         );
     }
 

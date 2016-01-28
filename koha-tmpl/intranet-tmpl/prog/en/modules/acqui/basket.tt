@@ -352,10 +352,20 @@
                 [% IF ( creationdate ) %]<li><span class="label">Opened on:</span>  [% creationdate | $KohaDates %]</li>[% END %]
                 [% IF ( closedate ) %]<li><span class="label">Closed on:</span> [% closedate | $KohaDates %]</li>[% END %]
                 [% IF ( estimateddeliverydate ) %]<li><span class="label">Estimated delivery date:</span> [% estimateddeliverydate | $KohaDates  %]</li>[% END %]
-                [% IF ( estimateddeliverydate ) %]<li><span class="label">Estimated delivery date:</span> [% estimateddeliverydate | $KohaDates  %]</li>[% END %]
                 <li><span class="label">Orders are standing:</span> [% IF is_standing %]Yes[% ELSE %]No[% END %]</li>
 
                 [% INCLUDE 'additional-fields-display.inc' available=available_additional_fields values=additional_field_values %]
+
+                [% IF basket.create_items %]
+                    <li>
+                        <span class="label">Create items when:</span>
+                        [% SWITCH basket.create_items %]
+                            [% CASE 'receiving' %]Receiving items
+                            [% CASE 'cataloguing' %]Cataloguing items
+                            [% CASE %]Placing orders
+                        [% END %]
+                    </li>
+                [% END %]
 
                 </ol>
                 </div>
