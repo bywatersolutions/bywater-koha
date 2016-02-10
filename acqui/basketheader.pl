@@ -55,6 +55,7 @@ use C4::Acquisition qw/GetBasket NewBasket ModBasketHeader/;
 use C4::Contract qw/GetContracts/;
 
 use Koha::Acquisition::Booksellers;
+use Koha::AdditionalField;
 
 my $input = new CGI;
 my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
@@ -74,6 +75,8 @@ my $basketno = $input->param('basketno');
 my $basket;
 my $op = $input ->param('op');
 my $is_an_edit= $input ->param('is_an_edit');
+
+$template->param( available_additional_fields => scalar Koha::AdditionalField->all( { tablename => 'aqbasket' } ) );
 
 if ( $op eq 'add_form' ) {
     my @contractloop;
@@ -95,6 +98,12 @@ if ( $op eq 'add_form' ) {
             }
         }
         $template->param( is_an_edit => 1);
+        $template->param(
+            additional_field_values => Koha::AdditionalField->fetch_all_values( {
+                tablename => 'aqbasket',
+                record_id => $basketno,
+            } )->{$basketno},
+        );
     } else {
     #new basket
         my $basket;
@@ -159,6 +168,13 @@ if ( $op eq 'add_form' ) {
             $input->param('is_standing') ? 1 : undef,
         );
     }
+
+    Koha::AdditionalField->update_fields_from_query( {
+        tablename => 'aqbasket',
+        record_id => $basketno,
+        query => $input,
+    } );
+
     print $input->redirect('basket.pl?basketno='.$basketno);
     exit 0;
 }
