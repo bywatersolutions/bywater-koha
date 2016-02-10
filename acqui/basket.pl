@@ -41,6 +41,8 @@ use Date::Calc qw/Add_Delta_Days/;
 use Koha::Database;
 use Koha::EDI qw( create_edi_order get_edifact_ean );
 
+use Koha::AdditionalField;
+
 =head1 NAME
 
 basket.pl
@@ -425,6 +427,11 @@ if ( $op eq 'list' ) {
         unclosable           => @orders ? $basket->{is_standing} : 1,
         has_budgets          => $has_budgets,
         duplinbatch          => $duplinbatch,
+        available_additional_fields => Koha::AdditionalField->all( { tablename => 'aqbasket' } ),
+        additional_field_values => Koha::AdditionalField->fetch_all_values( {
+            tablename => 'aqbasket',
+            record_id => $basketno,
+        } )->{$basketno},
     );
 }
 
