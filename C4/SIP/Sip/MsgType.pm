@@ -533,7 +533,7 @@ sub handle_checkout {
         }
 
         # We never return the obsolete 'U' value for 'desensitize'
-        $resp .= sipbool( $status->desensitize );
+        $resp .= sipbool( desensitize( { status => $status, patron => $patron, server => $server } ) );
         $resp .= timestamp;
 
         # Now for the variable fields
@@ -1377,7 +1377,7 @@ sub handle_renew {
         } else {
             $resp .= 'U';
         }
-        $resp .= sipbool( $status->desensitize );
+        $resp .= sipbool( desensitize( { status => $status, patron => $patron, server => $server } ) );
         $resp .= timestamp;
         $resp .= add_field( FID_PATRON_ID, $patron->id );
         $resp .= add_field( FID_ITEM_ID, $item->id );
@@ -1616,6 +1616,29 @@ sub api_auth {
     }
     my ( $status, $cookie, $sessionID ) = check_api_auth( $query, { circulate => 1 }, 'intranet' );
     return $status;
+}
+
+sub desensitize {
+    my ($params) = @_;
+
+    my $status      = $params->{status};
+    my $desensitize = $status->desensitize();
+
+    # If desenstize is already false, no need to do anything
+    return unless $desensitize;
+
+    my $patron = $params->{patron};
+    my $server = $params->{server};
+
+    my $patron_categories = $server->{account}->{never_demagnitize};
+
+    # If no patron categories are set for never desensitize, no need to do anything
+    return $desensitize unless $patron_categories;
+
+    my $patron_category = $patron->ptype();
+    my @patron_categories = split( /,/, $patron_categories );
+
+    return !grep( /^$patron_category$/, @patron_categories );
 }
 
 1;
