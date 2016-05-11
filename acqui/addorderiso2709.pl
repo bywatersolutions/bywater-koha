@@ -168,6 +168,7 @@ if ($op eq ""){
     my @sort1 = $input->multi_param('sort1');
     my @sort2 = $input->multi_param('sort2');
     my $cur = GetCurrency();
+    my $matcher_id = $input->param('matcher_id');
     for my $biblio (@$biblios){
         # Check if this import_record_id was selected
         next if not grep { $_ eq $$biblio{import_record_id} } @import_record_id_selected;
@@ -184,7 +185,19 @@ if ($op eq ""){
 
         # 1st insert the biblio, or find it through matcher
         unless ( $biblionumber ) {
-            $duplinbatch=$import_batch_id and next if FindDuplicate($marcrecord);
+            if ($matcher_id) {
+                if ( $matcher_id eq '_TITLE_AUTHOR_' ) {
+                    $duplinbatch = $import_batch_id if FindDuplicate($marcrecord);
+                }
+                else {
+                    my $matcher = C4::Matcher->fetch($matcher_id);
+                    my @matches = $matcher->get_matches( $marcrecord, my $max_matches = 1 );
+                    $duplinbatch = $import_batch_id if @matches;
+                }
+
+                next if $duplinbatch;
+            }
+
             # add the biblio
             my $bibitemnum;
 
