@@ -746,6 +746,7 @@ Using this account is not recommended because some parts of Koha will not functi
                                             <th>Date</th>
                                             <th>Pages</th>
                                             <th>Chapters</th>
+                                            <th>Notes</th>
                                             <th>Status</th>
                                             <th>Pickup library</th>
                                             <th class="nosort">&nbsp;</th>
@@ -793,6 +794,10 @@ Using this account is not recommended because some parts of Koha will not functi
 
                                             <td class="article-request-chapters">
                                                 [% ar.chapters %]
+                                            </td>
+
+                                            <td class="article-request-patron-notes">
+                                                [% ar.patron_notes %]
                                             </td>
 
                                             <td class="article-request-status">
