@@ -24,6 +24,7 @@ use strict;
 use DateTime;
 use POSIX qw( floor );
 use Koha::DateUtils;
+use C4::Dematic;
 use C4::Context;
 use C4::Stats;
 use C4::Reserves;
@@ -2125,6 +2126,10 @@ sub AddReturn {
         } else {
             $messages->{'NeedsTransfer'} = $returnbranch;
         }
+    }
+
+    if ( $doreturn ) {
+        RETI($barcode);
     }
 
     return ( $doreturn, $messages, $issue, ( $patron ? $patron->unblessed : {} ));
