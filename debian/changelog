@@ -1,3 +1,15 @@
+koha (16.11.09.01~marywood+20170801110852.fb87c150) stable; urgency=medium
+
+  * Building git snapshot.
+
+ -- root <root@changeme.bywatersolutions.com>  Tue, 01 Aug 2017 11:08:52 -0700
+
+koha (16.11.09.01~marywood+20170801094954.d2d65df7) stable; urgency=medium
+
+  * Building git snapshot.
+
+ -- root <root@changeme.bywatersolutions.com>  Tue, 01 Aug 2017 09:49:54 -0700
+
 koha (16.05.02) squeeze; urgency=medium
 
   * New upstream release (16.05.02)

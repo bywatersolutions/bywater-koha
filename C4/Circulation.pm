@@ -24,6 +24,7 @@ use strict;
 use DateTime;
 use POSIX qw( floor );
 use Koha::DateUtils;
+use C4::Dematic;
 use C4::Context;
 use C4::Stats;
 use C4::Reserves;
@@ -2143,6 +2144,8 @@ sub AddReturn {
             $messages->{ReturnClaims} = $claims;
         }
     }
+
+    RETI($barcode) if $doreturn;
 
     return ( $doreturn, $messages, $issue, ( $patron ? $patron->unblessed : {} ));
 }
