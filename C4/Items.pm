@@ -21,6 +21,8 @@ package C4::Items;
 use strict;
 #use warnings; FIXME - Bug 2505
 
+use C4::Dematic;
+
 use vars qw(@ISA @EXPORT);
 BEGIN {
     require Exporter;
@@ -621,6 +623,7 @@ sub DelItem {
 
     #search item field code
     logaction("CATALOGUING", "DELETE", $itemnumber, "item") if C4::Context->preference("CataloguingLog");
+
     return $deleted;
 }
 
