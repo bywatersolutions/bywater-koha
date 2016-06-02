@@ -109,8 +109,8 @@ sub email_notif {
 
     if ( $results == 1 ) {
 
-        my $to      = 'ldjamison@maryu.marywood.edu';
-        my $from    = 'kohaadmin@maryu.marywood.edu';
+        my $to      = 'kohanotifications@maryu.marywood.edu';
+        my $from    = 'noreply@marywood.bywatersolutions.com';
         my $subject = 'Item Not Returned';
         my $message = "Item $barcode has not been checked in.";
 
