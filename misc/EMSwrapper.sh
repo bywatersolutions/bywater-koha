@@ -4,4 +4,5 @@
 # from Marywood's EMS server
 
 ## Change path as necessary to file's actual location
-perl /usr/share/koha/lib/C4/EMSServer.pm & # ampersand used to initiate module as a background process
+#perl /usr/share/koha/lib/C4/EMSServer.pm & # ampersand used to initiate module as a background process
+perl /home/koha/kohaclone/C4/EMSServer.pm &
