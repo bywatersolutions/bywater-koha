@@ -2,7 +2,7 @@ package C4::EMSServer;
 
 use strict;
 
-use lib '/usr/share/koha/lib'; # change if necessary - file path to Koha library
+use lib '/home/koha/kohaclone'; # change if necessary - file path to Koha library
 use C4::Dematic;    # Custom Marywood module for communication with the AS/RS
 use IO::Socket;
 

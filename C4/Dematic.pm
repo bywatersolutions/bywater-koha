@@ -422,67 +422,10 @@ and to anticipate the item to be stored.
 sub RETI {
     my ($barcode) = @_;
 
-    my $sequence_number = '00001';
+    # REQI to delete a request record after being checked in
+    emsLogDelete($barcode, "REQI"); 
 
-    unless ($barcode) {
-        croak "FAILED RETI() - no barcode supplied";
-    }
-
-    $handle = initConnection();
-
-    if ( !$handle ) {
-        emsLog( $barcode, "RETI", "Error! Could not connect! $!" );
-    }
-    else {
-        my $msglength   = 20;                              #Item ID
-        my $request_msg = sprintf( "%sRETI%05d%-20.20s",
-            $sequence_number, $msglength, $barcode );
-
-        unless ( $sequence_number == '99999' ) {
-            $sequence_number++;
-        }
-        else {
-            $sequence_number = '00001';
-        }
-
-        &sendRequest($request_msg);
-        my $resp_msg = &recv();
-
-        my $resp_msg = &recv();
-        if ( $resp_msg =~ /RSNR0000500000/ ) {
-            emsLogDelete( $barcode, "REQI" )
-              ;    # REQI to delete a request record after being checked in
-            emsReturned($barcode);
-        }
-        elsif ( $resp_msg =~ /RSNR0000500001/ ) {
-            emsLog( $barcode, "RETI",
-                "$barcode has already been committed to work - $resp_msg" );
-        }
-        elsif ( $resp_msg =~ /RSNR0000500003/ ) {
-            emsLog( $barcode, "RETI",
-                "$barcode is NOT in EMS database - $resp_msg" );
-        }
-        elsif ( $resp_msg =~ /RSNR0000500009/ ) {
-            emsLog( $barcode, "RETI", "$barcode is stored - $resp_msg" );
-        }
-        elsif ( $resp_msg =~ /RSNR0000500011/ ) {
-            emsLog( $barcode, "RETI",
-                "Work request for $barcode was deleted before completion - $resp_msg"
-            );
-        }
-        else {
-            # Try again!
-            $handle = initConnection();
-            &sendRequest($request_msg);
-            my $resp_msg = &recv();
-            if ( $resp_msg !~ /RSNR0000500000/ ) {
-                emsLogDelete( $barcode, "REQI" )
-                  ;    # REQI to delete a request record after being checked in
-                emsReturned($barcode);
-            }
-        }
-        $handle->close();
-    }
+    emsReturned($barcode);
 }
 
 =head2 REQI
