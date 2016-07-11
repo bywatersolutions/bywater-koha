@@ -21,7 +21,7 @@ use strict;
 # along with Koha; if not, see <http://www.gnu.org/licenses>.
 
 use Koha::Account;
-use C4::Accounts qw(makepayment);
+use C4::Accounts qw(makepayment WriteOffFee);
 use Koha::Account::Lines;
 use parent qw(C4::SIP::ILS::Transaction);
 
@@ -48,15 +48,28 @@ sub pay {
     my $amt            = shift;
     my $type           = shift;
     my $fee_id         = shift;
+    my $is_writeoff    = shift;
 
     warn("RECORD:$borrowernumber::$amt");
 
-    if ($fee_id) {
-        my $fee = Koha::Account::Lines->find( $fee_id );
+    my $fee = $fee_id ? Koha::Account::Lines->find($fee_id) : undef;
+
+    if ($is_writeoff) { # Writeoffs require a fee id to be sent
+        if ( $fee && $fee->amountoutstanding == $amt ) {
+            WriteOffFee( $borrowernumber, $fee_id, undef, undef, $amt );
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    if ($fee_id) { # If a given fee is to be paid, the amount must match. This is a limitation of makepayment
         if ( $fee && $fee->amountoutstanding == $amt ) {
             makepayment( $fee_id, $borrowernumber, undef, $amt );
             return 1;
-        } else {
+        }
+        else {
             return 0;
         }
     }
