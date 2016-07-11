@@ -23,6 +23,7 @@ use strict;
 use Koha::Account;
 use C4::Accounts qw(makepayment WriteOffFee);
 use Koha::Account::Lines;
+use Koha::Patrons;
 use parent qw(C4::SIP::ILS::Transaction);
 
 
@@ -49,8 +50,17 @@ sub pay {
     my $type           = shift;
     my $fee_id         = shift;
     my $is_writeoff    = shift;
+    my $disallow_overpayment = shift;
 
     warn("RECORD:$borrowernumber::$amt");
+
+    if ($disallow_overpayment) {
+        my $patron = Koha::Patrons->find($borrowernumber);
+        return 0 unless $patron;
+
+        my $balance = $patron->account_balance();
+        return 0 if $balance < $amt;
+    }
 
     my $fee = $fee_id ? Koha::Account::Lines->find($fee_id) : undef;
 
