@@ -26,6 +26,7 @@ use Koha::Database;
 use DateTime;
 use Koha::DateUtils;
 use Koha::Items;
+use Koha::Account::Lines;
 
 use base qw(Koha::Object);
 
@@ -86,6 +87,22 @@ sub patron {
     my ( $self ) = @_;
     my $patron_rs = $self->_result->borrower;
     return Koha::Patron->_new_from_dbic( $patron_rs );
+}
+
+=head3 account_balance
+	
+Returns the total amount owed by this patron
+
+=cut
+
+sub account_balance {
+    my ($self) = @_;
+
+    return Koha::Account::Lines->search(
+	{
+	    borrowernumber => $self->id
+	}
+    )->amount_outstanding();
 }
 
 =head3 type
