@@ -61,8 +61,7 @@ my $new_ordernumber  = $ordernumber;
 
 $unitprice = Koha::Number::Price->new( $unitprice )->unformat();
 
-#need old receivedate if we update the order, parcel.pl only shows the right parcel this way FIXME
-my $basket = Koha::Acquisition::Order->find($ordernumber)->basket;
+my $basket = Koha::Acquisition::Order->fetch( { ordernumber => $ordernumber } )->basket;
 
 if ($quantityrec > $origquantityrec ) {
     my @received_items = ();
