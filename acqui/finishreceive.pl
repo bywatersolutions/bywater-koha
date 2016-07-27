@@ -59,7 +59,7 @@ my $bookfund         = $input->param("bookfund");
 my $order            = GetOrder($ordernumber);
 my $new_ordernumber  = $ordernumber;
 
-my $basket = Koha::Acquisition::Order->find($ordernumber)->basket;
+my $basket = Koha::Acquisition::Order->fetch( { ordernumber => $ordernumber } )->basket;
 
 if ($quantityrec > $origquantityrec ) {
     my @received_items = ();
