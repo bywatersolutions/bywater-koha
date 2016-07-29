@@ -478,6 +478,7 @@ sub REQI {
         INNER JOIN items
             ON items.biblionumber = biblio.biblionumber
         WHERE reserves.reserve_id = $reserve_id
+        AND items.itemnumber = reserves.itemnumber
     " );
     $sth->execute();
 
