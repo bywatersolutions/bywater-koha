@@ -57,6 +57,7 @@ BEGIN {
       &RemoveNotifyLine
       &AddNotifyLine
       &GetOverdueMessageTransportTypes
+      &get_chargeable_units
     );
 
     # subs to remove

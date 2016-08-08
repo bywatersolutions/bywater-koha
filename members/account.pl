@@ -24,7 +24,6 @@ use CGI;
 
 use C4::Auth;
 use C4::Output;
-use C4::Dates qw/format_date/;
 use C4::Members;
 use C4::Branch;
 use C4::Members::Attributes qw(GetBorrowerAttributes);
