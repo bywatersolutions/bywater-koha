@@ -256,7 +256,16 @@ sub checkpw_ldap {
 #
 sub ldap_entry_2_hash {
 	my $userldapentry = shift;
-	my %borrower = ( cardnumber => shift );
+#Added per rt 37264 20160809 wnc
+#	my %borrower = ( cardnumber => shift );
+my $autonumber_members = C4::Context->boolean_preference('autoMemberNum') || 0;
+my %borrower;
+if($autonumber_members) {
+    $borrower{'cardnumber'} = fixup_cardnumber($borrower{'cardnumber'});
+}
+else {
+    $borrower{'cardnumber'} = shift;
+}
 	my %memberhash;
 	$userldapentry->exists('uid');	# This is bad, but required!  By side-effect, this initializes the attrs hash. 
 	if ($debug) {
