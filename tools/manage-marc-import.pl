@@ -97,7 +97,8 @@ if ($op eq "") {
         add_saved_job_results_to_template($template, $completedJobID);
     } else {
         my $framework = $input->param('framework');
-        commit_batch($template, $import_batch_id, $framework);
+        my $overlay_framework = $input->param('overlay_framework');
+        commit_batch($template, $import_batch_id, $framework, $overlay_framework);
     }
     import_records_list($template, $import_batch_id, $offset, $results_per_page);
 } elsif ($op eq "revert-batch") {
@@ -229,7 +230,7 @@ sub import_batches_list {
 }
 
 sub commit_batch {
-    my ($template, $import_batch_id, $framework) = @_;
+    my ($template, $import_batch_id, $framework, $overlay_framework) = @_;
 
     my $job = undef;
     my ( $num_added, $num_updated, $num_items_added,
@@ -242,9 +243,15 @@ sub commit_batch {
     (
         $num_added, $num_updated, $num_items_added,
         $num_items_replaced, $num_items_errored, $num_ignored
-      )
-      = BatchCommitRecords( $import_batch_id, $framework, 50,
-        $callback );
+      ) =
+        BatchCommitRecords({
+            batch_id => $import_batch_id,
+            framework => $framework,
+            overlay_framework => $overlay_framework,
+            progress_interval => 100,
+            progress_callback => $callback,
+
+        });
 
     my $results = {
         did_commit => 1,
