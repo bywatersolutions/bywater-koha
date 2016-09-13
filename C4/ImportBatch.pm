@@ -498,22 +498,37 @@ sub BatchFindDuplicates {
 
 =head2 BatchCommitRecords
 
-  my ($num_added, $num_updated, $num_items_added, $num_items_replaced, $num_items_errored, $num_ignored) =
-        BatchCommitRecords($batch_id, $framework,
-        $progress_interval, $progress_callback);
+  Takes a hashref containing params for committing the batch - optional parameters 'progress_interval' and
+  'progress_callback' will define code called every X records.
 
+  my ($num_added, $num_updated, $num_items_added, $num_items_replaced, $num_items_errored, $num_ignored) =
+        BatchCommitRecords({
+            batch_id  => $batch_id,
+            framework => $framework,
+            overlay_framework => $overlay_framework,
+            progress_interval => $progress_interval,
+            progress_callback => $progress_callback,
+            skip_intermediate_commit => $skip_intermediate_commit
+        });
+
+    Parameter skip_intermediate_commit does what is says.
 =cut
 
 sub BatchCommitRecords {
-    my $batch_id = shift;
-    my $framework = shift;
+    my $params = shift;
+    my $batch_id          = $params->{batch_id};
+    my $framework         = $params->{framework};
+    my $overlay_framework = $params->{overlay_framework};
+    my $skip_intermediate_commit = $params->{skip_intermediate_commit};
+    my $progress_interval = $params->{progress_interval} // 0;
+    my $progress_callback = $params->{progress_callback};
+    $progress_interval = 0 unless $progress_interval && $progress_interval =~ /^\d+$/;
+    $progress_interval = 0 unless ref($progress_callback) eq 'CODE';
 
     my $schema = Koha::Database->schema;
 
     # optional callback to monitor status 
     # of job
-    my $progress_interval = 0;
-    my $progress_callback = undef;
     if ($#_ == 1) {
         $progress_interval = shift;
         $progress_callback = shift;
@@ -637,7 +652,7 @@ sub BatchCommitRecords {
                     $context->{userid} = $logged_in_patron->userid;
                 }
 
-                ModBiblio($marc_record, $recordid, $oldbiblio->frameworkcode, {
+                ModBiblio($marc_record, $recordid, $overlay_framework // $oldbiblio->frameworkcode, {
                     overlay_context => $context
                 });
                 $query = "UPDATE import_biblios SET matched_biblionumber = ? WHERE import_record_id = ?"; # FIXME call SetMatchedBiblionumber instead
