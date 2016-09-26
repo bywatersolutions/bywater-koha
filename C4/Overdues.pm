@@ -47,6 +47,7 @@ BEGIN {
 
     # subs to rename (and maybe merge some...)
     push @EXPORT, qw(
+      &parse_overdues_letter
       &CalcFine
       &Getoverdues
       &checkoverdues
