@@ -24,6 +24,7 @@ use Carp;
 use Koha::Database;
 use Koha::Patrons;
 use Koha::Patron::Images;
+use Koha::DateUtils qw(dt_from_string);
 
 use base qw(Koha::Object);
 
