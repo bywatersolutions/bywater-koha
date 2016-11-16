@@ -148,7 +148,7 @@ if ( $op eq 'add_form' ) {
 #End Edit
 } elsif ( $op eq 'add_validate' ) {
 #we are confirming the changes, save the basket
-    if ( $is_an_edit ) {
+    if ( $basketno ) {
         ModBasketHeader(
             $basketno,
             $input->param('basketname'),
