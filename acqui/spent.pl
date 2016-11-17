@@ -64,7 +64,9 @@ SELECT
     aqinvoices.invoicenumber,
     quantityreceived,
     unitprice,
-    datereceived
+    datereceived,
+    gstrate,
+    aqorders.biblionumber
 FROM (aqorders, aqbasket)
 LEFT JOIN biblio ON
     biblio.biblionumber=aqorders.biblionumber
@@ -91,6 +93,7 @@ my $subtotal = 0;
 my @spent;
 while ( my $data = $sth->fetchrow_hashref ) {
     my $recv = $data->{'quantityreceived'};
+    $data->{unitprice} += $data->{unitprice} * $data->{gstrate};
     if ( $recv > 0 ) {
         my $rowtotal = $recv * $data->{'unitprice'};
         $data->{'rowtotal'}  = sprintf( "%.2f", $rowtotal );
