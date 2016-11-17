@@ -65,7 +65,8 @@ SELECT
     quantityreceived,
     unitprice_tax_included,
     datereceived,
-    aqbooksellers.name as vendorname
+    aqbooksellers.name as vendorname,
+    tax_rate_on_receiving,
 FROM (aqorders, aqbasket)
 LEFT JOIN biblio ON
     biblio.biblionumber=aqorders.biblionumber
@@ -94,6 +95,7 @@ my $subtotal = 0;
 my @spent;
 while ( my $data = $sth->fetchrow_hashref ) {
     my $recv = $data->{'quantityreceived'};
+    $data->{unitprice} += $data->{unitprice} * $data->{tax_rate_on_receiving};
     if ( $recv > 0 ) {
         my $rowtotal = $recv * $data->{'unitprice_tax_included'};
         $data->{'rowtotal'}  = sprintf( "%.2f", $rowtotal );

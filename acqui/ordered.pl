@@ -58,6 +58,7 @@ SELECT
     aqbasket.booksellerid,
     aqbooksellers.name as vendorname,
     itype,
+    tax_rate_on_ordering,
     title
 FROM (aqorders, aqbasket)
 LEFT JOIN biblio ON
@@ -92,7 +93,8 @@ while ( my $data = $sth->fetchrow_hashref ) {
         $left = $data->{'quantity'};
     }
     if ( $left && $left > 0 ) {
-        my $subtotal = $left * $data->{'ecost_tax_included'};
+        $data->{ecost} += $data->{ecost} * $data->{tax_rate_on_ordering};
+        my $subtotal = $left * $data->{'ecost'};
         $data->{subtotal} = sprintf( "%.2f", $subtotal );
         $data->{'left'} = $left;
         push @ordered, $data;
