@@ -366,6 +366,11 @@ elsif ( $op eq 'ediorder' ) {
         last;
     }
 
+my $av = Koha::AdditionalField->fetch_all_values( {
+            tablename => 'aqbasket',
+            record_id => $basketno,
+        } );
+
     $template->param(
         basket               => $basket,
         basketno             => $basketno,
@@ -411,10 +416,7 @@ elsif ( $op eq 'ediorder' ) {
         has_budgets          => $has_budgets,
         duplinbatch          => $duplinbatch,
         available_additional_fields => Koha::AdditionalField->all( { tablename => 'aqbasket' } ),
-        additional_field_values => Koha::AdditionalField->fetch_all_values( {
-            tablename => 'aqbasket',
-            record_id => $basketno,
-        } )->{$basketno},
+        additional_field_values => $av ? $av->{$basketno} : undef,
     );
 }
 
