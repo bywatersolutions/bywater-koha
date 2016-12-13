@@ -212,21 +212,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 items
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Item>
-
-=cut
-
-__PACKAGE__->has_many(
-  "items",
-  "Koha::Schema::Result::Item",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 old_reserves
 
 Type: has_many
@@ -333,7 +318,7 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-11-15 13:54:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hy6syrxES7od6dR2hF1iwA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0fgSsxmDvbYQEpAtVTwWbQ
 
 1;

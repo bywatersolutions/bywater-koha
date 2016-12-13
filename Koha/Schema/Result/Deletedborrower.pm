@@ -89,7 +89,7 @@ __PACKAGE__->table("deletedborrowers");
 
 =head2 state
 
-  data_type: 'text'
+  data_type: 'mediumtext'
   is_nullable: 1
 
 =head2 zipcode
@@ -170,7 +170,7 @@ __PACKAGE__->table("deletedborrowers");
 =head2 B_state
 
   accessor: 'b_state'
-  data_type: 'text'
+  data_type: 'mediumtext'
   is_nullable: 1
 
 =head2 B_zipcode
@@ -214,8 +214,7 @@ __PACKAGE__->table("deletedborrowers");
 =head2 categorycode
 
   data_type: 'varchar'
-  default_value: (empty string)
-  is_nullable: 0
+  is_nullable: 1
   size: 10
 
 =head2 dateenrolled
@@ -282,6 +281,18 @@ __PACKAGE__->table("deletedborrowers");
   data_type: 'varchar'
   is_nullable: 1
   size: 100
+
+=head2 ethnicity
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 50
+
+=head2 ethnotes
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 255
 
 =head2 sex
 
@@ -361,7 +372,7 @@ __PACKAGE__->table("deletedborrowers");
 
 =head2 altcontactstate
 
-  data_type: 'text'
+  data_type: 'mediumtext'
   is_nullable: 1
 
 =head2 altcontactzipcode
@@ -387,28 +398,10 @@ __PACKAGE__->table("deletedborrowers");
   is_nullable: 1
   size: 50
 
-=head2 sms_provider_id
-
-  data_type: 'integer'
-  is_nullable: 1
-
 =head2 privacy
 
   data_type: 'integer'
   default_value: 1
-  is_nullable: 0
-
-=head2 privacy_guarantor_checkouts
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 0
-
-=head2 updated_on
-
-  data_type: 'timestamp'
-  datetime_undef_if_invalid: 1
-  default_value: current_timestamp
   is_nullable: 0
 
 =cut
@@ -439,7 +432,7 @@ __PACKAGE__->add_columns(
   "city",
   { data_type => "mediumtext", is_nullable => 0 },
   "state",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "mediumtext", is_nullable => 1 },
   "zipcode",
   { data_type => "varchar", is_nullable => 1, size => 25 },
   "country",
@@ -482,7 +475,7 @@ __PACKAGE__->add_columns(
   "B_city",
   { accessor => "b_city", data_type => "mediumtext", is_nullable => 1 },
   "B_state",
-  { accessor => "b_state", data_type => "text", is_nullable => 1 },
+  { accessor => "b_state", data_type => "mediumtext", is_nullable => 1 },
   "B_zipcode",
   {
     accessor => "b_zipcode",
@@ -501,7 +494,7 @@ __PACKAGE__->add_columns(
   "branchcode",
   { data_type => "varchar", default_value => "", is_nullable => 0, size => 10 },
   "categorycode",
-  { data_type => "varchar", default_value => "", is_nullable => 0, size => 10 },
+  { data_type => "varchar", is_nullable => 1, size => 10 },
   "dateenrolled",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "dateexpiry",
@@ -526,6 +519,10 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "relationship",
   { data_type => "varchar", is_nullable => 1, size => 100 },
+  "ethnicity",
+  { data_type => "varchar", is_nullable => 1, size => 50 },
+  "ethnotes",
+  { data_type => "varchar", is_nullable => 1, size => 255 },
   "sex",
   { data_type => "varchar", is_nullable => 1, size => 1 },
   "password",
@@ -553,7 +550,7 @@ __PACKAGE__->add_columns(
   "altcontactaddress3",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "altcontactstate",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "mediumtext", is_nullable => 1 },
   "altcontactzipcode",
   { data_type => "varchar", is_nullable => 1, size => 50 },
   "altcontactcountry",
@@ -562,24 +559,13 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 50 },
   "smsalertnumber",
   { data_type => "varchar", is_nullable => 1, size => 50 },
-  "sms_provider_id",
-  { data_type => "integer", is_nullable => 1 },
   "privacy",
   { data_type => "integer", default_value => 1, is_nullable => 0 },
-  "privacy_guarantor_checkouts",
-  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
-  "updated_on",
-  {
-    data_type => "timestamp",
-    datetime_undef_if_invalid => 1,
-    default_value => \"current_timestamp",
-    is_nullable => 0,
-  },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-06-14 16:35:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wmWyqDcbofgVoIbvRy7j6w
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BeyvaGAbdoYr17eaUvw8cg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

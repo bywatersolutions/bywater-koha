@@ -255,8 +255,9 @@ __PACKAGE__->table("deleteditems");
 
 =head2 enumchron
 
-  data_type: 'text'
+  data_type: 'varchar'
   is_nullable: 1
+  size: 80
 
 =head2 copynumber
 
@@ -265,12 +266,6 @@ __PACKAGE__->table("deleteditems");
   size: 32
 
 =head2 stocknumber
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 32
-
-=head2 new_status
 
   data_type: 'varchar'
   is_nullable: 1
@@ -373,12 +368,10 @@ __PACKAGE__->add_columns(
   "more_subfields_xml",
   { data_type => "longtext", is_nullable => 1 },
   "enumchron",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "varchar", is_nullable => 1, size => 80 },
   "copynumber",
   { data_type => "varchar", is_nullable => 1, size => 32 },
   "stocknumber",
-  { data_type => "varchar", is_nullable => 1, size => 32 },
-  "new_status",
   { data_type => "varchar", is_nullable => 1, size => 32 },
 );
 
@@ -395,8 +388,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("itemnumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-03-31 17:10:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:npNexLgE7AxLp6iVy1FxgQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KML1T2DvLKa3nF0Tu/I7lA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

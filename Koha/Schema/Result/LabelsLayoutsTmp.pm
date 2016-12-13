@@ -1,12 +1,12 @@
 use utf8;
-package Koha::Schema::Result::CreatorLayout;
+package Koha::Schema::Result::LabelsLayoutsTmp;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-Koha::Schema::Result::CreatorLayout
+Koha::Schema::Result::LabelsLayoutsTmp
 
 =cut
 
@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<creator_layouts>
+=head1 TABLE: C<labels_layouts_tmp>
 
 =cut
 
-__PACKAGE__->table("creator_layouts");
+__PACKAGE__->table("labels_layouts_tmp");
 
 =head1 ACCESSORS
 
@@ -35,12 +35,6 @@ __PACKAGE__->table("creator_layouts");
   default_value: 'CODE39'
   is_nullable: 0
   size: 100
-
-=head2 start_label
-
-  data_type: 'integer'
-  default_value: 1
-  is_nullable: 0
 
 =head2 printing_type
 
@@ -62,12 +56,6 @@ __PACKAGE__->table("creator_layouts");
   default_value: 0
   is_nullable: 1
 
-=head2 oblique_title
-
-  data_type: 'integer'
-  default_value: 1
-  is_nullable: 1
-
 =head2 font
 
   data_type: 'char'
@@ -80,13 +68,6 @@ __PACKAGE__->table("creator_layouts");
   data_type: 'integer'
   default_value: 10
   is_nullable: 0
-
-=head2 units
-
-  data_type: 'char'
-  default_value: 'POINT'
-  is_nullable: 0
-  size: 20
 
 =head2 callnum_split
 
@@ -108,18 +89,6 @@ __PACKAGE__->table("creator_layouts");
   is_nullable: 0
   size: 210
 
-=head2 layout_xml
-
-  data_type: 'text'
-  is_nullable: 0
-
-=head2 creator
-
-  data_type: 'char'
-  default_value: 'Labels'
-  is_nullable: 0
-  size: 15
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -132,8 +101,6 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 100,
   },
-  "start_label",
-  { data_type => "integer", default_value => 1, is_nullable => 0 },
   "printing_type",
   { data_type => "char", default_value => "BAR", is_nullable => 0, size => 32 },
   "layout_name",
@@ -145,14 +112,10 @@ __PACKAGE__->add_columns(
   },
   "guidebox",
   { data_type => "integer", default_value => 0, is_nullable => 1 },
-  "oblique_title",
-  { data_type => "integer", default_value => 1, is_nullable => 1 },
   "font",
   { data_type => "char", default_value => "TR", is_nullable => 0, size => 10 },
   "font_size",
   { data_type => "integer", default_value => 10, is_nullable => 0 },
-  "units",
-  { data_type => "char", default_value => "POINT", is_nullable => 0, size => 20 },
   "callnum_split",
   { data_type => "integer", default_value => 0, is_nullable => 1 },
   "text_justify",
@@ -163,15 +126,6 @@ __PACKAGE__->add_columns(
     default_value => "barcode",
     is_nullable => 0,
     size => 210,
-  },
-  "layout_xml",
-  { data_type => "text", is_nullable => 0 },
-  "creator",
-  {
-    data_type => "char",
-    default_value => "Labels",
-    is_nullable => 0,
-    size => 15,
   },
 );
 
@@ -189,8 +143,8 @@ __PACKAGE__->set_primary_key("layout_id");
 
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qE6ZoK3w62MWqmav8vqQIA
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iKZ6kDsuZMBJca0rwQWdIw
 
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

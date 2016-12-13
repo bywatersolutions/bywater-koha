@@ -42,6 +42,12 @@ __PACKAGE__->table("borrower_attributes");
   is_nullable: 1
   size: 255
 
+=head2 password
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 64
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -51,6 +57,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
   "attribute",
   { data_type => "varchar", is_nullable => 1, size => 255 },
+  "password",
+  { data_type => "varchar", is_nullable => 1, size => 64 },
 );
 
 =head1 RELATIONS
@@ -86,8 +94,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-04-25 18:09:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GfEFw+6mgaFw6Q8dktPtGw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0EwrDY17vs18nbwZPBwakA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

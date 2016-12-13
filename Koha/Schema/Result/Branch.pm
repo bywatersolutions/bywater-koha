@@ -217,21 +217,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 authorised_values_branches
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::AuthorisedValuesBranch>
-
-=cut
-
-__PACKAGE__->has_many(
-  "authorised_values_branches",
-  "Koha::Schema::Result::AuthorisedValuesBranch",
-  { "foreign.branchcode" => "self.branchcode" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 borrower_attribute_types_branches
 
 Type: has_many
@@ -397,6 +382,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 creator_batches_tmps
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::CreatorBatchesTmp>
+
+=cut
+
+__PACKAGE__->has_many(
+  "creator_batches_tmps",
+  "Koha::Schema::Result::CreatorBatchesTmp",
+  { "foreign.branch_code" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 default_branch_circ_rule
 
 Type: might_have
@@ -472,6 +472,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 labels_batches_tmps
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::LabelsBatchesTmp>
+
+=cut
+
+__PACKAGE__->has_many(
+  "labels_batches_tmps",
+  "Koha::Schema::Result::LabelsBatchesTmp",
+  { "foreign.branch_code" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 opac_news
 
 Type: has_many
@@ -543,8 +558,8 @@ Composing rels: L</branchrelations> -> categorycode
 __PACKAGE__->many_to_many("categorycodes", "branchrelations", "categorycode");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-11-15 13:54:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:juELN1t9NM0Y/5wcL+W3dw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fZ8UaIO+elDuHc7U7nZb3Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

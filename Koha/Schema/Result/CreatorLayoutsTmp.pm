@@ -1,12 +1,12 @@
 use utf8;
-package Koha::Schema::Result::CreatorLayout;
+package Koha::Schema::Result::CreatorLayoutsTmp;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-Koha::Schema::Result::CreatorLayout
+Koha::Schema::Result::CreatorLayoutsTmp
 
 =cut
 
@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<creator_layouts>
+=head1 TABLE: C<creator_layouts_tmp>
 
 =cut
 
-__PACKAGE__->table("creator_layouts");
+__PACKAGE__->table("creator_layouts_tmp");
 
 =head1 ACCESSORS
 
@@ -60,12 +60,6 @@ __PACKAGE__->table("creator_layouts");
 
   data_type: 'integer'
   default_value: 0
-  is_nullable: 1
-
-=head2 oblique_title
-
-  data_type: 'integer'
-  default_value: 1
   is_nullable: 1
 
 =head2 font
@@ -145,8 +139,6 @@ __PACKAGE__->add_columns(
   },
   "guidebox",
   { data_type => "integer", default_value => 0, is_nullable => 1 },
-  "oblique_title",
-  { data_type => "integer", default_value => 1, is_nullable => 1 },
   "font",
   { data_type => "char", default_value => "TR", is_nullable => 0, size => 10 },
   "font_size",
@@ -189,8 +181,8 @@ __PACKAGE__->set_primary_key("layout_id");
 
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qE6ZoK3w62MWqmav8vqQIA
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:X2OemuRRSZxjEE01SgKxfQ
 
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

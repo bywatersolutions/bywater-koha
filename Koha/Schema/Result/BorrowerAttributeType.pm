@@ -53,6 +53,12 @@ __PACKAGE__->table("borrower_attribute_types");
   default_value: 0
   is_nullable: 0
 
+=head2 password_allowed
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 0
+
 =head2 staff_searchable
 
   data_type: 'tinyint'
@@ -74,6 +80,7 @@ __PACKAGE__->table("borrower_attribute_types");
 =head2 category_code
 
   data_type: 'varchar'
+  is_foreign_key: 1
   is_nullable: 1
   size: 10
 
@@ -97,6 +104,8 @@ __PACKAGE__->add_columns(
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "opac_display",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "password_allowed",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "staff_searchable",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "authorised_value_category",
@@ -104,7 +113,7 @@ __PACKAGE__->add_columns(
   "display_checkout",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "category_code",
-  { data_type => "varchar", is_nullable => 1, size => 10 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
   "class",
   { data_type => "varchar", default_value => "", is_nullable => 0, size => 255 },
 );
@@ -153,9 +162,29 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 category_code
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-04-25 18:09:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KzCA3jRyp/uqYdrHFXaw7Q
+Type: belongs_to
+
+Related object: L<Koha::Schema::Result::Category>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "category_code",
+  "Koha::Schema::Result::Category",
+  { categorycode => "category_code" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "RESTRICT",
+    on_update     => "RESTRICT",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k35HTRBkYrrsigwoPqxwxQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

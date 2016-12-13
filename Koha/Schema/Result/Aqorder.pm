@@ -49,9 +49,8 @@ __PACKAGE__->table("aqorders");
 =head2 currency
 
   data_type: 'varchar'
-  is_foreign_key: 1
   is_nullable: 1
-  size: 10
+  size: 3
 
 =head2 listprice
 
@@ -158,6 +157,11 @@ __PACKAGE__->table("aqorders");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 budgetgroup_id
+
+  data_type: 'integer'
+  is_nullable: 0
+
 =head2 budgetdate
 
   data_type: 'date'
@@ -205,12 +209,6 @@ __PACKAGE__->table("aqorders");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
-=head2 subscriptionid
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
 =head2 parent_ordernumber
 
   data_type: 'integer'
@@ -223,27 +221,10 @@ __PACKAGE__->table("aqorders");
   is_nullable: 1
   size: 16
 
-=head2 line_item_id
+=head2 subscriptionid
 
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 35
-
-=head2 suppliers_reference_number
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 35
-
-=head2 suppliers_reference_qualifier
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 3
-
-=head2 suppliers_report
-
-  data_type: 'text'
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 1
 
 =cut
@@ -258,7 +239,7 @@ __PACKAGE__->add_columns(
   "quantity",
   { data_type => "smallint", is_nullable => 1 },
   "currency",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
+  { data_type => "varchar", is_nullable => 1, size => 3 },
   "listprice",
   { data_type => "decimal", is_nullable => 1, size => [28, 6] },
   "datereceived",
@@ -300,6 +281,8 @@ __PACKAGE__->add_columns(
   { data_type => "float", is_nullable => 1, size => [6, 4] },
   "budget_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "budgetgroup_id",
+  { data_type => "integer", is_nullable => 0 },
   "budgetdate",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "sort1",
@@ -316,8 +299,6 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 1 },
   "claimed_date",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
-  "subscriptionid",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "parent_ordernumber",
   { data_type => "integer", is_nullable => 1 },
   "orderstatus",
@@ -327,14 +308,8 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 16,
   },
-  "line_item_id",
-  { data_type => "varchar", is_nullable => 1, size => 35 },
-  "suppliers_reference_number",
-  { data_type => "varchar", is_nullable => 1, size => 35 },
-  "suppliers_reference_qualifier",
-  { data_type => "varchar", is_nullable => 1, size => 3 },
-  "suppliers_report",
-  { data_type => "text", is_nullable => 1 },
+  "subscriptionid",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -466,26 +441,6 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 currency
-
-Type: belongs_to
-
-Related object: L<Koha::Schema::Result::Currency>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "currency",
-  "Koha::Schema::Result::Currency",
-  { currency => "currency" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "SET NULL",
-    on_update     => "SET NULL",
-  },
-);
-
 =head2 invoiceid
 
 Type: belongs_to
@@ -537,8 +492,8 @@ Composing rels: L</aqorder_users> -> borrowernumber
 __PACKAGE__->many_to_many("borrowernumbers", "aqorder_users", "borrowernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-06 18:07:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SQC7q+ZeARRBGvdzzWgSkw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:B4Aj7BWFPi+RzBF0r3pOsQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

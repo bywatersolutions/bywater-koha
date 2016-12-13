@@ -35,13 +35,6 @@ __PACKAGE__->table("default_branch_item_rules");
   data_type: 'tinyint'
   is_nullable: 1
 
-=head2 hold_fulfillment_policy
-
-  data_type: 'enum'
-  default_value: 'any'
-  extra: {list => ["any","homebranch","holdingbranch"]}
-  is_nullable: 0
-
 =head2 returnbranch
 
   data_type: 'varchar'
@@ -55,13 +48,6 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
   "holdallowed",
   { data_type => "tinyint", is_nullable => 1 },
-  "hold_fulfillment_policy",
-  {
-    data_type => "enum",
-    default_value => "any",
-    extra => { list => ["any", "homebranch", "holdingbranch"] },
-    is_nullable => 0,
-  },
   "returnbranch",
   { data_type => "varchar", is_nullable => 1, size => 15 },
 );
@@ -96,8 +82,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-04-29 10:32:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+dEOJjQezQNGILloXC2HfQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ot/IjSoqsh9Xx9/5pgY+ng
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
