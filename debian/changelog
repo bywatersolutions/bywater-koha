@@ -1,3 +1,9 @@
+koha (16.05.05.01~switch+20161228180000.ba088032) stable; urgency=medium
+
+  * Building git snapshot.
+
+ -- root <root@changeme.bywatersolutions.com>  Wed, 28 Dec 2016 18:00:00 -0800
+
 koha (16.05.02) squeeze; urgency=medium
 
   * New upstream release (16.05.02)

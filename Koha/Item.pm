@@ -26,7 +26,6 @@ use Koha::Database;
 use Koha::Item::Transfer;
 use Koha::Patrons;
 use Koha::Libraries;
-use Koha::Branches;
 use C4::Context;
 use C4::Circulation qw(GetIssuingRule);
 
