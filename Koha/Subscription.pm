@@ -23,6 +23,8 @@ use Carp;
 
 use Koha::Database;
 
+use Koha::ArticleRequest::Status;
+
 use base qw(Koha::Object);
 
 =head1 NAME
