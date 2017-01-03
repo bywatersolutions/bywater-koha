@@ -23,7 +23,7 @@ use C4::Output;
 use C4::Auth;
 use C4::Utils::DataTables::Members;
 use Koha::Biblios;
-use Koha::Borrowers;
+use Koha::Patrons;
 use Koha::ArticleRequests;
 
 my $cgi = new CGI;
@@ -45,8 +45,8 @@ my $patron_id         = $cgi->param('patron_id');
 
 my $biblio = Koha::Biblios->find($biblionumber);
 my $patron =
-    $patron_id         ? Koha::Borrowers->find($patron_id)
-  : $patron_cardnumber ? Koha::Borrowers->find( { cardnumber => $patron_cardnumber } )
+    $patron_id         ? Koha::Patrons->find($patron_id)
+  : $patron_cardnumber ? Koha::Patrons->find( { cardnumber => $patron_cardnumber } )
   : undef;
 
 if ( $action eq 'create' ) {
@@ -93,7 +93,7 @@ if ( !$patron && $patron_cardnumber ) {
     my $patrons = $results->{patrons};
 
     if ( scalar @$patrons == 1 ) {
-        $patron = Koha::Borrowers->find( $patrons->[0]->{borrowernumber} );
+        $patron = Koha::Patrons->find( $patrons->[0]->{borrowernumber} );
     }
     elsif (@$patrons) {
         $template->param( patrons => $patrons );

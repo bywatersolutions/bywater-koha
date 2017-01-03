@@ -28,8 +28,8 @@ use C4::NewsChannels; # GetNewsToDisplay
 use C4::Review qw/numberofreviews/;
 use C4::Suggestions qw/CountSuggestion/;
 use C4::Tags qw/get_count_by_tag_status/;
-use Koha::Borrower::Modifications;
-use Koha::Borrower::Discharge;
+use Koha::Patron::Modifications;
+use Koha::Patron::Discharge;
 use Koha::ArticleRequests;
 
 my $query = new CGI;

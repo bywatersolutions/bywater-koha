@@ -25,7 +25,7 @@ use C4::Auth;
 use C4::Output;
 
 use Koha::Biblios;
-use Koha::Borrowers;
+use Koha::Patrons;
 
 my $cgi = new CGI;
 
@@ -77,7 +77,7 @@ if ( $action eq 'create' ) {
 }
 
 my $biblio = Koha::Biblios->find($biblionumber);
-my $patron = Koha::Borrowers->find($borrowernumber);
+my $patron = Koha::Patrons->find($borrowernumber);
 
 $template->param(
     biblio => $biblio,
