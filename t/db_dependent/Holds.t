@@ -18,6 +18,7 @@ use Koha::DateUtils qw( dt_from_string output_pref );
 use Koha::Biblios;
 use Koha::Holds;
 use Koha::Patrons;
+use Koha::Item::Transfer::Limits;
 use Koha::Items;
 use Koha::Libraries;
 
@@ -430,20 +431,27 @@ subtest 'Pickup location availability tests' => sub {
     my $item = Koha::Items->find($itemnumber);
     my $branch_to = $builder->build({ source => 'Branch' })->{ branchcode };
     my $library = Koha::Libraries->find($branch_to);
+    $library->pickup_location('1')->store;
     my $patron = $builder->build({ source => 'Borrower' })->{ borrowernumber };
 
     t::lib::Mocks::mock_preference('UseBranchTransferLimits', 1);
     t::lib::Mocks::mock_preference('BranchTransferLimitsType', 'itemtype');
-    $library->pickup_location('1')->store;
+
+    my $limit = Koha::Item::Transfer::Limit->new({
+        fromBranch => $item->holdingbranch,
+        toBranch => $branch_to,
+        itemtype => $item->effective_itemtype,
+    })->store;
     is(CanItemBeReserved($patron, $item->itemnumber, $branch_to)->{status},
-       'OK', 'Library is a pickup location');
+       'cannotBeTransferred', 'Item cannot be transferred');
+    $limit->delete;
     $library->pickup_location('0')->store;
     is(CanItemBeReserved($patron, $item->itemnumber, $branch_to)->{status},
        'libraryNotPickupLocation', 'Library is not a pickup location');
     is(CanItemBeReserved($patron, $item->itemnumber, 'nonexistent')->{status},
        'libraryNotFound', 'Cannot set unknown library as pickup location');
 };
-
+my ( $bibnum, $title, $bibitemnum );
 # Helper method to set up a Biblio.
 sub create_helper_biblio {
     my $itemtype = shift;
