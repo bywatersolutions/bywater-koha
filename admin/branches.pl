@@ -76,6 +76,7 @@ if ( $op eq 'add_form' ) {
       marcorgcode
       itembarcodeprefix
       patronbarcodeprefix
+      pickup_location
     );
     my $is_a_modif = $input->param('is_a_modif');
 
