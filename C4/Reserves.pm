@@ -265,7 +265,7 @@ sub AddReserve {
 
 =head2 CanBookBeReserved
 
-  $canReserve = &CanBookBeReserved($borrowernumber, $biblionumber)
+  $canReserve = &CanBookBeReserved($borrowernumber, $biblionumber, $branchcode)
   if ($canReserve eq 'OK') { #We can reserve this Item! }
 
 See CanItemBeReserved() for possible return values.
@@ -273,7 +273,7 @@ See CanItemBeReserved() for possible return values.
 =cut
 
 sub CanBookBeReserved{
-    my ($borrowernumber, $biblionumber) = @_;
+    my ($borrowernumber, $biblionumber, $branchcode) = @_;
 
     my $items = GetItemnumbersForBiblio($biblionumber);
     #get items linked via host records
@@ -283,29 +283,31 @@ sub CanBookBeReserved{
     }
 
     my $canReserve;
-    foreach my $item (@$items) {
-        $canReserve = CanItemBeReserved( $borrowernumber, $item );
-        return 'OK' if $canReserve eq 'OK';
+    foreach my $itemnumber (@itemnumbers) {
+        $canReserve = CanItemBeReserved( $borrowernumber, $itemnumber, $branchcode );
+        return $canReserve if $canReserve->{status} eq 'OK';
     }
     return $canReserve;
 }
 
 =head2 CanItemBeReserved
 
-  $canReserve = &CanItemBeReserved($borrowernumber, $itemnumber)
-  if ($canReserve eq 'OK') { #We can reserve this Item! }
+  $canReserve = &CanItemBeReserved($borrowernumber, $itemnumber, $branchcode)
+  if ($canReserve->{status} eq 'OK') { #We can reserve this Item! }
 
-@RETURNS OK,              if the Item can be reserved.
-         ageRestricted,   if the Item is age restricted for this borrower.
-         damaged,         if the Item is damaged.
-         cannotReserveFromOtherBranches, if syspref 'canreservefromotherbranches' is OK.
-         tooManyReserves, if the borrower has exceeded his maximum reserve amount.
-         notReservable,   if holds on this item are not allowed
+@RETURNS { status => OK },              if the Item can be reserved.
+         { status => ageRestricted },   if the Item is age restricted for this borrower.
+         { status => damaged },         if the Item is damaged.
+         { status => cannotReserveFromOtherBranches }, if syspref 'canreservefromotherbranches' is OK.
+         { status => tooManyReserves, limit => $limit }, if the borrower has exceeded their maximum reserve amount.
+         { status => notReservable },   if holds on this item are not allowed
+         { status => libraryNotFound },   if given branchcode is not an existing library
+         { status => libraryNotPickupLocation },   if given branchcode is not configured to be a pickup location
 
 =cut
 
 sub CanItemBeReserved {
-    my ( $borrowernumber, $itemnumber ) = @_;
+    my ( $borrowernumber, $itemnumber, $branchcode_to ) = @_;
 
     my $dbh = C4::Context->dbh;
     my $ruleitemtype;    # itemtype of the matching issuing rule
@@ -435,7 +437,19 @@ sub CanItemBeReserved {
         }
     }
 
-    return 'OK';
+    if ($branchcode_to) {
+        my $destination = Koha::Libraries->find({
+            branchcode => $branchcode_to,
+        });
+        unless ($destination) {
+            return { status => 'libraryNotFound' };
+        }
+        unless ($destination->pickup_location) {
+            return { status => 'libraryNotPickupLocation' };
+        }
+    }
+
+    return { status => 'OK' };
 }
 
 =head2 CanReserveBeCanceledFromOpac
