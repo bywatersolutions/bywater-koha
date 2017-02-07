@@ -153,6 +153,7 @@
                    <li><label for="patronbarcodeprefix">Patron Barcode Prefix</label><input type="text" name="patronbarcodeprefix" id="patronbarcodeprefix" value="[% library.patronbarcodeprefix |html %]" /></li>
                 [% END %]
                 <li><label for="branchnotes">Notes: </label><input type="text" name="branchnotes" id="branchnotes" size="80" value="[% library.branchnotes |html %]" /></li>
+                <li><label for="pickup_location">Pickup location: </label><select name="pickup_location" id="pickup_location"><option value="1" [% IF library.pickup_location %]selected[% END %]>Yes</option><option value="0" [% IF !library.pickup_location %]selected[% END %]>No</option></select></li>
             </ol>
         </fieldset>
         <fieldset class="action">
@@ -188,6 +189,7 @@
                     <th>Address</th>
                     <th>MARC organization code</th>
                     <th>IP</th>
+                    <th>Pickup location</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -225,6 +227,7 @@
                         </td>
                         <td>[% library.marcorgcode %]</td>
                         <td>[% library.branchip %]</td>
+                        <td>[% IF library.pickup_location %]Yes[% ELSE %]No[% END %]</td>
                         <td class="actions">
                             <a class="btn btn-default btn-xs" href="/cgi-bin/koha/admin/branches.pl?op=add_form&amp;branchcode=[% library.branchcode |uri %]"><i class="fa fa-pencil"></i> Edit</a>
                             <form action="/cgi-bin/koha/admin/branches.pl" method="post">
