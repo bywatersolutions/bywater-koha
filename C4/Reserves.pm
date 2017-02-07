@@ -295,14 +295,15 @@ sub CanBookBeReserved{
   $canReserve = &CanItemBeReserved($borrowernumber, $itemnumber, $branchcode)
   if ($canReserve->{status} eq 'OK') { #We can reserve this Item! }
 
-@RETURNS { status => OK },              if the Item can be reserved.
-         { status => ageRestricted },   if the Item is age restricted for this borrower.
-         { status => damaged },         if the Item is damaged.
-         { status => cannotReserveFromOtherBranches }, if syspref 'canreservefromotherbranches' is OK.
-         { status => tooManyReserves, limit => $limit }, if the borrower has exceeded their maximum reserve amount.
-         { status => notReservable },   if holds on this item are not allowed
-         { status => libraryNotFound },   if given branchcode is not an existing library
-         { status => libraryNotPickupLocation },   if given branchcode is not configured to be a pickup location
+@RETURNS OK,              if the Item can be reserved.
+         ageRestricted,   if the Item is age restricted for this borrower.
+         damaged,         if the Item is damaged.
+         cannotReserveFromOtherBranches, if syspref 'canreservefromotherbranches' is OK.
+         tooManyReserves, if the borrower has exceeded his maximum reserve amount.
+         notReservable,   if holds on this item are not allowed
+         libraryNotFound  if given branchcode is not an existing library
+         libraryNotPickupLocation if given branchcode is not configured to be a pickup location
+         cannotBeTransferred if branch transfer limit applies on given item and branchcode
 
 =cut
 
@@ -441,11 +442,15 @@ sub CanItemBeReserved {
         my $destination = Koha::Libraries->find({
             branchcode => $pickup_branchcode,
         });
+
         unless ($destination) {
             return { status => 'libraryNotFound' };
         }
         unless ($destination->pickup_location) {
             return { status => 'libraryNotPickupLocation' };
+        }
+        unless ($item->can_be_transferred({ to => $destination->branchcode })) {
+            return 'cannotBeTransferred';
         }
     }
 
