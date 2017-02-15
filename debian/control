@@ -10,6 +10,8 @@ Standards-Version: 3.8.4
 # See debian/rules, the override_dh_gencontrol rules. 
 # There are some exceptions.
 Build-Depends: libalgorithm-checkdigits-perl,
+ libbytes-random-secure-perl,
+ libwww-csrf-perl,
  libanyevent-http-perl,
  libanyevent-perl,
  libarchive-zip-perl,

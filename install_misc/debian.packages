@@ -146,3 +146,5 @@ make install
 mysql-server install
 yaz	install
 yaz-doc	install
+libbytes-random-secure-perl	install
+libwww-csrf-perl	install
