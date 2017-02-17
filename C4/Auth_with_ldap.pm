@@ -261,7 +261,7 @@ sub ldap_entry_2_hash {
 my $autonumber_members = C4::Context->boolean_preference('autoMemberNum') || 0;
 my %borrower;
 if($autonumber_members) {
-    $borrower{'cardnumber'} = fixup_cardnumber($borrower{'cardnumber'});
+    $borrower{'cardnumber'} = Koha::Patron->new()->fixup_cardnumber()->cardnumber;
 }
 else {
     $borrower{'cardnumber'} = shift;
