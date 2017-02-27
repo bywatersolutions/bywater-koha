@@ -89,7 +89,7 @@ __PACKAGE__->table("borrowers");
 
 =head2 state
 
-  data_type: 'mediumtext'
+  data_type: 'text'
   is_nullable: 1
 
 =head2 zipcode
@@ -170,7 +170,7 @@ __PACKAGE__->table("borrowers");
 =head2 B_state
 
   accessor: 'b_state'
-  data_type: 'mediumtext'
+  data_type: 'text'
   is_nullable: 1
 
 =head2 B_zipcode
@@ -285,18 +285,6 @@ __PACKAGE__->table("borrowers");
   is_nullable: 1
   size: 100
 
-=head2 ethnicity
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 50
-
-=head2 ethnotes
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 255
-
 =head2 sex
 
   data_type: 'varchar'
@@ -375,7 +363,7 @@ __PACKAGE__->table("borrowers");
 
 =head2 altcontactstate
 
-  data_type: 'mediumtext'
+  data_type: 'text'
   is_nullable: 1
 
 =head2 altcontactzipcode
@@ -401,10 +389,29 @@ __PACKAGE__->table("borrowers");
   is_nullable: 1
   size: 50
 
+=head2 sms_provider_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 privacy
 
   data_type: 'integer'
   default_value: 1
+  is_nullable: 0
+
+=head2 privacy_guarantor_checkouts
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 updated_on
+
+  data_type: 'timestamp'
+  datetime_undef_if_invalid: 1
+  default_value: current_timestamp
   is_nullable: 0
 
 =cut
@@ -435,7 +442,7 @@ __PACKAGE__->add_columns(
   "city",
   { data_type => "mediumtext", is_nullable => 0 },
   "state",
-  { data_type => "mediumtext", is_nullable => 1 },
+  { data_type => "text", is_nullable => 1 },
   "zipcode",
   { data_type => "varchar", is_nullable => 1, size => 25 },
   "country",
@@ -478,7 +485,7 @@ __PACKAGE__->add_columns(
   "B_city",
   { accessor => "b_city", data_type => "mediumtext", is_nullable => 1 },
   "B_state",
-  { accessor => "b_state", data_type => "mediumtext", is_nullable => 1 },
+  { accessor => "b_state", data_type => "text", is_nullable => 1 },
   "B_zipcode",
   {
     accessor => "b_zipcode",
@@ -534,10 +541,6 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "relationship",
   { data_type => "varchar", is_nullable => 1, size => 100 },
-  "ethnicity",
-  { data_type => "varchar", is_nullable => 1, size => 50 },
-  "ethnotes",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
   "sex",
   { data_type => "varchar", is_nullable => 1, size => 1 },
   "password",
@@ -565,7 +568,7 @@ __PACKAGE__->add_columns(
   "altcontactaddress3",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "altcontactstate",
-  { data_type => "mediumtext", is_nullable => 1 },
+  { data_type => "text", is_nullable => 1 },
   "altcontactzipcode",
   { data_type => "varchar", is_nullable => 1, size => 50 },
   "altcontactcountry",
@@ -574,8 +577,19 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 50 },
   "smsalertnumber",
   { data_type => "varchar", is_nullable => 1, size => 50 },
+  "sms_provider_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "privacy",
   { data_type => "integer", default_value => 1, is_nullable => 0 },
+  "privacy_guarantor_checkouts",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "updated_on",
+  {
+    data_type => "timestamp",
+    datetime_undef_if_invalid => 1,
+    default_value => \"current_timestamp",
+    is_nullable => 0,
+  },
 );
 
 =head1 PRIMARY KEY
@@ -603,6 +617,18 @@ __PACKAGE__->set_primary_key("borrowernumber");
 =cut
 
 __PACKAGE__->add_unique_constraint("cardnumber", ["cardnumber"]);
+
+=head2 C<userid>
+
+=over 4
+
+=item * L</userid>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("userid", ["userid"]);
 
 =head1 RELATIONS
 
@@ -831,21 +857,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 creator_batches_tmps
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::CreatorBatchesTmp>
-
-=cut
-
-__PACKAGE__->has_many(
-  "creator_batches_tmps",
-  "Koha::Schema::Result::CreatorBatchesTmp",
-  { "foreign.borrower_number" => "self.borrowernumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 discharges
 
 Type: has_many
@@ -873,6 +884,66 @@ __PACKAGE__->has_many(
   "hold_fill_targets",
   "Koha::Schema::Result::HoldFillTarget",
   { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 housebound_profile
+
+Type: might_have
+
+Related object: L<Koha::Schema::Result::HouseboundProfile>
+
+=cut
+
+__PACKAGE__->might_have(
+  "housebound_profile",
+  "Koha::Schema::Result::HouseboundProfile",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 housebound_role
+
+Type: might_have
+
+Related object: L<Koha::Schema::Result::HouseboundRole>
+
+=cut
+
+__PACKAGE__->might_have(
+  "housebound_role",
+  "Koha::Schema::Result::HouseboundRole",
+  { "foreign.borrowernumber_id" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 housebound_visit_chooser_brwnumbers
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::HouseboundVisit>
+
+=cut
+
+__PACKAGE__->has_many(
+  "housebound_visit_chooser_brwnumbers",
+  "Koha::Schema::Result::HouseboundVisit",
+  { "foreign.chooser_brwnumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 housebound_visit_deliverer_brwnumbers
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::HouseboundVisit>
+
+=cut
+
+__PACKAGE__->has_many(
+  "housebound_visit_deliverer_brwnumbers",
+  "Koha::Schema::Result::HouseboundVisit",
+  { "foreign.deliverer_brwnumber" => "self.borrowernumber" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -1056,6 +1127,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 sms_provider
+
+Type: belongs_to
+
+Related object: L<Koha::Schema::Result::SmsProvider>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "sms_provider",
+  "Koha::Schema::Result::SmsProvider",
+  { id => "sms_provider_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "SET NULL",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 subscriptionroutinglists
 
 Type: has_many
@@ -1202,8 +1293,8 @@ Composing rels: L</aqorder_users> -> ordernumber
 __PACKAGE__->many_to_many("ordernumbers", "aqorder_users", "ordernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Lu7cPwONN1BFaktxP54zyw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZzsyQrmXeft4O9l3cuxDIQ
 
 __PACKAGE__->belongs_to(
     "guarantor",

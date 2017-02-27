@@ -78,9 +78,26 @@ __PACKAGE__->set_primary_key("id");
 
 __PACKAGE__->add_unique_constraint("name", ["name"]);
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HRk1J/trExOlzkYVMQGJ9w
+=head2 borrowers
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Borrower>
+
+=cut
+
+__PACKAGE__->has_many(
+  "borrowers",
+  "Koha::Schema::Result::Borrower",
+  { "foreign.sms_provider_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fCiuoCw2LWxE8R8fA23QcA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

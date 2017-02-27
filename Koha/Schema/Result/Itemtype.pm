@@ -164,6 +164,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 old_reserves
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::OldReserve>
+
+=cut
+
+__PACKAGE__->has_many(
+  "old_reserves",
+  "Koha::Schema::Result::OldReserve",
+  { "foreign.itemtype" => "self.itemtype" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 reserves
 
 Type: has_many
@@ -180,8 +195,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:roTvNu8jGDfhVzglxAb8ew
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:saGefSpkXCvIwQqZyO0wnA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

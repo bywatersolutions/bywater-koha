@@ -36,7 +36,7 @@ __PACKAGE__->table("old_reserves");
 
 =head2 reservedate
 
-  data_type: 'datetime'
+  data_type: 'date'
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
@@ -66,13 +66,8 @@ __PACKAGE__->table("old_reserves");
 
 =head2 cancellationdate
 
-  data_type: 'datetime'
+  data_type: 'date'
   datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 cancellation_note
-
-  data_type: 'text'
   is_nullable: 1
 
 =head2 reservenotes
@@ -134,37 +129,12 @@ __PACKAGE__->table("old_reserves");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
-=head2 type
+=head2 itemtype
 
-  data_type: 'enum'
-  default_value: 'hold'
-  extra: {list => ["hold","document_delivery"]}
-  is_nullable: 0
-
-=head2 dd_title
-
-  data_type: 'text'
+  data_type: 'varchar'
+  is_foreign_key: 1
   is_nullable: 1
-
-=head2 dd_authors
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 dd_vol_issue_date
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 dd_pages
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 dd_chapters
-
-  data_type: 'text'
-  is_nullable: 1
+  size: 10
 
 =cut
 
@@ -174,11 +144,7 @@ __PACKAGE__->add_columns(
   "borrowernumber",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "reservedate",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
-  },
+  { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "biblionumber",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "branchcode",
@@ -188,13 +154,7 @@ __PACKAGE__->add_columns(
   "reminderdate",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "cancellationdate",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
-  },
-  "cancellation_note",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "reservenotes",
   { data_type => "mediumtext", is_nullable => 1 },
   "priority",
@@ -224,23 +184,8 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
-  "type",
-  {
-    data_type => "enum",
-    default_value => "hold",
-    extra => { list => ["hold", "document_delivery"] },
-    is_nullable => 0,
-  },
-  "dd_title",
-  { data_type => "text", is_nullable => 1 },
-  "dd_authors",
-  { data_type => "text", is_nullable => 1 },
-  "dd_vol_issue_date",
-  { data_type => "text", is_nullable => 1 },
-  "dd_pages",
-  { data_type => "text", is_nullable => 1 },
-  "dd_chapters",
-  { data_type => "text", is_nullable => 1 },
+  "itemtype",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
@@ -317,9 +262,29 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 itemtype
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:99CfXn55TLG6FU9psw2IFQ
+Type: belongs_to
+
+Related object: L<Koha::Schema::Result::Itemtype>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "itemtype",
+  "Koha::Schema::Result::Itemtype",
+  { itemtype => "itemtype" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "SET NULL",
+    on_update     => "SET NULL",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:07LjnoIII5WxB+qWayk03A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

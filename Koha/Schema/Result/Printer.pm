@@ -23,55 +23,51 @@ __PACKAGE__->table("printers");
 
 =head1 ACCESSORS
 
-=head2 id
+=head2 printername
 
-  data_type: 'integer'
-  is_auto_increment: 1
+  data_type: 'varchar'
+  default_value: (empty string)
   is_nullable: 0
+  size: 40
 
-=head2 name
+=head2 printqueue
 
-  data_type: 'text'
-  is_nullable: 0
-
-=head2 queue
-
-  data_type: 'text'
+  data_type: 'varchar'
   is_nullable: 1
+  size: 20
 
-=head2 type
+=head2 printtype
 
-  data_type: 'text'
+  data_type: 'varchar'
   is_nullable: 1
+  size: 20
 
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "name",
-  { data_type => "text", is_nullable => 0 },
-  "queue",
-  { data_type => "text", is_nullable => 1 },
-  "type",
-  { data_type => "text", is_nullable => 1 },
+  "printername",
+  { data_type => "varchar", default_value => "", is_nullable => 0, size => 40 },
+  "printqueue",
+  { data_type => "varchar", is_nullable => 1, size => 20 },
+  "printtype",
+  { data_type => "varchar", is_nullable => 1, size => 20 },
 );
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</id>
+=item * L</printername>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id");
+__PACKAGE__->set_primary_key("printername");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NvCCPErehjpUTzX5UTdTiw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LNnPoJHQ8xI3duzC0MywKg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

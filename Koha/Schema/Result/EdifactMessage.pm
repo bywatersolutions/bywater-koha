@@ -119,6 +119,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 aqinvoices
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Aqinvoice>
+
+=cut
+
+__PACKAGE__->has_many(
+  "aqinvoices",
+  "Koha::Schema::Result::Aqinvoice",
+  { "foreign.message_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 basketno
 
 Type: belongs_to
@@ -180,8 +195,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QP1rwy/ZVSiQ2Mf1OLGKEQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/qqZWdM5A4I6a98P2fW7eg
 
 
 1;

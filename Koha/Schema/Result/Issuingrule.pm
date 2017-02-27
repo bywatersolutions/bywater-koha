@@ -172,6 +172,12 @@ __PACKAGE__->table("issuingrules");
   is_nullable: 1
   size: [28,6]
 
+=head2 cap_fine_to_replacement_price
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 0
+
 =head2 onshelfholds
 
   data_type: 'tinyint'
@@ -252,6 +258,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", default_value => "", is_nullable => 0, size => 10 },
   "overduefinescap",
   { data_type => "decimal", is_nullable => 1, size => [28, 6] },
+  "cap_fine_to_replacement_price",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "onshelfholds",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "opacitemholds",
@@ -282,8 +290,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("branchcode", "categorycode", "itemtype");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VTRbU6uKOrIpTinbKmuCXw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xsF9PxoL/iKUHdkKnSSLlA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

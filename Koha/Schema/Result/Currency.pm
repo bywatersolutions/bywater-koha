@@ -60,6 +60,12 @@ __PACKAGE__->table("currency");
   data_type: 'tinyint'
   is_nullable: 1
 
+=head2 archived
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -80,6 +86,8 @@ __PACKAGE__->add_columns(
   { data_type => "float", is_nullable => 1, size => [15, 5] },
   "active",
   { data_type => "tinyint", is_nullable => 1 },
+  "archived",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -126,9 +134,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 aqorders
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0bSJNSLpnbA1YUR1PgYQ8A
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Aqorder>
+
+=cut
+
+__PACKAGE__->has_many(
+  "aqorders",
+  "Koha::Schema::Result::Aqorder",
+  { "foreign.currency" => "self.currency" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pzuz3DylbM/gUJyNdxKc3A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

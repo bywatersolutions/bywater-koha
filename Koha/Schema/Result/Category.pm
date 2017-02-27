@@ -102,18 +102,18 @@ __PACKAGE__->table("categories");
   is_nullable: 0
   size: 1
 
-=head2 default_privacy
-
-  data_type: 'enum'
-  default_value: 'default'
-  extra: {list => ["default","never","forever"]}
-  is_nullable: 0
-
 =head2 BlockExpiredPatronOpacActions
 
   accessor: 'block_expired_patron_opac_actions'
   data_type: 'tinyint'
   default_value: -1
+  is_nullable: 0
+
+=head2 default_privacy
+
+  data_type: 'enum'
+  default_value: 'default'
+  extra: {list => ["default","never","forever"]}
   is_nullable: 0
 
 =cut
@@ -147,19 +147,19 @@ __PACKAGE__->add_columns(
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "category_type",
   { data_type => "varchar", default_value => "A", is_nullable => 0, size => 1 },
-  "default_privacy",
-  {
-    data_type => "enum",
-    default_value => "default",
-    extra => { list => ["default", "never", "forever"] },
-    is_nullable => 0,
-  },
   "BlockExpiredPatronOpacActions",
   {
     accessor      => "block_expired_patron_opac_actions",
     data_type     => "tinyint",
     default_value => -1,
     is_nullable   => 0,
+  },
+  "default_privacy",
+  {
+    data_type => "enum",
+    default_value => "default",
+    extra => { list => ["default", "never", "forever"] },
+    is_nullable => 0,
   },
 );
 
@@ -176,21 +176,6 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("categorycode");
 
 =head1 RELATIONS
-
-=head2 borrower_attribute_types
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::BorrowerAttributeType>
-
-=cut
-
-__PACKAGE__->has_many(
-  "borrower_attribute_types",
-  "Koha::Schema::Result::BorrowerAttributeType",
-  { "foreign.category_code" => "self.categorycode" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
 
 =head2 borrower_message_preferences
 
@@ -268,8 +253,8 @@ __PACKAGE__->might_have(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FObO2e7HX3GE4KtdRD6B9w
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kXVNjLQ2jn46mT2JQ/jA9w
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

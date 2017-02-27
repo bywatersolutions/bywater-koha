@@ -295,18 +295,6 @@ __PACKAGE__->table("borrower_modifications");
   is_nullable: 1
   size: 100
 
-=head2 ethnicity
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 50
-
-=head2 ethnotes
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 255
-
 =head2 sex
 
   data_type: 'varchar'
@@ -540,10 +528,6 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "relationship",
   { data_type => "varchar", is_nullable => 1, size => 100 },
-  "ethnicity",
-  { data_type => "varchar", is_nullable => 1, size => 50 },
-  "ethnotes",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
   "sex",
   { data_type => "varchar", is_nullable => 1, size => 1 },
   "password",
@@ -599,8 +583,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("verification_token", "borrowernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-12-13 08:38:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:21BmY/EbjkPi9jptZ4XIEw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Gm5msF4w2qY8bjEi0GAHMw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
