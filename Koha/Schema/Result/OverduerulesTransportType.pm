@@ -97,24 +97,9 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 overduerule
 
-Type: belongs_to
-
-Related object: L<Koha::Schema::Result::Overduerule>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "overduerule",
-  "Koha::Schema::Result::Overduerule",
-  { overduerules_id => "overduerules_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tKz0WvHX+1SSaGXpoWAt2g
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2017-03-09 08:13:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r8mJC04mz6HIpj50BECKYA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

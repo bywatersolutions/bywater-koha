@@ -45,13 +45,6 @@ __PACKAGE__->table("default_branch_circ_rules");
   data_type: 'tinyint'
   is_nullable: 1
 
-=head2 hold_fulfillment_policy
-
-  data_type: 'enum'
-  default_value: 'any'
-  extra: {list => ["any","homebranch","holdingbranch"]}
-  is_nullable: 0
-
 =head2 returnbranch
 
   data_type: 'varchar'
@@ -69,13 +62,6 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "holdallowed",
   { data_type => "tinyint", is_nullable => 1 },
-  "hold_fulfillment_policy",
-  {
-    data_type => "enum",
-    default_value => "any",
-    extra => { list => ["any", "homebranch", "holdingbranch"] },
-    is_nullable => 0,
-  },
   "returnbranch",
   { data_type => "varchar", is_nullable => 1, size => 15 },
 );
@@ -110,8 +96,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:owTfTfKgDeES/v9C0WsE7g
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2017-03-09 08:13:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fSK+gzTp2QBtlOP7BSyv5g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

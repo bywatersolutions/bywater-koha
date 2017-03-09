@@ -29,11 +29,6 @@ __PACKAGE__->table("accountlines");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 issue_id
-
-  data_type: 'integer'
-  is_nullable: 1
-
 =head2 borrowernumber
 
   data_type: 'integer'
@@ -127,8 +122,6 @@ __PACKAGE__->table("accountlines");
 __PACKAGE__->add_columns(
   "accountlines_id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "issue_id",
-  { data_type => "integer", is_nullable => 1 },
   "borrowernumber",
   {
     data_type      => "integer",
@@ -221,8 +214,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:17:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cyNRlkHWjaLNMO+o1tWVzg
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2017-03-09 08:13:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dSQg7xKRe7Tvu9ClbhzArg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

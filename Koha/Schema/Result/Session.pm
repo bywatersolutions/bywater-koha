@@ -32,7 +32,7 @@ __PACKAGE__->table("sessions");
 =head2 a_session
 
   data_type: 'mediumtext'
-  is_nullable: 0
+  is_nullable: 1
 
 =cut
 
@@ -40,7 +40,7 @@ __PACKAGE__->add_columns(
   "id",
   { data_type => "varchar", is_nullable => 0, size => 32 },
   "a_session",
-  { data_type => "mediumtext", is_nullable => 0 },
+  { data_type => "mediumtext", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -56,8 +56,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hkRA4FRCIEawx8k0+cZcJg
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2017-03-09 08:13:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JqCqw8+YiO0jiqNmBRtX1g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -38,7 +38,7 @@ __PACKAGE__->table("reserves");
 
 =head2 reservedate
 
-  data_type: 'date'
+  data_type: 'datetime'
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
@@ -70,8 +70,13 @@ __PACKAGE__->table("reserves");
 
 =head2 cancellationdate
 
-  data_type: 'date'
+  data_type: 'datetime'
   datetime_undef_if_invalid: 1
+  is_nullable: 1
+
+=head2 cancellation_note
+
+  data_type: 'text'
   is_nullable: 1
 
 =head2 reservenotes
@@ -140,6 +145,38 @@ __PACKAGE__->table("reserves");
   is_nullable: 1
   size: 10
 
+=head2 type
+
+  data_type: 'enum'
+  default_value: 'hold'
+  extra: {list => ["hold","document_delivery"]}
+  is_nullable: 0
+
+=head2 dd_title
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 dd_authors
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 dd_vol_issue_date
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 dd_pages
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 dd_chapters
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -153,7 +190,11 @@ __PACKAGE__->add_columns(
     is_nullable    => 0,
   },
   "reservedate",
-  { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 1,
+  },
   "biblionumber",
   {
     data_type      => "integer",
@@ -168,7 +209,13 @@ __PACKAGE__->add_columns(
   "reminderdate",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "cancellationdate",
-  { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 1,
+  },
+  "cancellation_note",
+  { data_type => "text", is_nullable => 1 },
   "reservenotes",
   { data_type => "mediumtext", is_nullable => 1 },
   "priority",
@@ -200,6 +247,23 @@ __PACKAGE__->add_columns(
   },
   "itemtype",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
+  "type",
+  {
+    data_type => "enum",
+    default_value => "hold",
+    extra => { list => ["hold", "document_delivery"] },
+    is_nullable => 0,
+  },
+  "dd_title",
+  { data_type => "text", is_nullable => 1 },
+  "dd_authors",
+  { data_type => "text", is_nullable => 1 },
+  "dd_vol_issue_date",
+  { data_type => "text", is_nullable => 1 },
+  "dd_pages",
+  { data_type => "text", is_nullable => 1 },
+  "dd_chapters",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -307,8 +371,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:I5VZM02lgGQejOAAXdPneA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2017-03-09 08:13:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ilwCziQ0cheJttz4Bnetgw
 
 __PACKAGE__->belongs_to(
   "item",

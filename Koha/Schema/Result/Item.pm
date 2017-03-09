@@ -33,7 +33,6 @@ __PACKAGE__->table("items");
 
   data_type: 'integer'
   default_value: 0
-  is_foreign_key: 1
   is_nullable: 0
 
 =head2 biblioitemnumber
@@ -259,8 +258,9 @@ __PACKAGE__->table("items");
 
 =head2 enumchron
 
-  data_type: 'text'
+  data_type: 'varchar'
   is_nullable: 1
+  size: 80
 
 =head2 copynumber
 
@@ -274,24 +274,13 @@ __PACKAGE__->table("items");
   is_nullable: 1
   size: 32
 
-=head2 new_status
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 32
-
 =cut
 
 __PACKAGE__->add_columns(
   "itemnumber",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "biblionumber",
-  {
-    data_type      => "integer",
-    default_value  => 0,
-    is_foreign_key => 1,
-    is_nullable    => 0,
-  },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "biblioitemnumber",
   {
     data_type      => "integer",
@@ -387,12 +376,10 @@ __PACKAGE__->add_columns(
   "more_subfields_xml",
   { data_type => "longtext", is_nullable => 1 },
   "enumchron",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "varchar", is_nullable => 1, size => 80 },
   "copynumber",
   { data_type => "varchar", is_nullable => 1, size => 32 },
   "stocknumber",
-  { data_type => "varchar", is_nullable => 1, size => 32 },
-  "new_status",
   { data_type => "varchar", is_nullable => 1, size => 32 },
 );
 
@@ -469,21 +456,6 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 biblionumber
-
-Type: belongs_to
-
-Related object: L<Koha::Schema::Result::Biblio>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "biblionumber",
-  "Koha::Schema::Result::Biblio",
-  { biblionumber => "biblionumber" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
 =head2 branchtransfers
 
 Type: has_many
@@ -525,6 +497,21 @@ Related object: L<Koha::Schema::Result::CreatorBatch>
 __PACKAGE__->has_many(
   "creator_batches",
   "Koha::Schema::Result::CreatorBatch",
+  { "foreign.item_number" => "self.itemnumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 creator_batches_tmps
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::CreatorBatchesTmp>
+
+=cut
+
+__PACKAGE__->has_many(
+  "creator_batches_tmps",
+  "Koha::Schema::Result::CreatorBatchesTmp",
   { "foreign.item_number" => "self.itemnumber" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -614,6 +601,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 labels_batches_tmps
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::LabelsBatchesTmp>
+
+=cut
+
+__PACKAGE__->has_many(
+  "labels_batches_tmps",
+  "Koha::Schema::Result::LabelsBatchesTmp",
+  { "foreign.item_number" => "self.itemnumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 old_issues
 
 Type: has_many
@@ -675,8 +677,8 @@ __PACKAGE__->might_have(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-02-27 15:22:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rWNL8HV4gooIdDtEWno8Mg
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2017-03-09 08:13:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:unnBZKN9sfZxq+/Z6c4BHg
 
 __PACKAGE__->belongs_to( biblioitem => "Koha::Schema::Result::Biblioitem", "biblioitemnumber" );
 
