@@ -451,7 +451,7 @@ subtest 'Pickup location availability tests' => sub {
     is(CanItemBeReserved($patron, $item->itemnumber, 'nonexistent')->{status},
        'libraryNotFound', 'Cannot set unknown library as pickup location');
 };
-my ( $bibnum, $title, $bibitemnum );
+
 # Helper method to set up a Biblio.
 sub create_helper_biblio {
     my $itemtype = shift;
