@@ -1338,7 +1338,6 @@
   <index_subfields tag="880" subfields="v">
     <target_index>Alt-language:w</target_index>
     <target_index>Alt-language:p</target_index>
->>>>>>> 8090c9f... BWS-PKG - BWS Patch: All custom zebra indexes
   </index_subfields>
   <!--record.abs line 268: melm 999$c      Local-Number:n,Local-Number:w,Local-Number:s-->
   <index_subfields tag="999" subfields="c">
