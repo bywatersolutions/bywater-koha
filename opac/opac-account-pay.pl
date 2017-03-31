@@ -49,7 +49,6 @@ my ( $template, $borrowernumber, $cookie ) = get_template_and_user(
     }
 );
 
-<<<<<<< HEAD
 my $payment_method = $cgi->param('payment_method');
 my @accountlines = $cgi->multi_param('accountline');
 
