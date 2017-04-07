@@ -82,6 +82,8 @@ sub new {
         return;
     }
     my $self = $item->unblessed;
+    $self->{'shelving_location'}           = $item->location;
+    $self->{'permanent_shelving_location'} = $item->permanent_location;
     $self->{      'id'       } = $item->barcode;     # to SIP, the barcode IS the id.
     $self->{permanent_location}= $item->homebranch;
     $self->{'collection_code'} = $item->ccode;
@@ -130,6 +132,8 @@ my %fields = (
     barcode             => 0,
     onloan              => 0,
     collection_code     => 0,
+    shelving_location   => 0,
+    permanent_shelving_location   => 0,
     call_number         => 0,
     enumchron           => 0,
     location            => 0,

@@ -671,7 +671,11 @@ sub handle_checkin {
         if ($item) {
             $resp .= maybe_add( FID_MEDIA_TYPE,           $item->sip_media_type );
             $resp .= maybe_add( FID_ITEM_PROPS,           $item->sip_item_properties );
-            $resp .= maybe_add( FID_COLLECTION_CODE,      $item->collection_code );
+            if ( my $CR = $server->{account}->{CR_item_field} ) {
+                $resp .= maybe_add( FID_COLLECTION_CODE, $item->{$CR} );
+            } else {
+                $resp .= maybe_add( FID_COLLECTION_CODE, $item->collection_code );
+            }
             $resp .= maybe_add( FID_CALL_NUMBER,          $item->call_number );
             $resp .= add_field( FID_DESTINATION_LOCATION, $item->destination_loc ) if ( $item->destination_loc || $server->{account}->{ct_always_send} );
             $resp .= maybe_add( FID_HOLD_PATRON_ID,       $item->hold_patron_bcode );
@@ -1145,6 +1149,11 @@ sub handle_item_information {
         $resp .= maybe_add( FID_PERM_LOCN,    $item->permanent_location );
         $resp .= maybe_add( FID_CURRENT_LOCN, $item->current_location );
         $resp .= maybe_add( FID_ITEM_PROPS,   $item->sip_item_properties );
+        if ( my $CR = $server->{account}->{CR_item_field} ) {
+                $resp .= maybe_add( FID_COLLECTION_CODE, $item->$CR );
+        } else {
+          $resp .= maybe_add( FID_COLLECTION_CODE, $item->collection_code );
+        }
 
         if ( ( $i = $item->fee ) != 0 ) {
             $resp .= add_field( FID_CURRENCY, $item->fee_currency );
