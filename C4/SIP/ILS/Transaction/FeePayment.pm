@@ -23,6 +23,7 @@ use strict;
 use Koha::Account;
 use Koha::Account::Lines;
 use Koha::Patrons;
+use C4::Members;
 
 use parent qw(C4::SIP::ILS::Transaction);
 
@@ -57,7 +58,7 @@ sub pay {
         my $patron = Koha::Patrons->find($borrowernumber);
         return 0 unless $patron;
 
-        my $balance = $patron->account_balance();
+        my ($balance, $acctlines, $count) = C4::Members::GetMemberAccountRecords($borrowernumber);
         return 0 if $balance < $amt;
     }
 
