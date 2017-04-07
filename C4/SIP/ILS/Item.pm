@@ -77,6 +77,8 @@ sub new {
         warn "new ILS::Item($item_id) : No item '$item_id'.";
         return;
     }
+    $item->{'shelving_location'} = $item->{location};
+    $item->{'permanent_shelving_location'} = $item->{permanent_location};
     $item->{  'itemnumber'   } = $itemnumber;
     $item->{      'id'       } = $item->{barcode};     # to SIP, the barcode IS the id.
     $item->{permanent_location}= $item->{homebranch};
@@ -125,6 +127,8 @@ my %fields = (
     barcode             => 0,
     onloan              => 0,
     collection_code     => 0,
+    shelving_location   => 0,
+    permanent_shelving_location   => 0,
     call_number         => 0,
     enumchron           => 0,
     location            => 0,
