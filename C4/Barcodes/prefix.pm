@@ -22,9 +22,7 @@ use warnings;
 use Carp;
 
 use C4::Context;
-use C4::Branch;
 use C4::Debug;
-use C4::Dates;
 
 use vars qw($VERSION @ISA);
 use vars qw($debug $cgi_debug);        # from C4::Debug, of course
@@ -79,7 +77,12 @@ sub parse ($;$) {   # return 3 parts of barcode: non-incrementing, incrementing,
 sub prefix ($;$) {
         my $self = shift;
         (@_) and $self->{prefix} = shift;
-        return C4::Branch::GetBranchDetail(C4::Context->userenv->{'branch'})->{'itembarcodeprefix'};
+
+        my $dbh = C4::Context->dbh();
+        my $sth = $dbh->prepare("SELECT itembarcodeprefix FROM branch WHERE branchcode = ?");
+        $sth->execute( C4::Context->userenv->{'branch'} );
+        my $row = $sth->fetchrow_hashref();
+	return $row->{itembarcodeprefix};
 }
 
 sub width ($;$) {

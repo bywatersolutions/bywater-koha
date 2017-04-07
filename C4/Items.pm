@@ -3205,7 +3205,12 @@ sub _check_itembarcode($) {
     return(0) unless $item->{'barcode'}; # only modify if we've been passed a barcode.
     # check item barcode prefix
     # note this doesn't enforce barcodelength.
-    my $branch_prefix = C4::Branch::GetBranchDetail($item->{'homebranch'})->{'itembarcodeprefix'};
+    my $dbh = C4::Context->dbh();
+    my $sth = $dbh->prepare("SELECT itembarcodeprefix FROM branch WHERE branchcode = ?");
+    $sth->execute( C4::Context->userenv->{'branch'} );
+    my $row = $sth->fetchrow_hashref();
+    my $branch_prefix = $row->{itembarcodeprefix};
+
     if(length($item->{'barcode'}) < C4::Context->preference('itembarcodelength')) {
         my $padding = C4::Context->preference('itembarcodelength') - length($branch_prefix) - length($item->{'barcode'}) ;
         $item->{'barcode'} = $branch_prefix .  '0' x $padding . $item->{'barcode'} if($padding >= 0) ;
