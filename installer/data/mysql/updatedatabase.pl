@@ -13402,56 +13402,57 @@ if ( CheckVersion($DBversion) ) {
     SetVersion($DBversion);
 }
 
-$DBversion = "16.06.00.039";
-if ( CheckVersion($DBversion) ) {
-
-    my $sth = $dbh->prepare(q{
-        SELECT s.itemnumber, i.itype, b.itemtype
-        FROM
-         ( SELECT DISTINCT itemnumber
-           FROM statistics
-           WHERE ( type = "return" OR type = "localuse" ) AND
-                 itemtype IS NULL
-         ) s
-        LEFT JOIN
-         ( SELECT itemnumber,biblionumber, itype
-             FROM items
-           UNION
-           SELECT itemnumber,biblionumber, itype
-             FROM deleteditems
-         ) i
-        ON (s.itemnumber=i.itemnumber)
-        LEFT JOIN
-         ( SELECT biblionumber, itemtype
-             FROM biblioitems
-           UNION
-           SELECT biblionumber, itemtype
-             FROM deletedbiblioitems
-         ) b
-        ON (i.biblionumber=b.biblionumber);
-    });
-    $sth->execute();
-
-    my $update_sth = $dbh->prepare(q{
-        UPDATE statistics
-        SET itemtype=?
-        WHERE itemnumber=? AND itemtype IS NULL
-    });
-    my $ilevel_itypes = C4::Context->preference('item-level_itypes');
-
-    while ( my ($itemnumber,$item_itype,$biblio_itype) = $sth->fetchrow_array ) {
-
-        my $effective_itemtype = $ilevel_itypes
-                                    ? $item_itype // $biblio_itype
-                                    : $biblio_itype;
-        warn "item-level_itypes set but no itype defined for item ($itemnumber)"
-            if $ilevel_itypes and !defined $item_itype;
-        $update_sth->execute( $effective_itemtype, $itemnumber );
-    }
-
-    print "Upgrade to $DBversion done (Bug 14598: itemtype is not set on statistics by C4::Circulation::AddReturn)\n";
-    SetVersion($DBversion);
-}
+## BWS-CUSTOM - Removing db update for 16.06.00.039
+#$DBversion = "16.06.00.039";
+#if ( CheckVersion($DBversion) ) {
+#
+#    my $sth = $dbh->prepare(q{
+#        SELECT s.itemnumber, i.itype, b.itemtype
+#        FROM
+#         ( SELECT DISTINCT itemnumber
+#           FROM statistics
+#           WHERE ( type = "return" OR type = "localuse" ) AND
+#                 itemtype IS NULL
+#         ) s
+#        LEFT JOIN
+#         ( SELECT itemnumber,biblionumber, itype
+#             FROM items
+#           UNION
+#           SELECT itemnumber,biblionumber, itype
+#             FROM deleteditems
+#         ) i
+#        ON (s.itemnumber=i.itemnumber)
+#        LEFT JOIN
+#         ( SELECT biblionumber, itemtype
+#             FROM biblioitems
+#           UNION
+#           SELECT biblionumber, itemtype
+#             FROM deletedbiblioitems
+#         ) b
+#        ON (i.biblionumber=b.biblionumber);
+#    });
+#    $sth->execute();
+#
+#    my $update_sth = $dbh->prepare(q{
+#        UPDATE statistics
+#        SET itemtype=?
+#        WHERE itemnumber=? AND itemtype IS NULL
+#    });
+#    my $ilevel_itypes = C4::Context->preference('item-level_itypes');
+#
+#    while ( my ($itemnumber,$item_itype,$biblio_itype) = $sth->fetchrow_array ) {
+#
+#        my $effective_itemtype = $ilevel_itypes
+#                                    ? $item_itype // $biblio_itype
+#                                    : $biblio_itype;
+#        warn "item-level_itypes set but no itype defined for item ($itemnumber)"
+#            if $ilevel_itypes and !defined $item_itype;
+#        $update_sth->execute( $effective_itemtype, $itemnumber );
+#    }
+#
+#    print "Upgrade to $DBversion done (Bug 14598: itemtype is not set on statistics by C4::Circulation::AddReturn)\n";
+#    SetVersion($DBversion);
+#}
 
 $DBversion = '16.06.00.040';
 if ( CheckVersion($DBversion) ) {
