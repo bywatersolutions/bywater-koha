@@ -128,6 +128,18 @@ __PACKAGE__->table("branches");
   data_type: 'text'
   is_nullable: 1
 
+=head2 itembarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
+=head2 patronbarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -171,6 +183,10 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "opac_info",
   { data_type => "text", is_nullable => 1 },
+  "itembarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
+  "patronbarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
@@ -543,8 +559,8 @@ Composing rels: L</branchrelations> -> categorycode
 __PACKAGE__->many_to_many("categorycodes", "branchrelations", "categorycode");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-10-24 13:56:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/9YwsU+GXK+fzc6IX2Tj5g
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-04-18 21:07:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:W7OeEjzDM73ansdlpKvBuA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
