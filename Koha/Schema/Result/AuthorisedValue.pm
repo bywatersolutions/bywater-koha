@@ -111,6 +111,13 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2017-03-09 08:13:07
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xXhncvwXO8Dr8d8SLEjY/A
 
+__PACKAGE__->has_many(
+  "authorised_values_branches",
+  "Koha::Schema::Result::AuthorisedValuesBranch",
+  { "foreign.av_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
