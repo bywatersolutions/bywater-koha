@@ -216,6 +216,8 @@ if ($op eq ""){
         my @replacementprices = $input->multi_param('replacementprice_' . $biblio_count);
         my @itemcallnumbers = $input->multi_param('itemcallnumber_' . $biblio_count);
         my $itemcreation = 0;
+
+        my @itemnumbers;
         for (my $i = 0; $i < $count; $i++) {
             $itemcreation = 1;
             my ($item_bibnum, $item_bibitemnum, $itemnumber) = AddItem({
@@ -233,6 +235,7 @@ if ($op eq ""){
                 replacementprice => $replacementprices[$i],
                 itemcallnumber => $itemcallnumbers[$i],
             }, $biblionumber);
+            push( @itemnumbers, $itemnumber );
         }
         if ($itemcreation == 1) {
             # Group orderlines from MarcItemFieldsToOrder
@@ -300,6 +303,7 @@ if ($op eq ""){
                     };
 
                     my $order = Koha::Acquisition::Order->new( \%orderinfo )->insert;
+                    $order->add_item( $_ ) for @itemnumbers;
                 }
             }
         } else {
