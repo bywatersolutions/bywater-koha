@@ -106,6 +106,12 @@ __PACKAGE__->table("aqbasket");
   is_nullable: 1
   size: 10
 
+=head2 create_items
+
+  data_type: "enum('ordering','receiving','cataloguing')"
+  default_value: NULL
+  is_nullable: 1
+
 =head2 is_standing
 
   data_type: 'tinyint'
@@ -148,6 +154,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 10 },
   "branch",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
+  "create_items",
+  { data_type => "enum('ordering','receiving','cataloguing')", default_value => undef, is_nullable => 1 },
   "is_standing",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
 );
