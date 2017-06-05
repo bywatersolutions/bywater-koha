@@ -616,7 +616,7 @@ END_SQL
                     ) unless $test_mode;
                     $verbose and warn "debarring $borr\n";
                 }
-                my @params = ($borrowernumber);
+                my @params = ($borrowernumber, $branchcode);
                 $verbose and warn "STH2 PARAMS: borrowernumber = $borrowernumber";
 
                 $sth2->execute(@params);
