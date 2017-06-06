@@ -38,6 +38,7 @@ use C4::Budgets;
 use Koha::Acquisition::Booksellers;
 use Koha::Acquisition::Currencies;
 use Koha::DateUtils;
+use Koha::Number::Price;
 use Koha::Misc::Files;
 
 my $input = new CGI;
@@ -124,8 +125,8 @@ my $total_tax_value = 0;
 foreach my $order (@$orders) {
     my $line = get_infos( $order, $bookseller);
 
-    $line->{total_tax_excluded} = $line->{unitprice_tax_excluded} * $line->{quantity};
-    $line->{total_tax_included} = $line->{unitprice_tax_included} * $line->{quantity};
+    $line->{total_tax_excluded} = Koha::Price::Number->new($line->{unitprice_tax_excluded})->format() * $line->{quantity};
+    $line->{total_tax_included} = Koha::Price::Number->new($line->{unitprice_tax_included})->format() * $line->{quantity};
 
     $line->{tax_value} = $line->{tax_value_on_receiving};
     $line->{tax_rate} = $line->{tax_rate_on_receiving};

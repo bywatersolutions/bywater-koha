@@ -1416,8 +1416,8 @@ sub ModReceiveOrder {
         $dbh->do(q|
             UPDATE aqorders
             SET
-                tax_value_on_ordering = quantity * ecost_tax_excluded * tax_rate_on_ordering,
-                tax_value_on_receiving = quantity * unitprice_tax_excluded * tax_rate_on_receiving
+                tax_value_on_ordering = quantity * ROUND(ecost_tax_excluded, 2) * ROUND(tax_rate_on_ordering, 2),
+                tax_value_on_receiving = quantity * ROUND(unitprice_tax_excluded, 2) * ROUND(tax_rate_on_receiving, 2)
             WHERE ordernumber = ?
         |, undef, $order->{ordernumber});
 
@@ -1429,8 +1429,8 @@ sub ModReceiveOrder {
         $order->{tax_rate_on_ordering} //= 0;
         $order->{unitprice_tax_excluded} //= 0;
         $order->{tax_rate_on_receiving} //= 0;
-        $order->{tax_value_on_ordering} = $order->{quantity} * $order->{ecost_tax_excluded} * $order->{tax_rate_on_ordering};
-        $order->{tax_value_on_receiving} = $order->{quantity} * $order->{unitprice_tax_excluded} * $order->{tax_rate_on_receiving};
+        $order->{tax_value_on_ordering} = $order->{quantity} * Koha::Number::Price->new($order->{ecost_tax_excluded})->format() * Koha::Number::Price->new($order->{tax_rate_on_ordering})->format();
+        $order->{tax_value_on_receiving} = $order->{quantity} * Koha::Number::Price->new($order->{unitprice_tax_excluded})->format() * Koha::Number::Price->new($order->{tax_rate_on_receiving})->format();
         $order->{datereceived} = $datereceived;
         $order->{invoiceid} = $invoice->{invoiceid};
         $order->{orderstatus} = 'complete';
@@ -1592,8 +1592,8 @@ sub CancelReceipt {
         $dbh->do(q|
             UPDATE aqorders
             SET
-                tax_value_on_ordering = quantity * ecost_tax_excluded * tax_rate_on_ordering,
-                tax_value_on_receiving = quantity * unitprice_tax_excluded * tax_rate_on_receiving
+                tax_value_on_ordering = quantity * ROUND(ecost_tax_excluded, 2) * ROUND(tax_rate_on_ordering, 2),
+                tax_value_on_receiving = quantity * ROUND(unitprice_tax_excluded, 2) * ROUND(tax_rate_on_receiving, 2)
             WHERE ordernumber = ?
         |, undef, $parent_ordernumber);
 
@@ -2107,7 +2107,7 @@ sub GetLateOrders {
         # FIXME: account for IFNULL as above
         $select .= "
                 aqorders.quantity                AS quantity,
-                aqorders.quantity * aqorders.rrp AS subtotal,
+                aqorders.quantity * ROUND(aqorders.rrp, 2) AS subtotal,
                 (CAST(now() AS date) - closedate)            AS latesince
         ";
         if ( defined $delay ) {
@@ -2933,7 +2933,7 @@ sub populate_order_with_prices {
 
         # tax value = quantity * ecost tax excluded * tax rate
         $order->{tax_value_on_ordering} =
-            $order->{quantity} * $order->{ecost_tax_excluded} * $order->{tax_rate_on_ordering};
+            $order->{quantity} * Koha::Number::Price->new( $order->{ecost_tax_excluded} )->format() * $order->{tax_rate_on_ordering};
     }
 
     if ($receiving) {
@@ -2967,7 +2967,7 @@ sub populate_order_with_prices {
         }
 
         # tax value = quantity * unit price tax excluded * tax rate
-        $order->{tax_value_on_receiving} = $order->{quantity} * $order->{unitprice_tax_excluded} * $order->{tax_rate_on_receiving};
+        $order->{tax_value_on_receiving} = $order->{quantity} * Koha::Number::Price->new( $order->{unitprice_tax_excluded} ) * $order->{tax_rate_on_receiving};
     }
 
     return $order;

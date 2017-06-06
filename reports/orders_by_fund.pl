@@ -105,8 +105,8 @@ if ( $get_orders ) {
 
         $order->{'title'} = $biblio->{'title'} || $order->{'biblionumber'};
 
-        $order->{'total_rrp'} = $order->{'quantity'} * $order->{'rrp'};
-        $order->{'total_ecost'} = $order->{'quantity'} * $order->{'ecost'};
+        $order->{'total_rrp'} = $order->{'quantity'} * Koha::Price::Number->new($order->{'rrp'})->format();
+        $order->{'total_ecost'} = $order->{'quantity'} * Koha::Price::Number->new($order->{'ecost'})->format();
 
         # Format the dates and currencies correctly
         $order->{'datereceived'} = output_pref(dt_from_string($order->{'datereceived'}));

@@ -40,8 +40,8 @@ use C4::Letters qw/SendAlerts/;
 use Date::Calc qw/Add_Delta_Days/;
 use Koha::Database;
 use Koha::EDI qw( create_edi_order get_edifact_ean );
-
 use Koha::AdditionalField;
+use Koha::Number::Price;
 
 =head1 NAME
 
@@ -344,13 +344,13 @@ if ( $op eq 'list' ) {
         push @books_loop, $line;
 
         $foot{$$line{tax_rate}}{tax_rate} = $$line{tax_rate};
-        $foot{$$line{tax_rate}}{tax_value} += $$line{tax_value};
+        $foot{$$line{tax_rate}}{tax_value} += Koha::Number::Price->new( $$line{tax_value} )->format;
         $total_tax_value += $$line{tax_value};
         $foot{$$line{tax_rate}}{quantity}  += $$line{quantity};
         $total_quantity += $$line{quantity};
-        $foot{$$line{tax_rate}}{total_tax_excluded} += $$line{total_tax_excluded};
+        $foot{$$line{tax_rate}}{total_tax_excluded} += Koha::Number::Price->new( $$line{total_tax_excluded} )->format;
         $total_tax_excluded += $$line{total_tax_excluded};
-        $foot{$$line{tax_rate}}{total_tax_included} += $$line{total_tax_included};
+        $foot{$$line{tax_rate}}{total_tax_included} += Koha::Number::Price->new( $$line{total_tax_included} )->format;
         $total_tax_included += $$line{total_tax_included};
     }
 
@@ -457,8 +457,8 @@ sub get_order_infos {
     $line{basketno}       = $basketno;
     $line{budget_name}    = $budget->{budget_name};
 
-    $line{total_tax_included} = $line{ecost_tax_included} * $line{quantity};
-    $line{total_tax_excluded} = $line{ecost_tax_excluded} * $line{quantity};
+    $line{total_tax_included} = Koha::Number::Price->new( $line{ecost_tax_included} )->format * $line{quantity};
+    $line{total_tax_excluded} = Koha::Number::Price->new( $line{ecost_tax_excluded} )->format * $line{quantity};
     $line{tax_value} = $line{tax_value_on_ordering};
     $line{tax_rate} = $line{tax_rate_on_ordering};
 
