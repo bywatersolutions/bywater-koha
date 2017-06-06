@@ -22,7 +22,7 @@ use Modern::Perl;
 use JSON;
 
 use Koha::Database;
-use C4::Koha;
+use Koha::AuthorisedValues;
 
 use base 'Koha::Service';
 
@@ -66,7 +66,10 @@ sub get_messages {
       ->search( { itemnumber => $itemnumber }, { result_class => 'DBIx::Class::ResultClass::HashRefInflator' } );
 
     my @messages = map { $_ } $rs->all();
-    map { $_->{authorised_value} = GetAuthorisedValueByCode( 'ITEM_MESSAGE', $_->{type} ) } @messages;
+    foreach my $m ( @messages ) {
+        my $av = Koha::AuthorisedValues->search({ category => 'ITEM_MESSAGE', authorised_value => $m->{type} } )->next;
+        $m->{authorised_value} = $av ? $av->lib : q{};
+    }
 
     $self->output( \@messages );
 }
@@ -91,6 +94,7 @@ sub add_message {
     );
     $msg->discard_changes();
 
+    my $av = Koha::AuthorisedValues->search({ category => 'ITEM_MESSAGE', authorised_value => $type })->next;
     $self->output(
         {
             item_message_id  => $msg->id(),
@@ -98,7 +102,7 @@ sub add_message {
             type             => $type,
             message          => $message,
             created_on       => $msg->created_on(),
-            authorised_value => GetAuthorisedValueByCode( 'ITEM_MESSAGE', $type ),
+            authorised_value => $av ? $av->lib : q{},
         }
     );
 }
@@ -125,6 +129,7 @@ sub update_message {
         }
     );
 
+    my $av = Koha::AuthorisedValues->search({ category => 'ITEM_MESSAGE', authorised_value => $type })->next;
     $self->output(
         {
             item_message_id  => $msg->id(),
@@ -132,7 +137,7 @@ sub update_message {
             type             => $type,
             message          => $message,
             created_on       => $msg->created_on(),
-            authorised_value => GetAuthorisedValueByCode( 'ITEM_MESSAGE', $type ),
+            authorised_value => $av ? $av->lib : q{},
         }
     );
 }
