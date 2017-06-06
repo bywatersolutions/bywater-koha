@@ -57,6 +57,7 @@ use Koha::EDI qw/create_edi_order get_edifact_ean/;
 
 use Koha::Acquisition::Booksellers;
 use Koha::ItemTypes;
+use Koha::Number::Price;
 
 our $input=new CGI;
 
@@ -77,9 +78,9 @@ sub BasketTotal {
     for my $order (@orders){
         # FIXME The following is wrong
         if ( $bookseller->listincgst ) {
-            $total = $total + ( $order->{ecost_tax_included} * $order->{quantity} );
+            $total = $total + ( Koha::Number::Price->new($order->{ecost_tax_included})->format() * $order->{quantity} );
         } else {
-            $total = $total + ( $order->{ecost_tax_excluded} * $order->{quantity} );
+            $total = $total + ( Koha::Number::Price->new($order->{ecost_tax_excluded})->format() * $order->{quantity} );
         }
     }
     $total .= " " . ($bookseller->invoiceprice // 0);
@@ -171,8 +172,8 @@ sub printbasketgrouppdf{
 
             $ord->{tax_value} = $ord->{tax_value_on_ordering};
             $ord->{tax_rate} = $ord->{tax_rate_on_ordering};
-            $ord->{total_tax_included} = $ord->{ecost_tax_included} * $ord->{quantity};
-            $ord->{total_tax_excluded} = $ord->{ecost_tax_excluded} * $ord->{quantity};
+            $ord->{total_tax_included} = Koha::Number::Price->new($ord->{ecost_tax_included})->format() * $ord->{quantity};
+            $ord->{total_tax_excluded} = Koha::Number::Price->new($ord->{ecost_tax_excluded})->format() * $ord->{quantity};
 
             my $bib = GetBiblioData($ord->{biblionumber});
 

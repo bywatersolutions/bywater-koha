@@ -222,9 +222,9 @@ sub printbaskets {
             $total_tax_excluded += $ord->{total_tax_excluded};
             $total_tax_included += $ord->{total_tax_included};
             $totaltax_value += $ord->{tax_value};
-            $totaldiscount += ($ord->{rrp_tax_excluded} - $ord->{ecost_tax_excluded} ) * $ord->{quantity};
-            $total_rrp_tax_excluded += $ord->{rrp_tax_excluded} * $ord->{quantity};
-            $total_rrp_tax_included += $ord->{rrp_tax_included} * $ord->{quantity};
+            $totaldiscount += (Koha::Price::Number->new($ord->{rrp_tax_excluded})->format() - Koha::Price::Number->new($ord->{ecost_tax_excluded})->format() ) * $ord->{quantity};
+            $total_rrp_tax_excluded += Koha::Price::Number->new($ord->{rrp_tax_excluded})->format() * $ord->{quantity};
+            $total_rrp_tax_included += Koha::Price::Number->new($ord->{rrp_tax_included})->format() * $ord->{quantity};
             push @gst, $ord->{tax_rate};
         }
         @gst = uniq map { $_ * 100 } @gst;

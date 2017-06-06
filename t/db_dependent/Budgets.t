@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use Modern::Perl;
-use Test::More tests => 142;
+use Test::More tests => 143;
 
 BEGIN {
     use_ok('C4::Budgets')
@@ -12,6 +12,7 @@ use C4::Members qw( AddMember );
 
 use Koha::Acquisition::Order;
 use Koha::Acquisition::Booksellers;
+use Koha::Number::Price;
 
 use t::lib::TestBuilder;
 
@@ -716,6 +717,81 @@ $authCat = GetBudgetAuthCats($budgetPeriodId);
 is( scalar @{$authCat}, 0, "GetBudgetAuthCats returns only non-empty sorting categories (all empty)" );
 
 # /Test GetBudgetAuthCats
+
+subtest 'GetBudgetSpent GetBudgetOrdered tests' => sub {
+
+    plan tests => 6;
+
+#Let's build an order, we need a couple things though
+
+    my $spent_biblio = $builder->build({ source => 'Biblio' });
+    my $spent_basket = $builder->build({ source => 'Aqbasket', value => { is_standing => 0 } });
+    my $spent_invoice = $builder->build({ source => 'Aqinvoice' });
+    my $spent_currency = $builder->build({ source => 'Currency', value => { active => 1, archived => 0, symbol => 'F', rate => 2, isocode => undef, currency => 'FOO' }  });
+    my $spent_vendor = $builder->build({ source => 'Aqbookseller',value => { listincgst => 0, listprice => $spent_currency->{currency}, invoiceprice => $spent_currency->{currency} } });
+    my $spent_orderinfo = {
+        basketno => $spent_basket->{basketno},
+        booksellerid => $spent_vendor->{id},
+        rrp => 16.99,
+        discount => .42,
+        ecost => 16.91,
+        biblionumber => $spent_biblio->{biblionumber},
+        currency => $spent_currency->{currency},
+        tax_rate_on_ordering => 0,
+        tax_value_on_ordering => 0,
+        tax_rate_on_receiving => 0,
+        tax_value_on_receiving => 0,
+        quantity => 8,
+        quantityreceived => 0,
+        datecancellationprinted => undef,
+        datereceived => undef,
+    };
+
+#Okay we have basically what the user would enter, now we do some maths
+
+    $spent_orderinfo = C4::Acquisition::populate_order_with_prices({
+            order        => $spent_orderinfo,
+            booksellerid => $spent_orderinfo->{booksellerid},
+            ordering     => 1,
+    });
+
+#And let's place the order
+
+    my $spent_order = $builder->build({ source => 'Aqorder', value => $spent_orderinfo });
+    my $spent_ordered = GetBudgetOrdered( $spent_order->{budget_id} );
+
+    is($spent_orderinfo->{ecost_tax_excluded}, 9.854200,'We store extra precision in price calculation');
+    is( Koha::Number::Price->new($spent_orderinfo->{ecost_tax_excluded})->format(), 9.85,'But the price as formatted is two digits');
+    is($spent_ordered,9.85*8,"We expect the ordered amount to be equal to the estimated price times quantity");
+
+#Okay, now we can receive the order, giving the price as the user would
+
+    $spent_orderinfo->{unitprice} = 9.85; #we are paying what we expected
+
+#Do our maths
+
+    $spent_orderinfo = C4::Acquisition::populate_order_with_prices({
+            order        => $spent_orderinfo,
+            booksellerid => $spent_orderinfo->{booksellerid},
+            receiving    => 1,
+    });
+
+#And receive
+
+    ModReceiveOrder({
+            biblionumber => $spent_orderinfo->{biblionumber},
+            order => $spent_orderinfo,
+            invoice => $spent_invoice,
+            quantityreceived => $spent_orderinfo->{quantity},
+            budget_id => $spent_orderinfo->{budget_id},
+    });
+
+    my $spent_spent = GetBudgetSpent( $spent_order->{budget_id} );
+    is($spent_orderinfo->{unitprice_tax_excluded}, 9.854200,'We store extra precision in price calculation');
+    is( Koha::Number::Price->new($spent_orderinfo->{unitprice_tax_excluded})->format(), 9.85,'But the price as formatted is two digits');
+    is($spent_ordered,9.85*8,"We expect the ordered amount to be equal to the estimated price times quantity");
+
+};
 
 sub _get_dependencies {
     my ($budget_hierarchy) = @_;
