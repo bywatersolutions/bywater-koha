@@ -847,4 +847,61 @@ subtest "Koha::Account::non_issues_charges tests" => sub {
     is( $other_charges+0, 0, 'If 1|1|1 there should not have any other charges' );
 };
 
+subtest "Koha::Account::Line::void tests" => sub {
+
+    plan tests => 12;
+
+    # Create a borrower
+    my $categorycode = $builder->build({ source => 'Category' })->{ categorycode };
+    my $branchcode   = $builder->build({ source => 'Branch' })->{ branchcode };
+
+    my $borrower = Koha::Patron->new( {
+        cardnumber => 'dariahall',
+        surname => 'Hall',
+        firstname => 'Daria',
+    } );
+    $borrower->categorycode( $categorycode );
+    $borrower->branchcode( $branchcode );
+    $borrower->store;
+
+    my $account = Koha::Account->new({ patron_id => $borrower->id });
+
+    my $line1 = Koha::Account::Line->new({ borrowernumber => $borrower->borrowernumber, amount => 10, amountoutstanding => 10 })->store();
+    my $line2 = Koha::Account::Line->new({ borrowernumber => $borrower->borrowernumber, amount => 20, amountoutstanding => 20 })->store();
+
+    is( $account->balance(), "30.000000", "Account balance is 30" );
+    is( $line1->amountoutstanding, 10, 'First fee has amount outstanding of 10' );
+    is( $line2->amountoutstanding, 20, 'Second fee has amount outstanding of 20' );
+
+    my $id = $account->pay(
+        {
+            lines  => [$line1, $line2],
+            amount => 30,
+        }
+    );
+    my $account_payment = Koha::Account::Lines->find( $id );
+
+    is( $account->balance(), "0.000000", "Account balance is 0" );
+
+    $line1->_result->discard_changes();
+    $line2->_result->discard_changes();
+    is( $line1->amountoutstanding, '0.000000', 'First fee has amount outstanding of 0' );
+    is( $line2->amountoutstanding, '0.000000', 'Second fee has amount outstanding of 0' );
+
+    $account_payment->void();
+
+    is( $account->balance(), "30.000000", "Account balance is again 30" );
+
+    $account_payment->_result->discard_changes();
+    $line1->_result->discard_changes();
+    $line2->_result->discard_changes();
+
+    is( $account_payment->accounttype, 'VOID', 'Voided payment accounttype is VOID' );
+    is( $account_payment->amount, '0.000000', 'Voided payment amount is 0' );
+    is( $account_payment->amountoutstanding, '0.000000', 'Voided payment amount outstanding is 0' );
+
+    is( $line1->amountoutstanding, '10.000000', 'First fee again has amount outstanding of 10' );
+    is( $line2->amountoutstanding, '20.000000', 'Second fee again has amount outstanding of 20' );
+};
+
 1;
