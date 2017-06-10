@@ -49,7 +49,7 @@ my ($template, $loggedinuser, $cookie) = get_template_and_user(
     }
 );
 
-my $borrowernumber=$input->param('borrowernumber');
+my $borrowernumber = $input->param('borrowernumber');
 my $action = $input->param('action') || '';
 
 #get patron details
@@ -61,6 +61,11 @@ unless ( $patron ) {
 
 if ( $action eq 'reverse' ) {
   ReversePayment( scalar $input->param('accountlines_id') );
+}
+elsif ( $action eq 'void' ) {
+    my $payment_id = scalar $input->param('accountlines_id');
+    my $payment    = Koha::Account::Lines->find( $payment_id );
+    $payment->void();
 }
 
 if ( $patron->category->category_type eq 'C') {
