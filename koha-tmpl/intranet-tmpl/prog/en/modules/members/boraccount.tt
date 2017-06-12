@@ -1,6 +1,7 @@
 [% USE Koha %]
 [% USE KohaDates %]
 [% USE ColumnsSettings %]
+[% USE AuthorisedValues %]
 [% USE Price %]
 [% INCLUDE 'doc-head-open.inc' %]
 <title>Koha &rsaquo; Patrons &rsaquo; Account for [% INCLUDE 'patron-title.inc' no_html = 1 %]</title>
@@ -107,6 +108,7 @@ $(document).ready(function() {
           [% CASE 'CR' %]Credit
           [% CASE %][% account.accounttype %]
         [%- END -%]
+        [%- IF account.payment_type %], [% AuthorisedValues.GetByCode('PAYMENT_TYPE', account.payment_type) %][% END %]
         [%- IF account.description %], [% account.description %][% END %]
         &nbsp;[% IF ( account.itemnumber ) %]<a href="/cgi-bin/koha/catalogue/moredetail.pl?biblionumber=[% account.biblionumber %]&amp;itemnumber=[% account.itemnumber %]">[% account.title |html %]</a>[% END %]</td>
       <td>[% account.note | html_line_break %]</td>
