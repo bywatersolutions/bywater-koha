@@ -498,7 +498,6 @@ sub ModItemFromMarc {
     my $biblionumber = shift;
     my $itemnumber = shift;
 
-    my $dbh           = C4::Context->dbh;
     my $frameworkcode = C4::Biblio::GetFrameworkCode($biblionumber);
     my ( $itemtag, $itemsubfield ) = C4::Biblio::GetMarcFromKohaField( "items.itemnumber", $frameworkcode );
 
@@ -512,13 +511,21 @@ sub ModItemFromMarc {
     }
     my $unlinked_item_subfields = _get_unlinked_item_subfields( $localitemmarc, $frameworkcode );
 
-    ModItem($item, $biblionumber, $itemnumber, $dbh, $frameworkcode, $unlinked_item_subfields); 
+    ModItem( $item, $biblionumber, $itemnumber, { unlinked_item_subfields => $unlinked_item_subfields } );
     return $item;
 }
 
 =head2 ModItem
 
-  ModItem({ column => $newvalue }, $biblionumber, $itemnumber);
+ModItem(
+    { column => $newvalue },
+    $biblionumber,
+    $itemnumber,
+    {
+        [ unlinked_item_subfields => $unlinked_item_subfields, ]
+        [ log_action => 1, ]
+    }
+);
 
 Change one or more columns in an item record and update
 the MARC representation of the item.
@@ -526,9 +533,11 @@ the MARC representation of the item.
 The first argument is a hashref mapping from item column
 names to the new values.  The second and third arguments
 are the biblionumber and itemnumber, respectively.
+The fourth, optional parameter (additional_params) may contain the keys
+unlinked_item_subfields and log_action.
 
-The fourth, optional parameter, C<$unlinked_item_subfields>, contains
-an arrayref containing subfields present in the original MARC
+C<$unlinked_item_subfields> contains an arrayref containing
+subfields present in the original MARC
 representation of the item (e.g., from the item editor) that are
 not mapped to C<items> columns directly but should instead
 be stored in C<items.more_subfields_xml> and included in 
@@ -539,24 +548,22 @@ the derived value of a column such as C<items.cn_sort>,
 this routine will perform the necessary calculation
 and set the value.
 
+If log_action is set to false, the action will not be logged.
+If log_action is true or undefined, the action will be logged.
+
 =cut
 
 sub ModItem {
-    my $item = shift;
-    my $biblionumber = shift;
-    my $itemnumber = shift;
+    my ( $item, $biblionumber, $itemnumber, $additional_params ) = @_;
+    my $log_action = $additional_params->{log_action} // 1;
+    my $unlinked_item_subfields = $additional_params->{unlinked_item_subfields};
 
     # if $biblionumber is undefined, get it from the current item
     unless (defined $biblionumber) {
         $biblionumber = _get_single_item_column('biblionumber', $itemnumber);
     }
 
-    my $dbh           = @_ ? shift : C4::Context->dbh;
-    my $frameworkcode = @_ ? shift : C4::Biblio::GetFrameworkCode( $biblionumber );
-    
-    my $unlinked_item_subfields;  
-    if (@_) {
-        $unlinked_item_subfields = shift;
+    if ($unlinked_item_subfields) {
         $item->{'more_subfields_xml'} = _get_unlinked_subfields_xml($unlinked_item_subfields);
     };
 
@@ -603,7 +610,8 @@ sub ModItem {
     # item status is possible
     C4::Items::ModZebra( $biblionumber, "specialUpdate", "biblioserver" );
 
-    logaction("CATALOGUING", "MODIFY", $itemnumber, "item ".Dumper($item)) if C4::Context->preference("CataloguingLog");
+    logaction( "CATALOGUING", "MODIFY", $itemnumber, "item " . Dumper($item) )
+      if $log_action && C4::Context->preference("CataloguingLog");
 }
 
 =head2 ModItemTransfer
@@ -645,9 +653,9 @@ C<$itemnum> is the item number
 
 sub ModDateLastSeen {
     my ($itemnumber) = @_;
-    
+
     my $today = output_pref({ dt => dt_from_string, dateformat => 'iso', dateonly => 1 });
-    ModItem({ itemlost => 0, datelastseen => $today }, undef, $itemnumber);
+    ModItem( { itemlost => 0, datelastseen => $today }, undef, $itemnumber, { log_action => 0 } );
 }
 
 =head2 DelItem
