@@ -403,9 +403,15 @@ sub has_overdues {
 
 sub track_login {
     my ( $self, $params ) = @_;
-    return if
-        !$params->{force} &&
-        !C4::Context->preference('TrackLastPatronActivity');
+    my $session = $params->{session};
+
+    return unless C4::Context->preference('TrackLastPatronActivity') || $params->{force};
+
+    if ( $session ) {
+        return if $session->param('tracked_for_session') && !$params->{force};
+        $session->param('tracked_for_session', 1);
+    }
+
     $self->lastseen( dt_from_string() )->store;
 }
 
