@@ -772,6 +772,8 @@ sub checkauth {
     my $casparam = $query->param('cas');
     my $q_userid = $query->param('userid') // '';
 
+    my $session;
+
     # Basic authentication is incompatible with the use of Shibboleth,
     # as Shibboleth may return REMOTE_USER as a Shibboleth attribute,
     # and it may not be the attribute we want to use to match the koha login.
@@ -797,7 +799,7 @@ sub checkauth {
     }
     elsif ( $sessionID = $query->cookie("CGISESSID") )
     {    # assignment, not comparison
-        my $session = get_session($sessionID);
+        $session = get_session($sessionID);
         C4::Context->_new_userenv($sessionID);
         my ( $ip, $lasttime, $sessiontype );
         my $s_userid = '';
@@ -1191,7 +1193,7 @@ sub checkauth {
         if ( $userid ) {
             # track_login also depends on pref TrackLastPatronActivity
             my $patron = Koha::Patrons->find({ userid => $userid });
-            $patron->track_login if $patron;
+            $patron->track_login( { session => $session } ) if $patron;
         }
 
         return ( $userid, $cookie, $sessionID, $flags );
