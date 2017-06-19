@@ -361,12 +361,28 @@ $patstodel = GetBorrowersToExpunge( { last_seen => '2016-02-15' });
 is( scalar @$patstodel, 2, 'TrackLastPatronActivity - 2 patrons must be deleted' );
 $patstodel = GetBorrowersToExpunge( { last_seen => '2016-04-04' });
 is( scalar @$patstodel, 3, 'TrackLastPatronActivity - 3 patrons must be deleted' );
+
+
+# Test method last_seen / TrackLastPatronActivity
 my $patron2 = $builder->build({ source => 'Borrower', value => { lastseen => undef } });
 t::lib::Mocks::mock_preference( 'TrackLastPatronActivity', '0' );
 Koha::Patrons->find( $patron2->{borrowernumber} )->track_login;
 is( Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen, undef, 'Lastseen should not be changed' );
+
 Koha::Patrons->find( $patron2->{borrowernumber} )->track_login({ force => 1 });
-isnt( Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen, undef, 'Lastseen should be changed now' );
+my $last_seen = Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen;
+isnt( $last_seen, undef, 'Lastseen should be changed now' );
+
+# Last seen shouldn't be updated a second time for this session
+t::lib::Mocks::mock_preference( 'TrackLastPatronActivity', '1' );
+Koha::Patrons->find( $patron2->{borrowernumber} )->track_login();
+is( Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen, $last_seen, 'Lastseen should not be changed' );
+
+# If it's forced, it should still be updated
+sleep(1); # We need to wait a tiny bit to make sure the timestamp will be different
+Koha::Patrons->find( $patron2->{borrowernumber} )->track_login({ force => 1 });
+isnt( Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen, $last_seen, 'Lastseen should be changed if forced' );
+
 
 # Regression tests for BZ13502
 ## Remove all entries with userid='' (should be only 1 max)
