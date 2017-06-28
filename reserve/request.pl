@@ -212,24 +212,25 @@ foreach my $biblionumber (@biblionumbers) {
     if ( $patron ) {
         { # CanBookBeReserved
             my $canReserve = CanBookBeReserved( $patron->borrowernumber, $biblionumber );
-            $canReserve //= '';
-            if ( $canReserve eq 'OK' ) {
+            $canReserve->{status} //= '';
+            if ( $canReserve->{status} eq 'OK' ) {
 
                 #All is OK and we can continue
             }
-            elsif ( $canReserve eq 'tooManyReserves' ) {
+            elsif ( $canReserve->{status} eq 'tooManyReserves' ) {
                 $exceeded_maxreserves = 1;
+                $template->param( maxreserves => $canReserve->{limit} );
             }
-            elsif ( $canReserve eq 'tooManyHoldsForThisRecord' ) {
+            elsif ( $canReserve->{status} eq 'tooManyHoldsForThisRecord' ) {
                 $exceeded_holds_per_record = 1;
-                $biblioloopiter{$canReserve} = 1;
+                $biblioloopiter{ $canReserve->{status} } = 1;
             }
-            elsif ( $canReserve eq 'ageRestricted' ) {
-                $template->param( $canReserve => 1 );
-                $biblioloopiter{$canReserve} = 1;
+            elsif ( $canReserve->{status} eq 'ageRestricted' ) {
+                $template->param( $canReserve->{status} => 1 );
+                $biblioloopiter{ $canReserve->{status} } = 1;
             }
             else {
-                $biblioloopiter{$canReserve} = 1;
+                $biblioloopiter{ $canReserve->{status} } = 1;
             }
         }
 
@@ -463,7 +464,7 @@ foreach my $biblionumber (@biblionumbers) {
                 $item->{'holdallowed'} = $branchitemrule->{'holdallowed'};
 
                 my $can_item_be_reserved = CanItemBeReserved( $patron->borrowernumber, $itemnumber );
-                $item->{not_holdable} = $can_item_be_reserved unless ( $can_item_be_reserved eq 'OK' );
+                $item->{not_holdable} = $can_item_be_reserved->{status} unless ( $can_item_be_reserved->{status} eq 'OK' );
 
                 $item->{item_level_holds} = Koha::IssuingRules->get_opacitemholds_policy( { item => $item_object, patron => $patron } );
 
@@ -471,7 +472,7 @@ foreach my $biblionumber (@biblionumbers) {
                        !$item->{cantreserve}
                     && !$exceeded_maxreserves
                     && IsAvailableForItemLevelRequest($item, $patron_unblessed)
-                    && $can_item_be_reserved eq 'OK'
+                    && $can_item_be_reserved->{status} eq 'OK'
                   )
                 {
                     $item->{available} = 1;
@@ -479,7 +480,7 @@ foreach my $biblionumber (@biblionumbers) {
 
                     push( @available_itemtypes, $item->{itype} );
                 }
-                elsif ( C4::Context->preference('AllowHoldPolicyOverride') ) {
+                elsif ( $can_item_be_reserved->{status} eq 'tooManyReserves' && C4::Context->preference('AllowHoldPolicyOverride') ) {
                     # If AllowHoldPolicyOverride is set, it should override EVERY restriction, not just branch item rules
                     $item->{override} = 1;
                     $num_override++;
