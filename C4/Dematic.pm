@@ -49,6 +49,7 @@ BEGIN {
 
 my $handle;
 
+=head
 my $dbhandler = C4::Context->dbh;
 $dbhandler->do( "
     CREATE TABLE IF NOT EXISTS ems_transaction_logs(
@@ -71,6 +72,7 @@ $dbhand->do( "
         PRIMARY KEY (transactionID)
     )
 " );
+=cut
 
 sub check_if_exists {
 
