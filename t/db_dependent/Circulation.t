@@ -18,7 +18,8 @@
 use Modern::Perl;
 use utf8;
 
-use Test::More tests => 123;
+use Test::More tests => 122;
+use Test::MockModule;
 
 use Data::Dumper;
 use DateTime;
@@ -2778,7 +2779,7 @@ $cache->clear_from_cache('single_holidays');
 
 subtest 'AddRenewal and AddIssuingCharge tests' => sub {
 
-    plan tests => 10;
+    plan tests => 13;
 
     $schema->storage->txn_begin;
 
@@ -2850,42 +2851,21 @@ subtest 'AddRenewal and AddIssuingCharge tests' => sub {
 
     my $line = $lines->next;
     is( $line->accounttype, 'Rent',       'The issuing charge generates an accountline' );
+    is( $line->branchcode,  $library->id, 'AddIssuingCharge correctly sets branchcode' );
     is( $line->description, 'Rental',     'AddIssuingCharge set a hardcoded description for the accountline' );
 
     $line = $lines->next;
     is( $line->accounttype, 'Rent', 'Fine on renewed item is closed out properly' );
+    is( $line->branchcode,  $library->id, 'AddRenewal correctly sets branchcode' );
     is( $line->description, "Renewal of Rental Item $title $barcode", 'AddRenewal set a hardcoded description for the accountline' );
 
     $line = $lines->next;
     is( $line->accounttype, 'Rent', 'Fine on renewed item is closed out properly' );
+    is( $line->branchcode,  $library->id, 'AddRenewal correctly sets branchcode' );
     is( $line->description, "Renewal of Rental Item $title $barcode", 'AddRenewal set a hardcoded description for the accountline' );
 
     $schema->storage->txn_rollback;
 };
-
-subtest 'ProcessOfflinePayment() tests' => sub {
-
-    plan tests => 3;
-
-    $schema->storage->txn_begin;
-
-    my $amount = 123;
-
-    my $patron  = $builder->build_object({ class => 'Koha::Patrons' });
-    my $library = $builder->build_object({ class => 'Koha::Libraries' });
-    my $result  = C4::Circulation::ProcessOfflinePayment({ cardnumber => $patron->cardnumber, amount => $amount, branchcode => $library->id });
-
-    is( $result, 'Success.', 'The right string is returned' );
-
-    my $lines = $patron->account->lines;
-    is( $lines->count, 1, 'line created correctly');
-
-    my $line = $lines->next;
-    is( $line->amount+0, $amount * -1, 'amount picked from params' );
-
-    $schema->storage->txn_rollback;
-};
-
 
 
 sub set_userenv {
