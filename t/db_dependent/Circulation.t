@@ -2866,7 +2866,7 @@ subtest 'AddReturn should clear items.onloan for unissued items' => sub {
 
 subtest 'AddRenewal and AddIssuingCharge tests' => sub {
 
-    plan tests => 10;
+    plan tests => 13;
 
 
     my $issuing_charges = 15;
@@ -2937,14 +2937,17 @@ subtest 'AddRenewal and AddIssuingCharge tests' => sub {
 
     my $line = $lines->next;
     is( $line->accounttype, 'Rent',       'The issuing charge generates an accountline' );
+    is( $line->branchcode,  $library->id, 'AddIssuingCharge correctly sets branchcode' );
     is( $line->description, 'Rental',     'AddIssuingCharge set a hardcoded description for the accountline' );
 
     $line = $lines->next;
     is( $line->accounttype, 'Rent', 'Fine on renewed item is closed out properly' );
+    is( $line->branchcode,  $library->id, 'AddRenewal correctly sets branchcode' );
     is( $line->description, "Renewal of Rental Item $title $barcode", 'AddRenewal set a hardcoded description for the accountline' );
 
     $line = $lines->next;
     is( $line->accounttype, 'Rent', 'Fine on renewed item is closed out properly' );
+    is( $line->branchcode,  $library->id, 'AddRenewal correctly sets branchcode' );
     is( $line->description, "Renewal of Rental Item $title $barcode", 'AddRenewal set a hardcoded description for the accountline' );
 
 };
@@ -2974,3 +2977,51 @@ subtest 'ProcessOfflinePayment() tests' => sub {
 $schema->storage->txn_rollback;
 C4::Context->clear_syspref_cache();
 $cache->clear_from_cache('single_holidays');
+
+sub set_userenv {
+    my ( $library ) = @_;
+    t::lib::Mocks::mock_userenv({ branchcode => $library->{branchcode} });
+}
+
+sub str {
+    my ( $error, $question, $alert ) = @_;
+    my $s;
+    $s  = %$error    ? ' (error: '    . join( ' ', keys %$error    ) . ')' : '';
+    $s .= %$question ? ' (question: ' . join( ' ', keys %$question ) . ')' : '';
+    $s .= %$alert    ? ' (alert: '    . join( ' ', keys %$alert    ) . ')' : '';
+    return $s;
+}
+
+sub test_debarment_on_checkout {
+    my ($params) = @_;
+    my $item     = $params->{item};
+    my $library  = $params->{library};
+    my $patron   = $params->{patron};
+    my $due_date = $params->{due_date} || dt_from_string;
+    my $return_date = $params->{return_date} || dt_from_string;
+    my $expected_expiration_date = $params->{expiration_date};
+
+    $expected_expiration_date = output_pref(
+        {
+            dt         => $expected_expiration_date,
+            dateformat => 'sql',
+            dateonly   => 1,
+        }
+    );
+    my @caller      = caller;
+    my $line_number = $caller[2];
+    AddIssue( $patron, $item->{barcode}, $due_date );
+
+    my ( undef, $message ) = AddReturn( $item->{barcode}, $library->{branchcode},
+        undef, undef, $return_date );
+    is( $message->{WasReturned} && exists $message->{Debarred}, 1, 'AddReturn must have debarred the patron' )
+        or diag('AddReturn returned message ' . Dumper $message );
+    my $debarments = Koha::Patron::Debarments::GetDebarments(
+        { borrowernumber => $patron->{borrowernumber}, type => 'SUSPENSION' } );
+    is( scalar(@$debarments), 1, 'Test at line ' . $line_number );
+
+    is( $debarments->[0]->{expiration},
+        $expected_expiration_date, 'Test at line ' . $line_number );
+    Koha::Patron::Debarments::DelUniqueDebarment(
+        { borrowernumber => $patron->{borrowernumber}, type => 'SUSPENSION' } );
+}
