@@ -208,6 +208,7 @@ $( document ).ready(function() {
         } else {
             $("#amount-to-pay-label").hide();
         }
+    });
 
     $('.checkbox-pay').change( function() {
         $("#submit-pay").prop('disabled', ! $('.checkbox-pay:checked').length );
