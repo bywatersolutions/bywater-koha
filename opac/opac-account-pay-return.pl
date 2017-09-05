@@ -28,7 +28,7 @@ my $cgi = new CGI;
 
 my ( $userid, $cookie, $sessionID, $flags ) = checkauth( $cgi, 0, {}, 'opac' );
 
-my $payment_method = $cgi->param('payment_method');
+my $payment_method = $cgi->param('payment_method') || $cgi->url_param('payment_method');
 
 my $can_handle_payment = Koha::Plugins::Handler->run(
     {
