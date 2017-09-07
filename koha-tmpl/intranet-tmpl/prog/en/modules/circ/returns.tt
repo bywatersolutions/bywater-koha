@@ -331,7 +331,7 @@ $(document).ready(function () {
                 <div class="modal-footer">
                     <input type="hidden" name="cancel_reserve" value="0" />
 
-                    <button type="submit" class="btn approve" data-dismiss="modal">
+                    <button type="submit" class="btn approve">
                         <i class="fa fa-check"></i> Confirm
                     </button>
 
