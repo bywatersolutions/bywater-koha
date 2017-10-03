@@ -474,6 +474,7 @@ if ($op eq "additem") {
     if ( $add_submit || $add_duplicate_submit ) {
 
         # check for item barcode # being unique
+        C4::Items::_check_itembarcode( $addedolditem );
         my $exist_itemnumber = get_item_from_barcode( $addedolditem->{'barcode'} );
         push @errors, "barcode_not_unique" if ($exist_itemnumber);
 
