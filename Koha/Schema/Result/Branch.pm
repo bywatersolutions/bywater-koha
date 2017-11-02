@@ -134,6 +134,18 @@ __PACKAGE__->table("branches");
   is_nullable: 1
   size: 255
 
+=head2 itembarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
+=head2 patronbarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -179,6 +191,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "geolocation",
   { data_type => "varchar", is_nullable => 1, size => 255 },
+  "itembarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
+  "patronbarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
@@ -596,8 +612,8 @@ Composing rels: L</branchrelations> -> categorycode
 __PACKAGE__->many_to_many("categorycodes", "branchrelations", "categorycode");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-04-26 16:17:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:99U1YQ4iSum4LbBha4hDTQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-11-02 15:10:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zwgd0S7diOkhtDLzBz66kQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
