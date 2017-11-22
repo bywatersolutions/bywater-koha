@@ -117,9 +117,7 @@ $ENV{SCRIPT_NAME}  = '/cgi-bin/koha/opac-user.pl';
 my $query = CGI->new($query_string);
 is(
     login_shib_url($query),
-    'https://testopac.com'
-      . '/Shibboleth.sso/Login?target='
-      . 'https://testopac.com/cgi-bin/koha/opac-user.pl' . '%3F'
+    'https:///Shibboleth.sso/Login?target=https:///cgi-bin/koha/opac-user.pl%3F'
       . $query_string,
     "login shib url"
 );
@@ -249,22 +247,22 @@ subtest "checkpw_shib tests" => sub {
 
 ## _get_uri
 $OPACBaseURL = "testopac.com";
-is( C4::Auth_with_shibboleth::_get_uri(),
+is( C4::Auth_with_shibboleth::_get_uri( undef, 'opac' ),
     "https://testopac.com", "https opac uri returned" );
 
 $OPACBaseURL = "http://testopac.com";
 my $result;
-warning_like { $result = C4::Auth_with_shibboleth::_get_uri() }
+warning_like { $result = C4::Auth_with_shibboleth::_get_uri( undef, 'opac') }
 [qr/Shibboleth requires OPACBaseURL to use the https protocol!/],
   "improper protocol - received expected warning";
 is( $result, "https://testopac.com", "https opac uri returned" );
 
 $OPACBaseURL = "https://testopac.com";
-is( C4::Auth_with_shibboleth::_get_uri(),
+is( C4::Auth_with_shibboleth::_get_uri( undef, 'opac'),
     "https://testopac.com", "https opac uri returned" );
 
 $OPACBaseURL = undef;
-warning_like { $result = C4::Auth_with_shibboleth::_get_uri() }
+warning_like { $result = C4::Auth_with_shibboleth::_get_uri(undef, 'opac') }
 [qr/OPACBaseURL not set!/],
   "undefined OPACBaseURL - received expected warning";
 is( $result, "https://", "https opac uri returned" );
