@@ -1550,7 +1550,7 @@ sub CancelReceipt {
         };
         $sth = $dbh->prepare($query);
         $sth->execute(0, undef, undef, $ordernumber);
-        _cancel_items_receipt( $ordernumber );
+        _cancel_items_receipt( $basket->effective_create_items, $ordernumber );
     } else {
         # The order line has a parent, increase parent quantity and delete
         # the order line.
