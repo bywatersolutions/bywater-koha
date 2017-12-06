@@ -6,12 +6,12 @@ use Data::Dumper;
 use C4::Auth;
 use C4::Output;
 use C4::Context;
-use C4::Branch qw(GetBranchName);
 use C4::Members;
 use C4::Members::Attributes qw(:all);
 use C4::Members::AttributeTypes;
 use C4::Members::Messaging;
 use Koha::DateUtils;
+use Koha::Libraries;
 
 use Text::CSV;
 
@@ -112,8 +112,9 @@ $debug and warn $key;
             push @missing_criticals, {key=>'categorycode', line=>$. , lineraw=>$borrowerline};
         }
         if ($borrower{branchcode}) {
+            my $library = Koha::Libraries->find( $borrower{branchcode} );
             push @missing_criticals, {key=>'branchcode', line=>$. , lineraw=>$borrowerline, value=>$borrower{branchcode}, branch_map=>1}
-                unless GetBranchName($borrower{branchcode});
+                unless $library;
         } else {
             push @missing_criticals, {key=>'branchcode', line=>$. , lineraw=>$borrowerline};
         }
