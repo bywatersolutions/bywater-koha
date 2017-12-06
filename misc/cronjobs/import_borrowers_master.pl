@@ -5,13 +5,13 @@ use Getopt::Long;
 use Data::Dumper;
 use C4::Auth;
 use C4::Output;
-use C4::Dates qw(format_date_in_iso);
 use C4::Context;
 use C4::Branch qw(GetBranchName);
 use C4::Members;
 use C4::Members::Attributes qw(:all);
 use C4::Members::AttributeTypes;
 use C4::Members::Messaging;
+use Koha::DateUtils;
 
 use Text::CSV;
 
@@ -74,11 +74,9 @@ if ( $uploadborrowers && length($uploadborrowers) > 0 ) {
         $matchpoint_attr_type = C4::Members::AttributeTypes->fetch($matchpoint);
     }
 
-    my $today_iso = C4::Dates->new()->output('iso');
+    my $today_iso = dt_from_string('', 'iso');
     my @criticals = qw(surname branchcode categorycode);    # there probably should be others
     my @bad_dates;  # I've had a few.
-    my $date_re = C4::Dates->new->regexp('syspref');
-    my  $iso_re = C4::Dates->new->regexp('iso');
     LINE: while ( my $borrowerline = <$handle> ) {
         $read++;
         $verbose and print ".";
@@ -137,9 +135,8 @@ $debug and warn $key;
      # Popular spreadsheet applications make it difficult to force date outputs to be zero-padded, but we require it.
         foreach (qw(dateofbirth dateenrolled dateexpiry)) {
             my $tempdate = $borrower{$_} or next;
-            if ($tempdate =~ /$date_re/) {
-                $borrower{$_} = format_date_in_iso($tempdate);
-            } elsif ($tempdate =~ /$iso_re/) {
+            $tempdate = eval { output_pref( { dt => dt_from_string( $tempdate ), dateonly => 1, dateformat => 'iso' } ); };
+            if ($tempdate) {
                 $borrower{$_} = $tempdate;
             } else {
                 $borrower{$_} = '';
@@ -147,7 +144,7 @@ $debug and warn $key;
             }
         }
         $borrower{dateenrolled} = $today_iso unless $borrower{dateenrolled};
-   $borrower{dateexpiry} = GetExpiryDate($borrower{categorycode},$borrower{dateenrolled}) unless $borrower{dateexpiry};
+        $borrower{dateexpiry} = GetExpiryDate($borrower{categorycode},$borrower{dateenrolled}) unless $borrower{dateexpiry};
         my $borrowernumber;
         my $member;
         if ( ($matchpoint eq 'cardnumber') && ($borrower{'cardnumber'}) ) {
