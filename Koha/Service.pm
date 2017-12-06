@@ -269,7 +269,7 @@ sub add_routes {
     push @{ $self->{routes} }, @_;
 }
 
-=sub dispatch
+=head1 dispatch
 
     $self->dispatch();
 
@@ -305,7 +305,7 @@ sub dispatch {
     $self->croak( 'no_handler' );
 }
 
-=sub run
+=head1 run
 
     $service->run();
 
