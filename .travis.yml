@@ -20,7 +20,7 @@ before_install:
   - pwd
   - export SYNC_REPO=/home/travis/build/bywatersolutions/bywater-koha # Needed for koha-testing-docker
   - export LOCAL_USER_ID="$(id -u)" # Needed for koha-testing-docker
-  - git clone https://github.com/bywatersolutions/koha-testing-docker.git
+  - git clone https://github.com/tomascohen/koha-testing-docker.git
   - cd koha-testing-docker
   - git checkout origin/${KOHA_BRANCH} # Check out the correct koha-testing-docker branch
   - docker-compose build
