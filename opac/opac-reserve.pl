@@ -384,6 +384,7 @@ my $numBibsAvailable = 0;
 my $itemdata_enumchron = 0;
 my $anyholdable = 0;
 my $itemLevelTypes = C4::Context->preference('item-level_itypes');
+my $pickup_locations = Koha::Libraries->search({ pickup_location => 1 });
 $template->param('item_level_itypes' => $itemLevelTypes);
 
 foreach my $biblioNum (@biblionumbers) {
@@ -605,6 +606,14 @@ foreach my $biblioNum (@biblionumbers) {
     $anyholdable = 1 if $biblioLoopIter{holdable};
 }
 
+unless ($pickup_locations->count) {
+    $numBibsAvailable = 0;
+    $anyholdable = 0;
+    $template->param(
+        message => 1,
+        no_pickup_locations => 1
+    );
+}
 
 if ( $numBibsAvailable == 0 || $anyholdable == 0) {
     $template->param( none_available => 1 );
