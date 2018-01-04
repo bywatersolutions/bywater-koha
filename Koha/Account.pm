@@ -68,6 +68,7 @@ sub pay {
     my $library_id      = $params->{library_id};
     my $lines           = $params->{lines};
     my $type            = $params->{type} || 'payment';
+    my $itemnumber      = $params->{itemnumber} || undef;
 
     my $userenv = C4::Context->userenv;
 
@@ -192,6 +193,7 @@ sub pay {
             amountoutstanding => 0 - $balance_remaining,
             manager_id        => $manager_id,
             note              => $note,
+            itemnumber        => $itemnumber,
         }
     )->store();
 
