@@ -74,6 +74,7 @@ sub pay {
     my $type         = $params->{type} || 'payment';
     my $account_type = $params->{account_type};
     my $offset_type  = $params->{offset_type} || $type eq 'writeoff' ? 'Writeoff' : 'Payment';
+    my $itemnumber   = $params->{itemnumber} || undef;
 
     my $userenv = C4::Context->userenv;
 
@@ -218,6 +219,7 @@ sub pay {
             amountoutstanding => 0 - $balance_remaining,
             manager_id        => $manager_id,
             note              => $note,
+            itemnumber        => $itemnumber,
         }
     )->store();
 
