@@ -18,17 +18,18 @@
 
 use Modern::Perl;
 
-use Test::More tests => 24;
+use Test::More tests => 25;
 use Test::MockModule;
 use Test::Warn;
 
 use t::lib::TestBuilder;
 use t::lib::Mocks;
 
+use C4::Members;
 use Koha::Account;
 use Koha::Account::Lines;
-use Koha::Account::Line;
 use Koha::Account::Offsets;
+use Koha::DateUtils qw( dt_from_string );
 
 BEGIN {
     use_ok('C4::Accounts');
@@ -627,7 +628,7 @@ subtest "Koha::Account::chargelostitem tests" => sub {
     is( $procfee->amount, "2.040000",  "Processing fee if processing fee");
 };
 
-subtest "Koha::Account::non_issues_charges tests" => sub {
+subtest "Koha::Account::purge_zero_balance_fees" => sub {
     plan tests => 9;
 
     my $patron = $builder->build_object(
@@ -672,6 +673,174 @@ subtest "Koha::Account::non_issues_charges tests" => sub {
     ok( !$debit_2, 'Debit was correctly deleted' );
     ok( !$credit_2, 'Credit was correctly deleted' );
     is( Koha::Account::Lines->count({ borrowernumber => $patron->id }), 2 + 2, "The 2 + 2 account lines still exists, the last 2 have been deleted ok" );
+};
+
+subtest "Koha::Account::non_issues_charges tests" => sub {
+    plan tests => 21;
+
+    my $patron = $builder->build_object( { class => 'Koha::Patrons' } );
+
+    my $today  = dt_from_string;
+    my $res    = 3;
+    my $rent   = 5;
+    my $manual = 7;
+    Koha::Account::Line->new(
+        {
+            borrowernumber    => $patron->borrowernumber,
+            accountno         => 1,
+            date              => $today,
+            description       => 'a Res fee',
+            accounttype       => 'Res',
+            amountoutstanding => $res,
+        }
+    )->store;
+    Koha::Account::Line->new(
+        {
+            borrowernumber    => $patron->borrowernumber,
+            accountno         => 2,
+            date              => $today,
+            description       => 'a Rental fee',
+            accounttype       => 'Rent',
+            amountoutstanding => $rent,
+        }
+    )->store;
+    Koha::Account::Line->new(
+        {
+            borrowernumber    => $patron->borrowernumber,
+            accountno         => 3,
+            date              => $today,
+            description       => 'a Manual invoice fee',
+            accounttype       => 'Copie',
+            amountoutstanding => $manual,
+        }
+    )->store;
+    Koha::AuthorisedValue->new(
+        {
+            category         => 'MANUAL_INV',
+            authorised_value => 'Copie',
+            lib              => 'Fee for copie',
+        }
+    )->store;
+
+    t::lib::Mocks::mock_preference( 'HoldsInNoissuesCharge',   0 );
+    t::lib::Mocks::mock_preference( 'RentalsInNoissuesCharge', 0 );
+    t::lib::Mocks::mock_preference( 'ManInvInNoissuesCharge',  0 );
+    my ( $total, $non_issues_charges, $other_charges ) =
+      C4::Members::GetMemberAccountBalance( $patron->borrowernumber );
+    is(
+        $total+0,
+        $res + $rent + $manual,
+        'Total charges should be Res + Rent + Manual'
+    );
+    is( $non_issues_charges+0, 0,
+        'If 0|0|0 there should not have non issues charges' );
+    is( $other_charges+0, 15, 'If 0|0|0 there should only have other charges' );
+
+    t::lib::Mocks::mock_preference( 'HoldsInNoissuesCharge',   0 );
+    t::lib::Mocks::mock_preference( 'RentalsInNoissuesCharge', 0 );
+    t::lib::Mocks::mock_preference( 'ManInvInNoissuesCharge',  1 );
+    ( $total, $non_issues_charges, $other_charges ) =
+      C4::Members::GetMemberAccountBalance( $patron->borrowernumber );
+    is(
+        $total+0,
+        $res + $rent + $manual,
+        'Total charges should be Res + Rent + Manual'
+    );
+    is( $non_issues_charges+0, $manual,
+        'If 0|0|1 Only Manual should be a non issue charge' );
+    is(
+        $other_charges+0,
+        $res + $rent,
+        'If 0|0|1 Res + Rent should be other charges'
+    );
+
+    t::lib::Mocks::mock_preference( 'HoldsInNoissuesCharge',   0 );
+    t::lib::Mocks::mock_preference( 'RentalsInNoissuesCharge', 1 );
+    t::lib::Mocks::mock_preference( 'ManInvInNoissuesCharge',  0 );
+    ( $total, $non_issues_charges, $other_charges ) =
+      C4::Members::GetMemberAccountBalance( $patron->borrowernumber );
+    is(
+        $total+0,
+        $res + $rent + $manual,
+        'Total charges should be Res + Rent + Manual'
+    );
+    is( $non_issues_charges+0, $rent,
+        'If 0|1|0 Only Rental should be a non issue charge' );
+    is(
+        $other_charges+0,
+        $res + $manual,
+        'If 0|1|0 Rent + Manual should be other charges'
+    );
+
+    t::lib::Mocks::mock_preference( 'HoldsInNoissuesCharge',   0 );
+    t::lib::Mocks::mock_preference( 'RentalsInNoissuesCharge', 1 );
+    t::lib::Mocks::mock_preference( 'ManInvInNoissuesCharge',  1 );
+    ( $total, $non_issues_charges, $other_charges ) =
+      C4::Members::GetMemberAccountBalance( $patron->borrowernumber );
+    is(
+        $total+0,
+        $res + $rent + $manual,
+        'Total charges should be Res + Rent + Manual'
+    );
+    is(
+        $non_issues_charges+0,
+        $rent + $manual,
+        'If 0|1|1 Rent + Manual should be non issues charges'
+    );
+    is( $other_charges+0, $res, 'If 0|1|1 there should only have other charges' );
+
+    t::lib::Mocks::mock_preference( 'HoldsInNoissuesCharge',   1 );
+    t::lib::Mocks::mock_preference( 'RentalsInNoissuesCharge', 0 );
+    t::lib::Mocks::mock_preference( 'ManInvInNoissuesCharge',  0 );
+    ( $total, $non_issues_charges, $other_charges ) =
+      C4::Members::GetMemberAccountBalance( $patron->borrowernumber );
+    is(
+        $total+0,
+        $res + $rent + $manual,
+        'Total charges should be Res + Rent + Manual'
+    );
+    is( $non_issues_charges+0, $res,
+        'If 1|0|0 Only Res should be non issues charges' );
+    is(
+        $other_charges+0,
+        $rent + $manual,
+        'If 1|0|0 Rent + Manual should be other charges'
+    );
+
+    t::lib::Mocks::mock_preference( 'HoldsInNoissuesCharge',   1 );
+    t::lib::Mocks::mock_preference( 'RentalsInNoissuesCharge', 1 );
+    t::lib::Mocks::mock_preference( 'ManInvInNoissuesCharge',  0 );
+    ( $total, $non_issues_charges, $other_charges ) =
+      C4::Members::GetMemberAccountBalance( $patron->borrowernumber );
+    is(
+        $total+0,
+        $res + $rent + $manual,
+        'Total charges should be Res + Rent + Manual'
+    );
+    is(
+        $non_issues_charges+0,
+        $res + $rent,
+        'If 1|1|0 Res + Rent should be non issues charges'
+    );
+    is( $other_charges+0, $manual,
+        'If 1|1|0 Only Manual should be other charges' );
+
+    t::lib::Mocks::mock_preference( 'HoldsInNoissuesCharge',   1 );
+    t::lib::Mocks::mock_preference( 'RentalsInNoissuesCharge', 1 );
+    t::lib::Mocks::mock_preference( 'ManInvInNoissuesCharge',  1 );
+    ( $total, $non_issues_charges, $other_charges ) =
+      C4::Members::GetMemberAccountBalance( $patron->borrowernumber );
+    is(
+        $total+0,
+        $res + $rent + $manual,
+        'Total charges should be Res + Rent + Manual'
+    );
+    is(
+        $non_issues_charges+0,
+        $res + $rent + $manual,
+        'If 1|1|1 Res + Rent + Manual should be non issues charges'
+    );
+    is( $other_charges+0, 0, 'If 1|1|1 there should not have any other charges' );
 };
 
 1;
