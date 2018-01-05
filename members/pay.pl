@@ -133,21 +133,17 @@ output_html_with_http_headers $input, $cookie, $template->output;
 
 sub add_accounts_to_template {
 
-    my ( $total, undef, undef ) = GetMemberAccountRecords($borrowernumber);
-    my $accounts = [];
-    my @notify   = NumberNotifyId($borrowernumber);
-
-    my $notify_groups = [];
-    for my $notify_id (@notify) {
-        my ( $acct_total, $accountlines, undef ) =
-          GetBorNotifyAcctRecord( $borrowernumber, $notify_id );
-        if ( @{$accountlines} ) {
-            my $totalnotify = AmountNotify( $notify_id, $borrowernumber );
-            push @{$accounts},
-              { accountlines => $accountlines,
-                notify       => $notify_id,
-                total        => $totalnotify,
-              };
+    my $patron = Koha::Patrons->find( $borrowernumber );
+    my $total = $patron->account->balance;
+    my $account_lines = Koha::Account::Lines->search({ borrowernumber => $borrowernumber, amountoutstanding => { '!=' => 0 } }, { order_by => ['accounttype'] });
+    my @accounts;
+    while ( my $account_line = $account_lines->next ) {
+        $account_line = $account_line->unblessed;
+        if ( $account_line->{itemnumber} ) {
+            my $item = Koha::Items->find( $account_line->{itemnumber} );
+            my $biblio = $item->biblio;
+            $account_line->{biblionumber} = $biblio->biblionumber;
+            $account_line->{title}        = $biblio->title;
         }
     }
     borrower_add_additional_fields($borrower);
