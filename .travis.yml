@@ -30,3 +30,5 @@ script:
   - docker-compose down
   - docker-compose run koha
   - cat /home/travis/build/bywatersolutions/bywater-koha/testing.success
+  - echo ${TRAVIS_BRANCH}
+  - docker run --env DEBUG=0 --env UPLOAD=1 --env GITHUB_TOKEN=${GITHUB_TOKEN} --env KOHA_BRANCH=${TRAVIS_BRANCH} kylemhall/bywater-koha-release-notes-generator
