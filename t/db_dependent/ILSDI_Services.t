@@ -19,7 +19,7 @@ use Modern::Perl;
 
 use CGI qw ( -utf8 );
 
-use Test::More tests => 4;
+use Test::More tests => 5;
 use Test::MockModule;
 use t::lib::Mocks;
 use t::lib::TestBuilder;
@@ -285,5 +285,145 @@ subtest 'LookupPatron test' => sub {
     }
 
     # Cleanup
+    $schema->storage->txn_rollback;
+};
+
+subtest 'Holds test' => sub {
+
+    plan tests => 4;
+
+    $schema->storage->txn_begin;
+
+    t::lib::Mocks::mock_preference( 'AllowHoldsOnDamagedItems', 0 );
+
+    my $patron = $builder->build({
+        source => 'Borrower',
+    });
+
+    my $biblio = $builder->build({
+        source => 'Biblio',
+    });
+
+    my $biblioitems = $builder->build({
+        source => 'Biblioitem',
+        value => {
+            biblionumber => $biblio->{biblionumber},
+        }
+    });
+
+    my $item = $builder->build({
+        source => 'Item',
+        value => {
+            biblionumber => $biblio->{biblionumber},
+            damaged => 1
+        }
+    });
+
+    my $query = new CGI;
+    $query->param( 'patron_id', $patron->{borrowernumber});
+    $query->param( 'bib_id', $biblio->{biblionumber});
+
+    my $reply = C4::ILSDI::Services::HoldTitle( $query );
+    is( $reply->{code}, 'damaged', "Item damaged" );
+
+    my $item_o = Koha::Items->find($item->{itemnumber});
+    $item_o->damaged(0)->store;
+
+    my $hold = $builder->build({
+        source => 'Reserve',
+        value => {
+            borrowernumber => $patron->{borrowernumber},
+            biblionumber => $biblio->{biblionumber},
+            itemnumber => $item->{itemnumber}
+        }
+    });
+
+    $reply = C4::ILSDI::Services::HoldTitle( $query );
+    is( $reply->{code}, 'itemAlreadyOnHold', "Item already on hold" );
+
+    my $biblio2 = $builder->build({
+        source => 'Biblio',
+    });
+
+    my $biblioitems2 = $builder->build({
+        source => 'Biblioitem',
+        value => {
+            biblionumber => $biblio2->{biblionumber},
+        }
+    });
+
+    my $item2 = $builder->build({
+        source => 'Item',
+        value => {
+            biblionumber => $biblio2->{biblionumber},
+            damaged => 0
+        }
+    });
+
+    t::lib::Mocks::mock_preference( 'ReservesControlBranch', 'PatronLibrary' );
+    my $issuingrule = $builder->build({
+        source => 'Issuingrule',
+        value => {
+            categorycode => $patron->{categorycode},
+            itemtype => $item2->{itype},
+            branchcode => $patron->{branchcode},
+            reservesallowed => 0,
+        }
+    });
+
+    $query = new CGI;
+    $query->param( 'patron_id', $patron->{borrowernumber});
+    $query->param( 'bib_id', $biblio2->{biblionumber});
+    $query->param( 'item_id', $item2->{itemnumber});
+
+    $reply = C4::ILSDI::Services::HoldItem( $query );
+    is( $reply->{code}, 'tooManyReserves', "Too many reserves" );
+
+    my $biblio3 = $builder->build({
+        source => 'Biblio',
+    });
+
+    my $biblioitems3 = $builder->build({
+        source => 'Biblioitem',
+        value => {
+            biblionumber => $biblio3->{biblionumber},
+        }
+    });
+
+    # Adding a holdable item to biblio 3.
+    my $item3 = $builder->build({
+        source => 'Item',
+        value => {
+            biblionumber => $biblio3->{biblionumber},
+            damaged => 0,
+        }
+    });
+
+    my $item4 = $builder->build({
+        source => 'Item',
+        value => {
+            biblionumber => $biblio3->{biblionumber},
+            damaged => 1,
+        }
+    });
+
+    my $issuingrule2 = $builder->build({
+        source => 'Issuingrule',
+        value => {
+            categorycode => $patron->{categorycode},
+            itemtype => $item3->{itype},
+            branchcode => $patron->{branchcode},
+            reservesallowed => 10,
+        }
+    });
+
+    $query = new CGI;
+    $query->param( 'patron_id', $patron->{borrowernumber});
+    $query->param( 'bib_id', $biblio3->{biblionumber});
+    $query->param( 'item_id', $item4->{itemnumber});
+
+    $reply = C4::ILSDI::Services::HoldItem( $query );
+    is( $reply->{code}, 'damaged', "Item is damaged" );
+
     $schema->storage->txn_rollback;
 };
