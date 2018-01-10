@@ -682,7 +682,8 @@ sub HoldTitle {
     my $title = $biblio ? $biblio->title : '';
 
     # Check if the biblio can be reserved
-    return { code => 'NotHoldable' } unless CanBookBeReserved( $borrowernumber, $biblionumber )->{status} eq 'OK';
+    my $code = CanBookBeReserved( $borrowernumber, $biblionumber )->{status};
+    return { code => $code } unless ( $code eq 'OK' );
 
     my $branch;
 
@@ -758,9 +759,8 @@ sub HoldItem {
     return { code => 'RecordNotFound' } if $$item{biblionumber} ne $biblio->biblionumber;
 
     # Check for item disponibility
-    my $canitembereserved = C4::Reserves::CanItemBeReserved( $borrowernumber, $itemnumber );
-    my $canbookbereserved = C4::Reserves::CanBookBeReserved( $borrowernumber, $biblionumber );
-    return { code => 'NotHoldable' } unless $canbookbereserved->{status} eq 'OK' and $canitembereserved->{status} eq 'OK';
+    my $canitembereserved = C4::Reserves::CanItemBeReserved( $borrowernumber, $itemnumber )->{status};
+    return { code => $canitembereserved } unless $canitembereserved eq 'OK';
 
     # Pickup branch management
     my $branch;
