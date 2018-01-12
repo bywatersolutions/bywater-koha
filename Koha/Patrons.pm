@@ -253,6 +253,7 @@ sub merge {
             $rs->update( { $field => $keeper });
         }
 
+        $patron->move_to_deleted();
         $patron->delete();
     }
 
