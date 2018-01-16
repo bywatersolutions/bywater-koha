@@ -26,7 +26,7 @@ __PACKAGE__->table("deletedbiblio");
 =head2 biblionumber
 
   data_type: 'integer'
-  is_auto_increment: 1
+  default_value: 0
   is_nullable: 0
 
 =head2 frameworkcode
@@ -93,7 +93,7 @@ __PACKAGE__->table("deletedbiblio");
 
 __PACKAGE__->add_columns(
   "biblionumber",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "frameworkcode",
   { data_type => "varchar", default_value => "", is_nullable => 0, size => 4 },
   "author",
@@ -153,8 +153,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-01-13 08:36:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HBjJjCdFsEUOPmxexvK27g
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-16 11:52:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:F6X1qLB8SckBYjCwt8o/Jg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
