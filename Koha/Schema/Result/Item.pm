@@ -259,8 +259,9 @@ __PACKAGE__->table("items");
 
 =head2 enumchron
 
-  data_type: 'text'
+  data_type: 'varchar'
   is_nullable: 1
+  size: 80
 
 =head2 copynumber
 
@@ -387,7 +388,7 @@ __PACKAGE__->add_columns(
   "more_subfields_xml",
   { data_type => "longtext", is_nullable => 1 },
   "enumchron",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "varchar", is_nullable => 1, size => 80 },
   "copynumber",
   { data_type => "varchar", is_nullable => 1, size => 32 },
   "stocknumber",
@@ -529,6 +530,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 creator_batches_tmps
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::CreatorBatchesTmp>
+
+=cut
+
+__PACKAGE__->has_many(
+  "creator_batches_tmps",
+  "Koha::Schema::Result::CreatorBatchesTmp",
+  { "foreign.item_number" => "self.itemnumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 hold_fill_target
 
 Type: might_have
@@ -614,6 +630,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 labels_batches_tmps
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::LabelsBatchesTmp>
+
+=cut
+
+__PACKAGE__->has_many(
+  "labels_batches_tmps",
+  "Koha::Schema::Result::LabelsBatchesTmp",
+  { "foreign.item_number" => "self.itemnumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 old_issues
 
 Type: has_many
@@ -675,8 +706,8 @@ __PACKAGE__->might_have(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-10-24 13:56:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vf1sBZrpUo0Cvi896fjNuA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-16 11:52:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yBRpswZyUEHKom/K+gx6mQ
 
 __PACKAGE__->belongs_to( biblioitem => "Koha::Schema::Result::Biblioitem", "biblioitemnumber" );
 
