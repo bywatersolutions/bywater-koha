@@ -149,8 +149,8 @@ __PACKAGE__->belongs_to(
   {
     is_deferrable => 1,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "RESTRICT",
+    on_update     => "RESTRICT",
   },
 );
 
@@ -169,8 +169,8 @@ __PACKAGE__->belongs_to(
   {
     is_deferrable => 1,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "RESTRICT",
+    on_update     => "RESTRICT",
   },
 );
 
@@ -189,14 +189,14 @@ __PACKAGE__->belongs_to(
   {
     is_deferrable => 1,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "RESTRICT",
+    on_update     => "RESTRICT",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-04-29 10:32:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:R20sqhX9IbPaonx9HnRKeQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-16 11:52:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:M5mJTB0Id9Sufi1EUhjyvg
 
 
 1;

@@ -81,6 +81,12 @@ __PACKAGE__->table("accountlines");
   is_nullable: 1
   size: 5
 
+=head2 payment_type
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 80
+
 =head2 amountoutstanding
 
   data_type: 'decimal'
@@ -150,6 +156,8 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "accounttype",
   { data_type => "varchar", is_nullable => 1, size => 5 },
+  "payment_type",
+  { data_type => "varchar", is_nullable => 1, size => 80 },
   "amountoutstanding",
   { data_type => "decimal", is_nullable => 1, size => [28, 6] },
   "lastincrement",
@@ -251,8 +259,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-10-20 16:27:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gCCyA5hOqI3EG3bIxsgpKA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-16 11:52:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:901c3kUYaSv/j6P7EqrL8w
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
