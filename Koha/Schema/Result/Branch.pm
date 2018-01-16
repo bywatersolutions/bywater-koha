@@ -458,6 +458,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 creator_batches_tmps
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::CreatorBatchesTmp>
+
+=cut
+
+__PACKAGE__->has_many(
+  "creator_batches_tmps",
+  "Koha::Schema::Result::CreatorBatchesTmp",
+  { "foreign.branch_code" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 default_branch_circ_rule
 
 Type: might_have
@@ -548,6 +563,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 labels_batches_tmps
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::LabelsBatchesTmp>
+
+=cut
+
+__PACKAGE__->has_many(
+  "labels_batches_tmps",
+  "Koha::Schema::Result::LabelsBatchesTmp",
+  { "foreign.branch_code" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 opac_news
 
 Type: has_many
@@ -619,8 +649,8 @@ Composing rels: L</branchrelations> -> categorycode
 __PACKAGE__->many_to_many("categorycodes", "branchrelations", "categorycode");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2017-11-09 11:42:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LmN2FlbKiZTRX+egCHuDjQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-26 04:17:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xMZnAgZ8mCh/MpWcBEJuOQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
