@@ -1085,6 +1085,8 @@ sub getIndexes{
                     'an',
                     'Any',
                     'at',
+                    'arl',
+                    'arp',
                     'au',
                     'aub',
                     'aud',

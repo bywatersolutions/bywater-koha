@@ -230,6 +230,8 @@ sub run_marc21_search_tests {
 
     my $indexes = C4::Search::getIndexes();
     is(scalar(grep(/^ti$/, @$indexes)), 1, "Title index supported");
+    is(scalar(grep(/^arl$/, @$indexes)), 1, "Accelerated reading level index supported");
+    is(scalar(grep(/^arp$/, @$indexes)), 1, "Accelerated reading point index supported");
 
     my $bibliomodule = new Test::MockModule('C4::Biblio');
 
@@ -986,12 +988,12 @@ sub run_unimarc_search_tests {
 }
 
 subtest 'MARC21 + GRS-1' => sub {
-    plan tests => 110;
+    plan tests => 112;
     run_marc21_search_tests('grs1');
 };
 
 subtest 'MARC21 + DOM' => sub {
-    plan tests => 112;
+    plan tests => 114;
     run_marc21_search_tests('dom');
 };
 
