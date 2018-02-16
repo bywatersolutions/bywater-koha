@@ -283,7 +283,7 @@ sub balance {
         }
     );
 
-    my $total = $fines->count
+    return ( $fines->count )
       ? $fines->next->get_column('total_amountoutstanding') + 0
       : 0;
 }
