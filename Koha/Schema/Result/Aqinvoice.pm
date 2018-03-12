@@ -143,6 +143,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 invoice_adjustments
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::InvoiceAdjustment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "invoice_adjustments",
+  "Koha::Schema::Result::InvoiceAdjustment",
+  { "foreign.invoiceid" => "self.invoiceid" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 message
 
 Type: belongs_to
@@ -184,8 +199,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2014-09-18 16:21:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FPZXlNt8dkjhgt2Rtc+krQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-03-12 15:49:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:B9avfI9Wgn0EpIFZNPigqg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
