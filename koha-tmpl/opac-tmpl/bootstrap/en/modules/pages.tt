@@ -10,7 +10,7 @@
 
 <div class="main">
     <ul class="breadcrumb">
-        <li><a href="#">Home</a></li>
+        <li><a href="/">Home</a></li>
     </ul>
 
     [% IF Koha.Preference( 'opacuserlogin' ) == 1 %]
