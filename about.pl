@@ -23,6 +23,8 @@
 use Modern::Perl;
 
 use CGI qw ( -utf8 );
+use DateTime::TimeZone;
+use File::Spec;
 use List::MoreUtils qw/ any /;
 use LWP::Simple;
 use XML::Simple;
@@ -40,6 +42,8 @@ use Koha::Patrons;
 use Koha::Caches;
 use Koha::Config::SysPrefs;
 use Koha::Illrequest::Config;
+use Koha::UploadedFiles;
+
 use C4::Members::Statistics;
 
 #use Smart::Comments '####';
@@ -217,6 +221,14 @@ if ( ! defined C4::Context->config('upload_path') ) {
         push @xml_config_warnings, {
             error => 'uploadpath_and_opacbaseurl_entry_missing'
         }
+    }
+}
+
+if ( ! C4::Context->config('tmp_path') ) {
+    my $temporary_directory = Koha::UploadedFile->temporary_directory;
+    push @xml_config_warnings, {
+        error             => 'tmp_path_missing',
+        effective_tmp_dir => $temporary_directory,
     }
 }
 
