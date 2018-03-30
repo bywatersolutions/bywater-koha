@@ -45,9 +45,8 @@ jobs:
     - stage: build release notes, rebase custom branches
       env: NAME="Rebase custom code bases"
       if: branch =~ ^bywater-v
-      language: perl
+      language: generic
+      services:
+        - docker
       script:
-        - cd ..
-        - git clone https://github.com/bywatersolutions/bywater-koha-custom-rebaser.git
-        - cd bywater-koha
-        - perl ../bywater-koha-custom-rebaser/bws_rebase_branches.pl
+        - docker run --mount type=bind,source=/home/travis/build/bywatersolutions/bywater-koha,target=/kohaclone -e DO_IT=1 -e GITHUB_TOKEN=${GITHUB_TOKEN} -e TRAVIS_BRANCH=${TRAVIS_BRANCH} kylemhall/bywater-koha-custom-rebaser
