@@ -44,6 +44,7 @@ jobs:
 
     - stage: build release notes, rebase custom branches
       env: NAME="Rebase custom code bases"
+      if: branch =~ ^bywater-v
       language: perl
       script:
         - cd ..
