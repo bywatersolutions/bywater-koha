@@ -302,7 +302,7 @@ sub AddItem {
 
     $item->{'itemnumber'} = $itemnumber;
 
-    C4::Items::ModZebra( $item->{biblionumber}, "specialUpdate", "biblioserver" );
+    C4::Biblio::ModZebra( $item->{biblionumber}, "specialUpdate", "biblioserver" );
 
     logaction( "CATALOGUING", "ADD", $itemnumber, "item" )
       if C4::Context->preference("CataloguingLog");
@@ -604,7 +604,7 @@ sub ModItem {
 
     # request that bib be reindexed so that searching on current
     # item status is possible
-    C4::Items::ModZebra( $biblionumber, "specialUpdate", "biblioserver" );
+    C4::Biblio::ModZebra( $biblionumber, "specialUpdate", "biblioserver" );
 
     logaction("CATALOGUING", "MODIFY", $itemnumber, "item ".Dumper($item)) if C4::Context->preference("CataloguingLog");
 }
@@ -679,7 +679,7 @@ sub DelItem {
     # FIXME check the item has no current issues
     my $deleted = _koha_delete_item( $itemnumber );
 
-    C4::Items::ModZebra( $biblionumber, "specialUpdate", "biblioserver" );
+    C4::Biblio::ModZebra( $biblionumber, "specialUpdate", "biblioserver" );
 
     #search item field code
     logaction("CATALOGUING", "DELETE", $itemnumber, "item") if C4::Context->preference("CataloguingLog");
@@ -2004,8 +2004,8 @@ sub MoveItemFromBiblio {
             AND biblionumber = ?
     |, undef, $tobiblioitem, $tobiblio, $itemnumber, $frombiblio );
     if ($return == 1) {
-        C4::Items::ModZebra( $tobiblio, "specialUpdate", "biblioserver" );
-        C4::Items::ModZebra( $frombiblio, "specialUpdate", "biblioserver" );
+        C4::Biblio::ModZebra( $tobiblio, "specialUpdate", "biblioserver" );
+        C4::Biblio::ModZebra( $frombiblio, "specialUpdate", "biblioserver" );
 	    # Checking if the item we want to move is in an order 
         require C4::Acquisition;
         my $order = C4::Acquisition::GetOrderFromItemnumber($itemnumber);
