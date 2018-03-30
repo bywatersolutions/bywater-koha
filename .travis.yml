@@ -1,34 +1,52 @@
 sudo: required
-language: generic
 
-services:
-  - docker
+jobs:
+  include:
+    - stage: run unit tests
+      env: NAME="Run unit tests"
+      language: generic
+      services:
+        - docker
+      before_install:
+        - export KOHA_VER="$(cat Koha.pm | grep '$VERSION =')" && export KOHA_VER=${KOHA_VER%\"*} && export KOHA_VER=${KOHA_VER##*\"} && echo $KOHA_VER
+        # Grab the Koha version from Koha.pm
+        - IFS='.' read -ra VER_PARTS <<< "$KOHA_VER"
+        - export KOHA_MAJOR=${VER_PARTS[0]}
+        - export KOHA_MINOR=${VER_PARTS[1]}
+        # If the minor version is even, assume we are on master
+        - if [ $((KOHA_MINOR%2)) -eq 0 ]; then export KOHA_BRANCH='master'; else export KOHA_BRANCH="$KOHA_MAJOR.$KOHA_MINOR"; fi
+        - echo $KOHA_MAJOR
+        - echo $KOHA_MINOR
+        - echo $KOHA_BRANCH
+        - cd .. # Now set up koha-testing-docker
+        - ls -alh
+        - pwd
+        - export SYNC_REPO=/home/travis/build/bywatersolutions/bywater-koha # Needed for koha-testing-docker
+        - export LOCAL_USER_ID="$(id -u)" # Needed for koha-testing-docker
+        - git clone https://github.com/bywatersolutions/koha-testing-docker.git
+        - cd koha-testing-docker
+        - git checkout origin/${KOHA_BRANCH} # Check out the correct koha-testing-docker branch
+        - docker-compose build
+        - sudo sysctl -w vm.max_map_count=262144
+      script:
+        - docker-compose down
+        - docker-compose run koha
+        - cat /home/travis/build/bywatersolutions/bywater-koha/testing.success
+        - echo ${TRAVIS_BRANCH}
 
-before_install:
-  - export KOHA_VER="$(cat Koha.pm | grep '$VERSION =')" && export KOHA_VER=${KOHA_VER%\"*} && export KOHA_VER=${KOHA_VER##*\"} && echo $KOHA_VER
-  # Grab the Koha version from Koha.pm
-  - IFS='.' read -ra VER_PARTS <<< "$KOHA_VER"
-  - export KOHA_MAJOR=${VER_PARTS[0]}
-  - export KOHA_MINOR=${VER_PARTS[1]}
-  # If the minor version is even, assume we are on master
-  - if [ $((KOHA_MINOR%2)) -eq 0 ]; then export KOHA_BRANCH='master'; else export KOHA_BRANCH="$KOHA_MAJOR.$KOHA_MINOR"; fi
-  - echo $KOHA_MAJOR
-  - echo $KOHA_MINOR
-  - echo $KOHA_BRANCH
-  - cd .. # Now set up koha-testing-docker
-  - ls -alh
-  - pwd
-  - export SYNC_REPO=/home/travis/build/bywatersolutions/bywater-koha # Needed for koha-testing-docker
-  - export LOCAL_USER_ID="$(id -u)" # Needed for koha-testing-docker
-  - git clone https://github.com/bywatersolutions/koha-testing-docker.git
-  - cd koha-testing-docker
-  - git checkout origin/${KOHA_BRANCH} # Check out the correct koha-testing-docker branch
-  - docker-compose build
-  - sudo sysctl -w vm.max_map_count=262144
+    - stage: build release notes, rebase custom branches
+      env: NAME="Build release notes"
+      language: generic
+      services:
+        - docker
+      script:
+        - docker run --env DEBUG=0 --env UPLOAD=1 --env GITHUB_TOKEN=${GITHUB_TOKEN} --env KOHA_BRANCH=${TRAVIS_BRANCH} kylemhall/bywater-koha-release-notes-generator
 
-script:
-  - docker-compose down
-  - docker-compose run koha
-  - cat /home/travis/build/bywatersolutions/bywater-koha/testing.success
-  - echo ${TRAVIS_BRANCH}
-  - docker run --env DEBUG=0 --env UPLOAD=1 --env GITHUB_TOKEN=${GITHUB_TOKEN} --env KOHA_BRANCH=${TRAVIS_BRANCH} kylemhall/bywater-koha-release-notes-generator
+    - stage: build release notes, rebase custom branches
+      env: NAME="Rebase custom code bases"
+      language: perl
+      script:
+        - cd ..
+        - git clone https://github.com/bywatersolutions/bywater-koha-custom-rebaser.git
+        - cd bywater-koha
+        - perl ../bywater-koha-custom-rebaser/bws_rebase_branches.pl
