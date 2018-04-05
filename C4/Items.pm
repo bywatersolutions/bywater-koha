@@ -379,7 +379,7 @@ sub AddItemBatchFromMarc {
         $temp_item_marc->append_fields($item_field);
     
         # add biblionumber and biblioitemnumber
-        my $item = TransformMarcToKoha( $temp_item_marc, $frameworkcode, 'items' );
+        my $item = C4::Biblio::TransformMarcToKoha( $temp_item_marc, $frameworkcode, 'items' );
         my $unlinked_item_subfields = _get_unlinked_item_subfields($temp_item_marc, $frameworkcode);
         $item->{'more_subfields_xml'} = _get_unlinked_subfields_xml($unlinked_item_subfields);
         $item->{'biblionumber'} = $biblionumber;
@@ -2311,7 +2311,7 @@ sub _get_unlinked_item_subfields {
     my $original_item_marc = shift;
     my $frameworkcode = shift;
 
-    my $marcstructure = GetMarcStructure(1, $frameworkcode, { unsafe => 1 });
+    my $marcstructure = C4::Biblio::GetMarcStructure(1, $frameworkcode, { unsafe => 1 });
 
     # assume that this record has only one field, and that that
     # field contains only the item information
