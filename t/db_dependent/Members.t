@@ -17,7 +17,7 @@
 
 use Modern::Perl;
 
-use Test::More tests => 63;
+use Test::More tests => 66;
 use Test::MockModule;
 use Data::Dumper qw/Dumper/;
 use C4::Context;
@@ -369,6 +369,8 @@ t::lib::Mocks::mock_preference( 'TrackLastPatronActivity', '0' );
 Koha::Patrons->find( $patron2->{borrowernumber} )->track_login;
 is( Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen, undef, 'Lastseen should not be changed' );
 
+my $session = new CGI::Session( undef, undef, { Directory => File::Spec->tmpdir } );
+
 Koha::Patrons->find( $patron2->{borrowernumber} )->track_login({ force => 1 });
 my $last_seen = Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen;
 isnt( $last_seen, undef, 'Lastseen should be changed now' );
@@ -376,12 +378,33 @@ isnt( $last_seen, undef, 'Lastseen should be changed now' );
 # Last seen shouldn't be updated a second time for this session
 t::lib::Mocks::mock_preference( 'TrackLastPatronActivity', '1' );
 Koha::Patrons->find( $patron2->{borrowernumber} )->track_login();
-is( Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen, $last_seen, 'Lastseen should not be changed' );
+my $new_lastseen = Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen;
+is( $new_lastseen, $last_seen, 'Lastseen should not be changed' );
 
 # If it's forced, it should still be updated
 sleep(1); # We need to wait a tiny bit to make sure the timestamp will be different
 Koha::Patrons->find( $patron2->{borrowernumber} )->track_login({ force => 1 });
-isnt( Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen, $last_seen, 'Lastseen should be changed if forced' );
+$new_lastseen = Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen;
+isnt( $new_lastseen, $last_seen, 'Lastseen should be changed if forced' );
+
+# Pass in a session, don't force update, it shouldn't be needed since session is fresh
+sleep(1);
+Koha::Patrons->find( $patron2->{borrowernumber} )->track_login({ session => $session, force => 0 });
+$new_lastseen = Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen;
+isnt( $new_lastseen, $last_seen, 'Lastseen should be changed if using a fresh session' );
+
+# Pass in a session, don't force update, lastseen should be unchanged
+$last_seen = $new_lastseen;
+sleep(1);
+Koha::Patrons->find( $patron2->{borrowernumber} )->track_login({ session => $session, force => 0 });
+$new_lastseen = Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen;
+is( $new_lastseen, $last_seen, 'Lastseen should be unchanged with existing session' );
+
+# Pass in the existing session, force update, lastseen should change
+sleep(1);
+Koha::Patrons->find( $patron2->{borrowernumber} )->track_login({ session => $session, force => 1 });
+$new_lastseen = Koha::Patrons->find( $patron2->{borrowernumber} )->lastseen;
+isnt( $new_lastseen, $last_seen, 'Lastseen should be changed if forced with existing session' );
 
 
 # Regression tests for BZ13502
