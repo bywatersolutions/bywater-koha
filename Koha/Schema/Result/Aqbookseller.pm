@@ -73,7 +73,8 @@ __PACKAGE__->table("aqbooksellers");
 =head2 currency
 
   data_type: 'varchar'
-  is_nullable: 1
+  default_value: (empty string)
+  is_nullable: 0
   size: 10
 
 =head2 booksellerfax
@@ -186,7 +187,7 @@ __PACKAGE__->add_columns(
   "othersupplier",
   { data_type => "mediumtext", is_nullable => 1 },
   "currency",
-  { data_type => "varchar", is_nullable => 1, size => 10 },
+  { data_type => "varchar", default_value => "", is_nullable => 0, size => 10 },
   "booksellerfax",
   { data_type => "mediumtext", is_nullable => 1 },
   "notes",
@@ -381,8 +382,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-16 11:52:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kVaTiY9i5z3Skfi1VbYowA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-05-20 05:44:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sJrSQFu9qpYvC3CMU+/0BA
 
 __PACKAGE__->add_columns(
     '+active' => { is_boolean => 1 },
