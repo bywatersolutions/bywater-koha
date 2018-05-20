@@ -89,7 +89,7 @@ __PACKAGE__->table("borrowers");
 
 =head2 state
 
-  data_type: 'mediumtext'
+  data_type: 'text'
   is_nullable: 1
 
 =head2 zipcode
@@ -170,7 +170,7 @@ __PACKAGE__->table("borrowers");
 =head2 B_state
 
   accessor: 'b_state'
-  data_type: 'mediumtext'
+  data_type: 'text'
   is_nullable: 1
 
 =head2 B_zipcode
@@ -291,18 +291,6 @@ __PACKAGE__->table("borrowers");
   is_nullable: 1
   size: 100
 
-=head2 ethnicity
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 50
-
-=head2 ethnotes
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 255
-
 =head2 sex
 
   data_type: 'varchar'
@@ -381,7 +369,7 @@ __PACKAGE__->table("borrowers");
 
 =head2 altcontactstate
 
-  data_type: 'mediumtext'
+  data_type: 'text'
   is_nullable: 1
 
 =head2 altcontactzipcode
@@ -437,7 +425,7 @@ __PACKAGE__->table("borrowers");
   data_type: 'timestamp'
   datetime_undef_if_invalid: 1
   default_value: current_timestamp
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 lastseen
 
@@ -455,18 +443,13 @@ __PACKAGE__->table("borrowers");
 =head2 login_attempts
 
   data_type: 'integer'
+  default_value: 0
   is_nullable: 1
 
 =head2 overdrive_auth_token
 
   data_type: 'text'
   is_nullable: 1
-
-=head2 account_balance
-
-  data_type: 'decimal'
-  is_nullable: 0
-  size: [28,6]
 
 =cut
 
@@ -496,7 +479,7 @@ __PACKAGE__->add_columns(
   "city",
   { data_type => "mediumtext", is_nullable => 0 },
   "state",
-  { data_type => "mediumtext", is_nullable => 1 },
+  { data_type => "text", is_nullable => 1 },
   "zipcode",
   { data_type => "varchar", is_nullable => 1, size => 25 },
   "country",
@@ -539,7 +522,7 @@ __PACKAGE__->add_columns(
   "B_city",
   { accessor => "b_city", data_type => "mediumtext", is_nullable => 1 },
   "B_state",
-  { accessor => "b_state", data_type => "mediumtext", is_nullable => 1 },
+  { accessor => "b_state", data_type => "text", is_nullable => 1 },
   "B_zipcode",
   {
     accessor => "b_zipcode",
@@ -597,10 +580,6 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "relationship",
   { data_type => "varchar", is_nullable => 1, size => 100 },
-  "ethnicity",
-  { data_type => "varchar", is_nullable => 1, size => 50 },
-  "ethnotes",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
   "sex",
   { data_type => "varchar", is_nullable => 1, size => 1 },
   "password",
@@ -628,7 +607,7 @@ __PACKAGE__->add_columns(
   "altcontactaddress3",
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "altcontactstate",
-  { data_type => "mediumtext", is_nullable => 1 },
+  { data_type => "text", is_nullable => 1 },
   "altcontactzipcode",
   { data_type => "varchar", is_nullable => 1, size => 50 },
   "altcontactcountry",
@@ -655,7 +634,7 @@ __PACKAGE__->add_columns(
     data_type => "timestamp",
     datetime_undef_if_invalid => 1,
     default_value => \"current_timestamp",
-    is_nullable => 1,
+    is_nullable => 0,
   },
   "lastseen",
   {
@@ -671,11 +650,9 @@ __PACKAGE__->add_columns(
     size => 25,
   },
   "login_attempts",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", default_value => 0, is_nullable => 1 },
   "overdrive_auth_token",
   { data_type => "text", is_nullable => 1 },
-  "account_balance",
-  { data_type => "decimal", is_nullable => 0, size => [28, 6] },
 );
 
 =head1 PRIMARY KEY
@@ -717,36 +694,6 @@ __PACKAGE__->add_unique_constraint("cardnumber", ["cardnumber"]);
 __PACKAGE__->add_unique_constraint("userid", ["userid"]);
 
 =head1 RELATIONS
-
-=head2 account_credits
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::AccountCredit>
-
-=cut
-
-__PACKAGE__->has_many(
-  "account_credits",
-  "Koha::Schema::Result::AccountCredit",
-  { "foreign.borrowernumber" => "self.borrowernumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 account_debits
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::AccountDebit>
-
-=cut
-
-__PACKAGE__->has_many(
-  "account_debits",
-  "Koha::Schema::Result::AccountDebit",
-  { "foreign.borrowernumber" => "self.borrowernumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
 
 =head2 accountlines
 
@@ -969,21 +916,6 @@ Related object: L<Koha::Schema::Result::CreatorBatch>
 __PACKAGE__->has_many(
   "creator_batches",
   "Koha::Schema::Result::CreatorBatch",
-  { "foreign.borrower_number" => "self.borrowernumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 creator_batches_tmps
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::CreatorBatchesTmp>
-
-=cut
-
-__PACKAGE__->has_many(
-  "creator_batches_tmps",
-  "Koha::Schema::Result::CreatorBatchesTmp",
   { "foreign.borrower_number" => "self.borrowernumber" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -1454,8 +1386,8 @@ Composing rels: L</aqorder_users> -> ordernumber
 __PACKAGE__->many_to_many("ordernumbers", "aqorder_users", "ordernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-16 11:52:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fk12kLruJIQD5b0Ql0dQzw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-05-20 05:32:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gcAbqs3AOqR9jcLjFUsXuw
 
 __PACKAGE__->belongs_to(
     "guarantor",
