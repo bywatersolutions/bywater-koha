@@ -80,7 +80,6 @@ __PACKAGE__->table("borrower_attribute_types");
 =head2 category_code
 
   data_type: 'varchar'
-  is_foreign_key: 1
   is_nullable: 1
   size: 10
 
@@ -113,7 +112,7 @@ __PACKAGE__->add_columns(
   "display_checkout",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "category_code",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
+  { data_type => "varchar", is_nullable => 1, size => 10 },
   "class",
   { data_type => "varchar", default_value => "", is_nullable => 0, size => 255 },
 );
@@ -162,29 +161,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 category_code
 
-Type: belongs_to
-
-Related object: L<Koha::Schema::Result::Category>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "category_code",
-  "Koha::Schema::Result::Category",
-  { categorycode => "category_code" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "RESTRICT",
-    on_update     => "RESTRICT",
-  },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-16 11:52:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vYVV76FBSEAGoZx0lCtLPA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-05-20 05:44:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4WE8m7hNTe3PWRqpMTNKqg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

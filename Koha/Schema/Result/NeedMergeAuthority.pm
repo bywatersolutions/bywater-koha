@@ -44,18 +44,18 @@ __PACKAGE__->table("need_merge_authorities");
   data_type: 'text'
   is_nullable: 1
 
-=head2 done
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
 =head2 timestamp
 
   data_type: 'timestamp'
   datetime_undef_if_invalid: 1
   default_value: current_timestamp
   is_nullable: 0
+
+=head2 done
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
 
 =cut
 
@@ -68,8 +68,6 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_nullable => 1 },
   "reportxml",
   { data_type => "text", is_nullable => 1 },
-  "done",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
   "timestamp",
   {
     data_type => "timestamp",
@@ -77,6 +75,8 @@ __PACKAGE__->add_columns(
     default_value => \"current_timestamp",
     is_nullable => 0,
   },
+  "done",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -92,8 +92,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-16 11:52:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Gkz/grC7ixQoDKYG6k02dQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-05-20 05:44:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9yNNCHUKQVHUKGWAmjRd0A
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

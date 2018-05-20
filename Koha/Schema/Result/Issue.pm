@@ -33,13 +33,13 @@ __PACKAGE__->table("issues");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 itemnumber
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 date_due
 
@@ -118,9 +118,9 @@ __PACKAGE__->add_columns(
   "issue_id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "borrowernumber",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "itemnumber",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "date_due",
   {
     data_type => "datetime",
@@ -212,7 +212,12 @@ __PACKAGE__->belongs_to(
   "borrowernumber",
   "Koha::Schema::Result::Borrower",
   { borrowernumber => "borrowernumber" },
-  { is_deferrable => 1, on_delete => "RESTRICT", on_update => "CASCADE" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "RESTRICT",
+    on_update     => "CASCADE",
+  },
 );
 
 =head2 itemnumber
@@ -227,12 +232,17 @@ __PACKAGE__->belongs_to(
   "itemnumber",
   "Koha::Schema::Result::Item",
   { itemnumber => "itemnumber" },
-  { is_deferrable => 1, on_delete => "RESTRICT", on_update => "CASCADE" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "RESTRICT",
+    on_update     => "CASCADE",
+  },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-16 11:52:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fZ48SewWzoQZzU7Dee2c+A
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-05-20 05:44:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:46KBHCYVrKL0u1v6jGp3qw
 
 __PACKAGE__->belongs_to(
     "borrower",
