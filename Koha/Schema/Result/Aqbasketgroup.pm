@@ -46,6 +46,29 @@ __PACKAGE__->table("aqbasketgroups");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 deliveryplace
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
+=head2 freedeliveryplace
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 deliverycomment
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 255
+
+=head2 billingplace
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -57,6 +80,14 @@ __PACKAGE__->add_columns(
   { data_type => "tinyint", is_nullable => 1 },
   "booksellerid",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "deliveryplace",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
+  "freedeliveryplace",
+  { data_type => "text", is_nullable => 1 },
+  "deliverycomment",
+  { data_type => "varchar", is_nullable => 1, size => 255 },
+  "billingplace",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
@@ -104,8 +135,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2018-01-16 11:52:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:I3RoNDbge8rIqjQwUrU05Q
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-05-20 05:44:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IFBYpuLcJpMy38Ce/A4ibw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
