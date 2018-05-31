@@ -1,3 +1,15 @@
+koha (17.12.x.git+20180531181056.35f1fbfe-1) squeeze-dev; urgency=medium
+
+  * Building git snapshot.
+
+ -- root <root@1eb6e20f7f49>  Thu, 31 May 2018 18:10:57 +0000
+
+koha (17.12.x.git+20180531171856.1dbde39c-1) squeeze-dev; urgency=medium
+
+  * Building git snapshot.
+
+ -- root <root@1eb6e20f7f49>  Thu, 31 May 2018 17:18:59 +0000
+
 koha (16.05.02) squeeze; urgency=medium
 
   * New upstream release (16.05.02)
