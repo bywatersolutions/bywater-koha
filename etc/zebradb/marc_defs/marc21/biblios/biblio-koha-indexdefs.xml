@@ -112,6 +112,9 @@
   <index_data_field tag="018">
     <target_index>Identifier-standard:w</target_index>
   </index_data_field>
+  <index_subfields tag="019" subfields="a">
+    <target_index>Other-control-number:w</target_index>
+  </index_subfields>
   <!--record.abs line 54: melm 020$a      ISBN:w,Identifier-standard:w-->
   <index_subfields tag="020" subfields="a">
     <target_index>ISBN:w</target_index>
