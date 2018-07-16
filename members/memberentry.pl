@@ -894,10 +894,10 @@ sub patron_attributes_form {
 sub add_guarantors {
     my ( $borrowernumber, $input ) = @_;
 
-    my @new_guarantor_id           = scalar $input->param('new_guarantor_id');
-    my @new_guarantor_surname      = scalar $input->param('new_guarantor_surname');
-    my @new_guarantor_firstname    = scalar $input->param('new_guarantor_firstname');
-    my @new_guarantor_relationship = scalar $input->param('new_guarantor_relationship');
+    my @new_guarantor_id           = $input->multi_param('new_guarantor_id');
+    my @new_guarantor_surname      = $input->multi_param('new_guarantor_surname');
+    my @new_guarantor_firstname    = $input->multi_param('new_guarantor_firstname');
+    my @new_guarantor_relationship = $input->multi_param('new_guarantor_relationship');
 
     for ( my $i = 0 ; $i < scalar @new_guarantor_id; $i++ ) {
         my $guarantor_id = $new_guarantor_id[$i];
