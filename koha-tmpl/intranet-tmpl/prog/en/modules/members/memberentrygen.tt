@@ -356,8 +356,8 @@
                             </li>
 
                             <li>
-                                <label for="delete_guarantor">Delete: </label>
-                                <input type="checkbox" name="delete_guarantor" value="[% r.id %]" />
+                                <label for="delete_guarantor-[% r.id %]">Delete: </label>
+                                <input type="checkbox" id="delete_guarantor-[% r.id %]" name="delete_guarantor" value="[% r.id %]" />
                             </li>
                         [% END %]
                     </ol>
