@@ -414,7 +414,8 @@ if ((!$nok) and $nodouble and ($op eq 'insert' or $op eq 'save')){
 	if ($op eq 'insert'){
 		# we know it's not a duplicate borrowernumber or there would already be an error
         $borrowernumber = &AddMember(%newdata);
-        add_guarantors( $borrowernumber, $input );
+        $patron = Koha::Patrons->find( $borrowernumber );
+        add_guarantors( $patron, $input );
         $newdata{'borrowernumber'} = $borrowernumber;
 
         # If 'AutoEmailOpacUser' syspref is on, email user their account details from the 'notice' that matches the user's branchcode.
@@ -512,7 +513,7 @@ if ((!$nok) and $nodouble and ($op eq 'insert' or $op eq 'save')){
                                                                 # updating any columns in the borrowers table,
                                                                 # which can happen if we're only editing the
                                                                 # patron attributes or messaging preferences sections
-        add_guarantors( $borrowernumber, $input );
+        add_guarantors( $patron, $input );
         if (C4::Context->preference('ExtendedPatronAttributes') and $input->param('setting_extended_patron_attributes')) {
             C4::Members::Attributes::SetBorrowerAttributes($borrowernumber, $extended_patron_attributes);
         }
@@ -892,7 +893,7 @@ sub patron_attributes_form {
 }
 
 sub add_guarantors {
-    my ( $borrowernumber, $input ) = @_;
+    my ( $patron, $input ) = @_;
 
     my @new_guarantor_id           = $input->multi_param('new_guarantor_id');
     my @new_guarantor_surname      = $input->multi_param('new_guarantor_surname');
@@ -905,25 +906,15 @@ sub add_guarantors {
         my $firstname    = $new_guarantor_firstname[$i];
         my $relationship = $new_guarantor_relationship[$i];
 
-        if ($guarantor_id) {
-            Koha::Patron::Relationship->new(
-                {
-                    guarantee_id => $borrowernumber,
-                    guarantor_id => $guarantor_id,
-                    relationship => $relationship
-                }
-            )->store();
-        }
-        elsif ($surname) {
-            Koha::Patron::Relationship->new(
-                {
-                    guarantee_id => $borrowernumber,
-                    surname      => $surname,
-                    firstname    => $firstname,
-                    relationship => $relationship
-                }
-            )->store();
-        }
+        $patron->add_guarantor(
+            {
+                guarantee_id => $patron->id,
+                guarantor_id => $guarantor_id,
+                surname      => $surname,
+                firstname    => $firstname,
+                relationship => $relationship
+            }
+        );
     }
 }
 

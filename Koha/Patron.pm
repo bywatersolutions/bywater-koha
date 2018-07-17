@@ -1053,6 +1053,51 @@ sub generate_userid {
 
 }
 
+
+=head3 add_guarantor
+
+    my @relationships = $patron->add_guarantor(
+        {
+            borrowernumber => $borrowernumber,
+            surname        => $surname,
+            firstname      => $firstname,
+            relationships  => $relationship,
+        }
+    );
+
+    Adds a new guarantor to a patron, requires either an id ( borrowernumber ) or surname.
+
+=cut
+
+sub add_guarantor {
+    my ( $self, $params ) = @_;
+
+    my $guarantor_id = $params->{guarantor_id};
+    my $surname      = $params->{surname};
+    my $firstname    = $params->{firstname};
+    my $relationship = $params->{relationship};
+
+    if ($guarantor_id) {
+        return Koha::Patron::Relationship->new(
+            {
+                guarantee_id => $self->id,
+                guarantor_id => $guarantor_id,
+                relationship => $relationship
+            }
+        )->store();
+    }
+    elsif ($surname) {
+        return Koha::Patron::Relationship->new(
+            {
+                guarantee_id => $self->id,
+                surname      => $surname,
+                firstname    => $firstname,
+                relationship => $relationship
+            }
+        )->store();
+    }
+}
+
 =head2 Internal methods
 
 =head3 _type
