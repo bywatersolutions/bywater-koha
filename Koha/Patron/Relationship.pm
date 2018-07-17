@@ -67,7 +67,7 @@ sub guarantee {
 =cut
 
 sub _type {
-    return 'Relationship';
+    return 'BorrowerRelationship';
 }
 
 1;

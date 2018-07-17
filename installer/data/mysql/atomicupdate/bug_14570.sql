@@ -1,4 +1,4 @@
-CREATE TABLE `relationships` (
+CREATE TABLE `borrower_relationships` (
       id INT(11) NOT NULL AUTO_INCREMENT,
       guarantor_id INT(11) NULL DEFAULT NULL,
       guarantee_id INT(11) NOT NULL,
@@ -12,6 +12,8 @@ CREATE TABLE `relationships` (
 
 UPDATE borrowers LEFT JOIN borrowers guarantor ON ( borrowers.guarantorid = guarantor.borrowernumber ) SET borrowers.guarantorid = NULL WHERE guarantor.borrowernumber IS NULL;
 
-INSERT INTO relationships ( guarantor_id, guarantee_id, relationship, surname, firstname ) SELECT guarantorid, borrowernumber, relationship, contactname, contactfirstname FROM borrowers WHERE guarantorid IS NOT NULL OR contactname != "";
+INSERT INTO borrower_relationships ( guarantor_id, guarantee_id, relationship, surname, firstname ) SELECT guarantorid, borrowernumber, relationship, contactname, contactfirstname FROM borrowers WHERE guarantorid IS NOT NULL OR contactname != "";
 
 ALTER TABLE borrowers DROP guarantorid, DROP relationship, DROP contactname, DROP contactfirstname, DROP contacttitle;
+ALTER TABLE deletedborrowers DROP guarantorid, DROP relationship, DROP contactname, DROP contactfirstname, DROP contacttitle;
+ALTER TABLE borrowermodification DROP guarantorid, DROP relationship, DROP contactname, DROP contactfirstname, DROP contacttitle;

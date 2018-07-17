@@ -84,7 +84,7 @@ sub guarantees {
 =cut
 
 sub _type {
-    return 'Relationship';
+    return 'BorrowerRelationship';
 }
 
 sub object_class {

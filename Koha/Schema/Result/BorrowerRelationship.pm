@@ -1,12 +1,12 @@
 use utf8;
-package Koha::Schema::Result::Relationship;
+package Koha::Schema::Result::BorrowerRelationship;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-Koha::Schema::Result::Relationship
+Koha::Schema::Result::BorrowerRelationship
 
 =cut
 
@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<relationships>
+=head1 TABLE: C<borrower_relationships>
 
 =cut
 
-__PACKAGE__->table("relationships");
+__PACKAGE__->table("borrower_relationships");
 
 =head1 ACCESSORS
 
@@ -124,8 +124,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-03 13:19:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2Nv437KMrKHvpQleXLOjYw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-07-17 11:22:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YKFiZSR3WRi1nvtLOdGV9A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

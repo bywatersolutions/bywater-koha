@@ -4100,8 +4100,8 @@ CREATE TABLE IF NOT EXISTS club_fields (
 -- Table structure for table 'guarantors_guarantees'
 --
 
-DROP TABLE IF EXISTS relationships;
-CREATE TABLE `relationships` (
+DROP TABLE IF EXISTS borrower_relationships;
+CREATE TABLE `borrower_relationships` (
       id INT(11) NOT NULL AUTO_INCREMENT,
       guarantor_id INT(11) NULL DEFAULT NULL,
       guarantee_id INT(11) NOT NULL,
