@@ -14,6 +14,6 @@ UPDATE borrowers LEFT JOIN borrowers guarantor ON ( borrowers.guarantorid = guar
 
 INSERT INTO borrower_relationships ( guarantor_id, guarantee_id, relationship, surname, firstname ) SELECT guarantorid, borrowernumber, relationship, contactname, contactfirstname FROM borrowers WHERE guarantorid IS NOT NULL OR contactname != "";
 
-ALTER TABLE borrowers DROP guarantorid, DROP relationship, DROP contactname, DROP contactfirstname, DROP contacttitle;
-ALTER TABLE deletedborrowers DROP guarantorid, DROP relationship, DROP contactname, DROP contactfirstname, DROP contacttitle;
-ALTER TABLE borrowermodification DROP guarantorid, DROP relationship, DROP contactname, DROP contactfirstname, DROP contacttitle;
+-- ALTER TABLE borrowers DROP guarantorid, DROP relationship, DROP contactname, DROP contactfirstname, DROP contacttitle;
+-- ALTER TABLE deletedborrowers DROP guarantorid, DROP relationship, DROP contactname, DROP contactfirstname, DROP contacttitle;
+-- ALTER TABLE borrowermodification DROP guarantorid, DROP relationship, DROP contactname, DROP contactfirstname, DROP contacttitle;
