@@ -111,7 +111,7 @@ my $guarantor_id = $input->param('guarantor_id');
 my $guarantor = Koha::Patrons->find( $guarantor_id ) if $guarantor_id;
 $template->param( guarantor => $guarantor );
 
-my @delete_guarantor = $input->param('delete_guarantor');
+my @delete_guarantor = $input->multi_param('delete_guarantor');
 foreach my $id ( @delete_guarantor ) {
     my $r = Koha::Patron::Relationships->find( $id );
     $r->delete() if $r;
