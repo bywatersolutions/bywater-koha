@@ -92,8 +92,7 @@ function enableCheckboxActions(){
 </tr>
 </tfoot>
 <tbody>
-[% FOREACH account_grp IN accounts %]
-    [% FOREACH line IN account_grp.accountlines %]
+    [% FOREACH line IN accounts %]
 <tr>
     <td>
     [% IF ( line.amountoutstanding > 0 ) %]
@@ -157,7 +156,6 @@ function enableCheckboxActions(){
     <td class="total" colspan="8" style="text-align: right;">Sub total:</td>
     <td style="text-align: right;">[% account_grp.total | $Price %]</td>
 </tr>
-[% END %]
 [% END %]
 </tbody>
 </table>

@@ -145,6 +145,7 @@ sub add_accounts_to_template {
             $account_line->{biblionumber} = $biblio->biblionumber;
             $account_line->{title}        = $biblio->title;
         }
+        push @accounts, $account_line;
     }
     borrower_add_additional_fields($borrower);
 
@@ -153,7 +154,7 @@ sub add_accounts_to_template {
     my $patron_image = Koha::Patron::Images->find($borrower->{borrowernumber});
     $template->param( picture => 1 ) if $patron_image;
     $template->param(
-        accounts => $accounts,
+        accounts => \@accounts,
         borrower => $borrower,
         categoryname => $borrower->{'description'},
         total    => $total,
