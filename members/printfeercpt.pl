@@ -131,5 +131,6 @@ $template->param(
     totalcredit         => $totalcredit,
 	is_child        => ($data->{'category_type'} eq 'C'),
     accounts            => [$accountline], # FIXME There is always only 1 row!
+    );
 
 output_html_with_http_headers $input, $cookie, $template->output;
