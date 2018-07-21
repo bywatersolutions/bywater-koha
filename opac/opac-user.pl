@@ -213,7 +213,7 @@ if ($issues){
                 as     => ['rental_fines']
             }
         );
-        $issue->{rentalfines} = $charges->count ? $charges->next->get_column('rental_fines') : 0;
+        $issue->{rentalfines} = $rental_fines->count ? $charges->next->get_column('rental_fines') : 0;
 
         my $marcrecord = GetMarcBiblio({ biblionumber => $issue->{'biblionumber'} });
         $issue->{'subtitle'} = GetRecordValue('subtitle', $marcrecord, GetFrameworkCode($issue->{'biblionumber'}));
