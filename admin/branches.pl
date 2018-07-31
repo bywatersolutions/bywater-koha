@@ -79,7 +79,7 @@ if ( $op eq 'add_form' ) {
       marcorgcode
       itembarcodeprefix
       patronbarcodeprefix
-:   );
+    );
     my $is_a_modif = $input->param('is_a_modif');
 
     my @categories;
