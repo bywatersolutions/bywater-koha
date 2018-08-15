@@ -140,6 +140,18 @@ __PACKAGE__->table("branches");
   is_nullable: 1
   size: 16
 
+=head2 itembarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
+=head2 patronbarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -187,6 +199,10 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "marcorgcode",
   { data_type => "varchar", is_nullable => 1, size => 16 },
+  "itembarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
+  "patronbarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
@@ -609,8 +625,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-02-16 17:54:53
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QOMUFz2EjvAVWCkIpNmvtg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-08-15 14:18:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EB1jbc2UIqz7T7zeu1RiXA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
