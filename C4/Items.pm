@@ -240,7 +240,7 @@ sub AddItemFromMarc {
 	
 	my $localitemmarc=MARC::Record->new;
 	$localitemmarc->append_fields($source_item_marc->field($itemtag));
-    my $item = &TransformMarcToKoha( $localitemmarc, $frameworkcode ,'items');
+    my $item = C4::Biblio::TransformMarcToKoha( $localitemmarc, $frameworkcode ,'items');
     my $unlinked_item_subfields = _get_unlinked_item_subfields($localitemmarc, $frameworkcode);
     return AddItem($item, $biblionumber, $dbh, $frameworkcode, $unlinked_item_subfields);
 }
@@ -300,7 +300,7 @@ sub AddItem {
 
     $item->{'itemnumber'} = $itemnumber;
 
-    C4::Items::ModZebra( $item->{biblionumber}, "specialUpdate", "biblioserver" );
+    C4::Biblio::ModZebra( $item->{biblionumber}, "specialUpdate", "biblioserver" );
 
     logaction( "CATALOGUING", "ADD", $itemnumber, "item" )
       if C4::Context->preference("CataloguingLog");
@@ -2192,7 +2192,7 @@ sub _get_unlinked_item_subfields {
     my $original_item_marc = shift;
     my $frameworkcode = shift;
 
-    my $marcstructure = GetMarcStructure(1, $frameworkcode, { unsafe => 1 });
+    my $marcstructure = C4::Biblio::GetMarcStructure(1, $frameworkcode, { unsafe => 1 });
 
     # assume that this record has only one field, and that that
     # field contains only the item information

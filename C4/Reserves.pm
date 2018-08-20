@@ -449,7 +449,7 @@ sub CanItemBeReserved {
         unless ($destination->pickup_location) {
             return { status => 'libraryNotPickupLocation' };
         }
-        unless ($item->can_be_transferred({ to => $destination->branchcode })) {
+        unless ($item->can_be_transferred({ to => $destination })) {
             return 'cannotBeTransferred';
         }
     }

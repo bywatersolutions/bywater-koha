@@ -224,7 +224,6 @@
                                                         </li>
                                                     [% END %]
 
-
                                                     [% UNLESS ( singleBranchMode ) %]
                                                         [% IF ( bibitemloo.holdable && Koha.Preference('OPACAllowUserToChooseBranch')) %]
                                                             <li class="branch">
