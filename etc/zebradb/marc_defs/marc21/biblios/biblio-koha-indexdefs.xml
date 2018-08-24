@@ -1090,6 +1090,8 @@
   <!--record.abs line 231: melm 773$t      Host-item-->
   <index_subfields tag="773" subfields="t">
     <target_index>Host-item:w</target_index>
+    <target_index>Title:w</target_index>
+    <target_index>Title:p</target_index>
   </index_subfields>
   <!--record.abs line 232: melm 773$w      Record-control-number-->
   <index_subfields tag="773" subfields="w">
