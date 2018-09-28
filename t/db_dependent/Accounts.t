@@ -283,7 +283,7 @@ subtest "Koha::Account::pay particular line tests" => sub {
     my $line3 = Koha::Account::Line->new({ borrowernumber => $borrower->borrowernumber, amountoutstanding => 3 })->store();
     my $line4 = Koha::Account::Line->new({ borrowernumber => $borrower->borrowernumber, amountoutstanding => 4 })->store();
 
-    is( $account->balance(), 10, "Account balance is 10" );
+    is( $account->balance(), "10.000000", "Account balance is 10" );
 
     $account->pay(
         {
@@ -325,7 +325,7 @@ subtest "Koha::Account::pay writeoff tests" => sub {
 
     my $line = Koha::Account::Line->new({ borrowernumber => $borrower->borrowernumber, amountoutstanding => 42 })->store();
 
-    is( $account->balance(), 42, "Account balance is 42" );
+    is( $account->balance(), "42.000000", "Account balance is 42" );
 
     my $id = $account->pay(
         {
@@ -729,8 +729,8 @@ subtest "Koha::Account::non_issues_charges tests" => sub {
     my ( $total, $non_issues_charges ) = ( $account->balance, $account->non_issues_charges );
     my $other_charges = $total - $non_issues_charges;
     is(
-        $account->balance,
-        $res + $rent + $manual,
+        sprintf( "%.2f", $account->balance ),
+        sprintf( "%.2f", $res + $rent + $manual ),
         'Total charges should be Res + Rent + Manual'
     );
     is( $non_issues_charges+0, 0,
