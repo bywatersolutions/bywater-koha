@@ -59,8 +59,8 @@
 
 [% INCLUDE 'opac-bottom.inc' %]
 [% BLOCK jsinclude %]
-[% Asset.js("js/recordedbooks.js") | $raw %]
-[% Asset.js("lib/jquery/plugins/jquery.rating.js") | $raw %]
+[% Asset.js("js/recordedbooks.js") %]
+[% Asset.js("lib/jquery/plugins/jquery.rating.js") %]
 <script type="text/javascript">
 var querystring = "[% q |replace( "'", "\'" ) |replace( '\n', '\\n' ) |replace( '\r', '\\r' ) |html %]";
 var results_per_page = [% OPACnumSearchResults || 20 | html %];
