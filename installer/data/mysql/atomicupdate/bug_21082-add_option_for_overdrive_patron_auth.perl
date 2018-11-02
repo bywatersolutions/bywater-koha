@@ -1,6 +1,5 @@
 $DBversion = 'XXX';  # will be replaced by the RM
 if( CheckVersion( $DBversion ) ) {
-    $dbh->do('DROP TABLE IF EXISTS branches_overdrive');
     $dbh->do( q|
         CREATE TABLE IF NOT EXISTS branches_overdrive (
             `branchcode` VARCHAR( 10 ) NOT NULL ,
