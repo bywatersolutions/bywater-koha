@@ -115,7 +115,7 @@
                                     <td>[% a.selector %]</td>
                                     <td>[% a.sound %]</td>
                                     <td>
-                                        <a class="btn btn-default btn-xs edit" data-soundid="[% a.id %]" data-precedence="[% a.precedence %]" data-selector="[% a.selector %]" data-sound="[% a.sound %]"><i class="fa fa-pencil"></i> Edit</a></td>
+                                        <a class="btn btn-default btn-xs edit" data-soundid="[% a.id %]" data-precedence="[% a.precedence %]" data-selector="[% a.selector | html %]" data-sound="[% a.sound | html %]"><i class="fa fa-pencil"></i> Edit</a></td>
                                 </tr>
                             [% END %]
                         </tbody>
