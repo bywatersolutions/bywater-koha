@@ -70,7 +70,7 @@
     <script type="text/javascript">
         //<![CDATA[
             var AUDIO_ALERT_PATH = '[% interface | url %]/[% theme | uri %]/sound/';
-            var AUDIO_ALERTS = JSON.parse( '[% To.json(AudioAlerts.AudioAlerts) %]' );
+            var AUDIO_ALERTS = JSON.parse( "[% To.json(AudioAlerts.AudioAlerts) %]" );
         //]]>
 
         $( document ).ready(function() {
