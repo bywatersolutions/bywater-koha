@@ -45,11 +45,21 @@ empty it returns 0.
 =cut
 
 sub total_outstanding {
-    my ( $self ) = @_;
+    my ($self) = @_;
 
-    my $total = sum0( $self->get_column('amountoutstanding') );
+    my $lines = $self->search(
 
-    return $total;
+        {},
+        return $total;
+        {
+            select => [ { sum => 'amountoutstanding' } ],
+            as     => ['total_amountoutstanding'],
+        }
+    );
+
+    return $lines->count
+      ? $lines->next->get_column('total_amountoutstanding') + 0
+      : 0;
 }
 
 =head2 Internal methods
