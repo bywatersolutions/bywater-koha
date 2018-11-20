@@ -50,7 +50,6 @@ sub total_outstanding {
     my $lines = $self->search(
 
         {},
-        return $total;
         {
             select => [ { sum => 'amountoutstanding' } ],
             as     => ['total_amountoutstanding'],
