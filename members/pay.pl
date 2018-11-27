@@ -88,6 +88,8 @@ if ($payselected) {
 my $writeoff_all = $input->param('woall');    # writeoff all fines
 if ($writeoff_all) {
     writeoff_all(@names);
+} elsif ( $input->param('apply_credits') ) {
+    apply_credits({ patron => $patron, cgi => $input });
 } elsif ($writeoff_item) {
     my $accountlines_id = $input->param('accountlines_id');
     my $amount       = $input->param('amountwrittenoff');
@@ -141,7 +143,9 @@ output_html_with_http_headers $input, $cookie, $template->output;
 sub add_accounts_to_template {
 
     my $patron = Koha::Patrons->find( $borrowernumber );
-    my $account_lines = $patron->account->outstanding_debits;
+    my $account = $patron->account;
+    my $outstanding_credits = $account->outstanding_credits;
+    my $account_lines = $account->outstanding_debits;
     my $total = $account_lines->total_outstanding;
     my @accounts;
     while ( my $account_line = $account_lines->next ) {
@@ -160,7 +164,9 @@ sub add_accounts_to_template {
         patron   => $patron,
         accounts => \@accounts,
         total    => $total,
+        outstanding_credits => $outstanding_credits
     );
+
     return;
 
 }
@@ -277,5 +283,17 @@ sub payselected {
       . $notes;
 
     print $input->redirect($redirect);
+    return;
+}
+
+sub apply_credits {
+    my ($args) = @_;
+
+    my $patron = $args->{patron};
+    my $cgi    = $args->{cgi};
+
+    $patron->account->reconcile_balance();
+
+    print $cgi->redirect("/cgi-bin/koha/members/pay.pl?borrowernumber=" . $patron->borrowernumber );
     return;
 }
