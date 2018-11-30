@@ -522,13 +522,13 @@ sub fixup_cardnumber {
 
     my $query = 'SELECT MAX( CAST( cardnumber AS SIGNED ) ) FROM borrowers WHERE cardnumber REGEXP "^-?[0-9]+$"';
 
-    my $sth = $dbh->prepare( $query  );
     if ( $branch->{'patronbarcodeprefix'} && $cardlength ) {
         my $cardnum_search = $branch->{'patronbarcodeprefix'} . '%';
-        $query .= " AND cardnumber LIKE $cardnum_search";
+        $query .= " AND cardnumber LIKE '$cardnum_search'";
         $query .= " AND length(cardnumber) = $cardlength";
     }
 
+    my $sth = $dbh->prepare( $query );
     $sth->execute;
     my ($result) = $sth->fetchrow;
 
