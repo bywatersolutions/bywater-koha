@@ -17,7 +17,7 @@
 
 use Modern::Perl;
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 use Test::MockModule;
 use List::MoreUtils qw( uniq );
 use MARC::Record;
@@ -464,6 +464,23 @@ subtest 'DelBiblio' => sub {
 
     $deleted = C4::Biblio::DelBiblio( $biblionumber );
     is( $deleted, undef, 'DelBiblo should return undef is the record did not exist');
+};
+
+subtest 'ModBiblio called from linker test' => sub {
+    plan tests => 2;
+    my $called = 0;
+    t::lib::Mocks::mock_preference('BiblioAddsAuthorities', 1);
+    my $biblio_mod = Test::MockModule->new( 'C4::Biblio' );
+    $biblio_mod->mock( 'LinkBibHeadingsToAuthorities', sub {
+        $called = 1;
+    });
+    my $record = MARC::Record->new();
+    my ($biblionumber) = C4::Biblio::AddBiblio($record,'');
+    C4::Biblio::ModBiblio($record,$biblionumber,'');
+    is($called,1,"We called to link bibs because not from linker");
+    $called = 0;
+    C4::Biblio::ModBiblio($record,$biblionumber,'',1);
+    is($called,0,"We didn't call to link bibs because from linker");
 };
 
 # Cleanup
