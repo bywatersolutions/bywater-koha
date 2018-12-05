@@ -215,7 +215,8 @@ sub process_bib {
 "Bib $biblionumber ($title): $headings_changed headings changed\n";
         }
         if ( not $test_only ) {
-            ModBiblio( $bib, $biblionumber, GetFrameworkCode($biblionumber) );
+            ModBiblio( $bib, $biblionumber, GetFrameworkCode($biblionumber), 1 );
+            #Last param is to note ModBiblio was called from linking script and bib should not be linked again
             $num_bibs_modified++;
         }
     }
