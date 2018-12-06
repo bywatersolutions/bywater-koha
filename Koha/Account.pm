@@ -418,6 +418,7 @@ sub outstanding_debits {
     my $lines = Koha::Account::Lines->search(
         {
             borrowernumber    => $self->{patron_id},
+            amount            => { '>' => 0 },
             amountoutstanding => { '>' => 0 }
         }
     );
@@ -437,6 +438,7 @@ sub outstanding_credits {
     my $lines = Koha::Account::Lines->search(
         {
             borrowernumber    => $self->{patron_id},
+            amount            => { '<' => 0 },
             amountoutstanding => { '<' => 0 }
         }
     );
