@@ -672,7 +672,7 @@ sub handle_checkin {
             $resp .= maybe_add( FID_MEDIA_TYPE,           $item->sip_media_type );
             $resp .= maybe_add( FID_ITEM_PROPS,           $item->sip_item_properties );
             if ( my $CR = $server->{account}->{CR_item_field} ) {
-                $resp .= maybe_add( FID_COLLECTION_CODE, $item->$CR );
+                $resp .= maybe_add( FID_COLLECTION_CODE, $item->{$CR} );
             } else {
                 $resp .= maybe_add( FID_COLLECTION_CODE, $item->collection_code );
             }
