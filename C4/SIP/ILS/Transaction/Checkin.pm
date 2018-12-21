@@ -68,8 +68,6 @@ sub do_checkin {
 
     $debug and warn "do_checkin() calling AddReturn($barcode, $branch)";
     my ($return, $messages, $issue, $borrower) = AddReturn($barcode, $branch, undef, undef, $return_date);
-    $self->alert(!$return);
-    # ignoring messages: NotIssued, WasLost, WasTransfered
 
     if ( $checked_in_ok ) {
         delete $messages->{NotIssued};
