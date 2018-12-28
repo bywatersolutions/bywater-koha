@@ -350,7 +350,7 @@ sub test_checkin_v2 {
     $msg->handle_checkin( $server );
     $respcode = substr( $response, 0, 2 );
     is( substr($response,2,1), '0', 'OK flag is false when checking in an item that was not checked out' );
-    is( substr($response,5,1), 'Y', 'Alert flag is set' );
+    is( substr($response,5,1), 'N', 'Alert flag is not set, checkin was not blocked' );
     check_field( $respcode, $response, FID_SCREEN_MSG, 'not checked out', 'Check screen msg', 'regex' );
     # Toggle option
     $server->{account}->{checked_in_ok} = 1;
@@ -358,7 +358,7 @@ sub test_checkin_v2 {
     $msg = C4::SIP::Sip::MsgType->new( $siprequest, 0 );
     $msg->handle_checkin( $server );
     is( substr($response,2,1), '1', 'OK flag is true now with checked_in_ok flag set when checking in an item that was not checked out' );
-    is( substr($response,5,1), 'N', 'Alert flag no longer set' );
+    is( substr($response,5,1), 'N', 'Alert flag is not set, checkin was not blocked' );
     check_field( $respcode, $response, FID_SCREEN_MSG, undef, 'No screen msg' );
     $server->{account}->{checked_in_ok} = 0;
 
