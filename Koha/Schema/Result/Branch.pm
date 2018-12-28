@@ -634,4 +634,5 @@ sub koha_objects_class {
     'Koha::Libraries';
 }
 
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
