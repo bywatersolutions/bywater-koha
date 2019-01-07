@@ -117,6 +117,8 @@ sub do_checkin {
     }
     $self->alert(defined $self->alert_type);  # alert_type could be "00", hypothetically
     $self->ok($return);
+
+    return { messages => $messages };
 }
 
 sub resensitize {
