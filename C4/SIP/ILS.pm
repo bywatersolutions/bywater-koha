@@ -205,8 +205,9 @@ sub checkin {
     # BEGIN TRANSACTION
     $circ->item( $item = C4::SIP::ILS::Item->new($item_id) );
 
+    my $data;
     if ($item) {
-        $circ->do_checkin( $current_loc, $return_date, $checked_in_ok );
+        my $data = $circ->do_checkin( $current_loc, $return_date, $checked_in_ok );
     }
     else {
         $circ->alert(1);
@@ -219,7 +220,7 @@ sub checkin {
     if( !$circ->ok && $circ->alert_type && $circ->alert_type == 98 ) { # data corruption
         $circ->screen_msg("Checkin failed: data problem");
         syslog( "LOG_WARNING", "Problem with issue_id in issues and old_issues; check the about page" );
-    } elsif( !$item->{patron} ) {
+    } elsif( !$item->{patron} && !$data->{messages}->{withdrawn} ) {
         if( $checked_in_ok ) { # Mark checkin ok although book not checked out
             $circ->ok( 1 );
             syslog("LOG_DEBUG", "C4::SIP::ILS::Checkin - using checked_in_ok");
