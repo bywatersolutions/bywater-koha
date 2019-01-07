@@ -130,6 +130,8 @@ sub do_checkin {
     $self->alert( !$return || defined $self->alert_type );
 
     $self->ok($return);
+
+    return { messages => $messages };
 }
 
 sub resensitize {
