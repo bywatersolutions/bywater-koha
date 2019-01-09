@@ -146,6 +146,18 @@ __PACKAGE__->table("branches");
   default_value: 1
   is_nullable: 0
 
+=head2 itembarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
+=head2 patronbarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -195,6 +207,10 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 16 },
   "pickup_location",
   { data_type => "tinyint", default_value => 1, is_nullable => 0 },
+  "itembarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
+  "patronbarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
