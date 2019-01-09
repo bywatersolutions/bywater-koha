@@ -140,6 +140,18 @@ __PACKAGE__->table("branches");
   is_nullable: 1
   size: 16
 
+=head2 itembarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
+=head2 patronbarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -187,6 +199,10 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 255 },
   "marcorgcode",
   { data_type => "varchar", is_nullable => 1, size => 16 },
+  "itembarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
+  "patronbarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
@@ -624,8 +640,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2018-12-28 12:56:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RBYStFx/xTbjmUKNalPkFA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-01-09 18:18:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UWxS81sjm/EbLz+CwPp7Sw
 
 sub koha_objects_class {
     'Koha::Libraries';
