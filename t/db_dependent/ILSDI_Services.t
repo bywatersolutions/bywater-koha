@@ -19,7 +19,7 @@ use Modern::Perl;
 
 use CGI qw ( -utf8 );
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 use Test::MockModule;
 use t::lib::Mocks;
 use t::lib::TestBuilder;
