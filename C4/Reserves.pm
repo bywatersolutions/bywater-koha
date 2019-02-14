@@ -39,7 +39,6 @@ use C4::Members::Messaging;
 use Koha::Account::Lines;
 use Koha::Biblios;
 use Koha::Calendar;
-use Koha::CirculationRules;
 use Koha::Database;
 use Koha::DateUtils;
 use Koha::Hold;
