@@ -1,6 +1,5 @@
-package Koha::Item::Transfer::Limit;
+package Koha::Exceptions::TransferLimit;
 
-# Copyright Koha-Suomi Oy 2017
 # This file is part of Koha.
 #
 # Koha is free software; you can redistribute it and/or modify it
@@ -18,45 +17,32 @@ package Koha::Item::Transfer::Limit;
 
 use Modern::Perl;
 
-use Carp;
+use Exception::Class (
 
-use Koha::Database;
+    'Koha::Exceptions::TransferLimit::Exception' => {
+        description => 'Something went wrong!',
+    },
 
-use base qw(Koha::Object);
+    'Koha::Exceptions::TransferLimit::Duplicate' => {
+        isa => 'Koha::Exceptions::TransferLimit::Exception',
+        description => 'A transfer limit with the given parameters already exists!',
+    },
+);
 
 =head1 NAME
 
-Koha::Item::Transfer::Limit - Koha Item Transfer Limit Object class
+Koha::Exceptions::TransferLimit - Base class for transfer limits exceptions
 
-=head1 API
+=head1 Exceptions
 
-=head2 Class Methods
+=head2 Koha::Exceptions::TransferLimit
 
-=cut
+Generic transfer limit exception
 
-=head3 to_api_mapping
+=head2 Koha::Exceptions::TransferLimit::Duplicate
 
-This method returns the mapping for representing a Koha::Item object
-on the API.
-
-=cut
-
-sub to_api_mapping {
-    return {
-        limitId    => 'limit_id',
-        toBranch   => 'to_library_id',
-        fromBranch => 'from_library_id',
-        itemtype   => 'item_type',
-        ccode      => 'collection_code',
-    };
-}
-
-=head3 type
+Exception to be used when trying to store an already existing transfer limit.
 
 =cut
-
-sub _type {
-    return 'BranchTransferLimit';
-}
 
 1;
