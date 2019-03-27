@@ -345,7 +345,9 @@
                 <tr>
                 [% IF (StaffDetailItemSelection) %]
                     <td style="text-align:center;vertical-align:middle">
-                        <input type="checkbox" value="[% item.itemnumber | html %]" name="itemnumber" />
+                        [% IF item.can_be_edited %]
+                            <input type="checkbox" value="[% item.itemnumber | html %]" name="itemnumber" />
+                        [% END %]
                     </td>
                 [% END %]
                     [% IF Koha.Preference('LocalCoverImages') && ( tab == 'holdings' && itemloop_has_images || tab == 'otherholdings' && otheritemloop_has_images ) %]
@@ -585,7 +587,9 @@ Note that permanent location is a code, and location may be an authval.
                                     </ul>
                                 </div>
                             [% ELSE %]
-                                <a class="btn btn-default btn-xs" href="/cgi-bin/koha/cataloguing/additem.pl?op=edititem&biblionumber=[% item.biblionumber | html %]&itemnumber=[% item.itemnumber | html %]#edititem"><i class="fa fa-pencil"></i> Edit</a>
+                                [% IF item.can_be_edited %]
+                                    <a class="btn btn-default btn-xs" href="/cgi-bin/koha/cataloguing/additem.pl?op=edititem&biblionumber=[% item.biblionumber | html %]&itemnumber=[% item.itemnumber | html %]#edititem"><i class="fa fa-pencil"></i> Edit</a>
+                                [% END %]
                             [% END %]
                         [% END %]
                     </td>
