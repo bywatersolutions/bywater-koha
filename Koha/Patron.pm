@@ -380,7 +380,7 @@ sub guarantor {
 
     return unless $self->guarantorid();
 
-    return Koha::Patrons->find( $self->guarantorid() );
+    return scalar Koha::Patrons->find( $self->guarantorid() );
 }
 
 sub image {
