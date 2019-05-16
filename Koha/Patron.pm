@@ -105,14 +105,45 @@ Autogenerate next cardnumber from highest value found in database
 =cut
 
 sub fixup_cardnumber {
-    my ( $self ) = @_;
+    my ( $self, $branchcode ) = @_;
     my $max = Koha::Patrons->search({
         cardnumber => {-regexp => '^-?[0-9]+$'}
     }, {
         select => \'CAST(cardnumber AS SIGNED)',
         as => ['cast_cardnumber']
     })->_resultset->get_column('cast_cardnumber')->max;
-    $self->cardnumber(($max || 0) +1);
+
+    my $cardnumber;
+    if ($max) {
+        my $branch = Koha::Libraries->find($branchcode);
+        my $cnt = 0;
+        $max =~ s/^$branch->patronbarcodeprefix//;
+        while ( $max =~ /([a-zA-Z]*[0-9]*)\z/ )
+        {    # use perl's magical stringcrement behavior (++).
+            my $incrementable = $1;
+            $incrementable++;
+            if ( length($incrementable) > length($1) )
+            {    # carry a digit to next incrementable fragment
+                $cardnumber = substr( $incrementable, 1 ) . $cardnumber;
+                $max = $`;
+            }
+            else {
+                $cardnumber =
+                    $branch->{'patronbarcodeprefix'}
+                  . $`
+                  . $incrementable
+                  . $cardnumber;
+                last;
+            }
+            last if ( ++$cnt > 10 );
+        }
+        return $cardnumber;
+    }
+    else {
+        return $max + 1;
+    }
+
+    $self->cardnumber( $cardnumber || $max || 0 );
 }
 
 =head3 trim_whitespace
