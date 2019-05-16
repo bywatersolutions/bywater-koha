@@ -598,12 +598,11 @@ if ( $op eq "duplicate" ) {
     $data{'cardnumber'} = "";
 }
 
-my $onlymine=(C4::Context->preference('IndependantBranches') &&
-              C4::Context->userenv &&
-              C4::Context->userenv->{flags} % 2 !=1  &&
-              C4::Context->userenv->{branch}?1:0);
-my $library = Koha::Libraries->find( C4::Context->userenv->{'branch'} )->unblessed;
-$data{'cardnumber'}=fixup_cardnumber( $data{'cardnumber'}, $library ) if ( ( $op eq 'add' ) or ( $op eq 'duplicate' ) );
+if ( ( $op eq 'add' ) or ( $op eq 'duplicate' ) ) {
+    my $temp_patron = Koha::Patrons->new( { cardnumber => $cardnumber } );
+    $temp_patron->fixup_cardnumber( C4::Context->userenv->{branch} );
+    $data{cardnumber} = $temp_patron->cardnumber;
+}
 
 if(!defined($data{'sex'})){
     $template->param( none => 1);
