@@ -599,7 +599,7 @@ if ( $op eq "duplicate" ) {
 }
 
 if ( ( $op eq 'add' ) or ( $op eq 'duplicate' ) ) {
-    my $temp_patron = Koha::Patrons->new( { cardnumber => $cardnumber } );
+    my $temp_patron = Koha::Patron->new( { cardnumber => $cardnumber } );
     $temp_patron->fixup_cardnumber( C4::Context->userenv->{branch} );
     $data{cardnumber} = $temp_patron->cardnumber;
 }
