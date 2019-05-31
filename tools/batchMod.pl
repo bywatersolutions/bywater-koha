@@ -285,7 +285,7 @@ if ($op eq "show"){
         if ( my $list=$input->param('barcodelist')){
             push my @barcodelist, uniq( split(/\s\n/, $list) );
 
-            if ( C4::Context->preference('itembarcodelength') ) }
+            if ( C4::Context->preference('itembarcodelength') ) {
                 @barcodelist = map { barcodedecode( $_ ) } @barcodelist
             }
             my $existing_items = Koha::Items->search({ barcode => \@barcodelist });
