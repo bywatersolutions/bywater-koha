@@ -112,7 +112,7 @@ sub pay {
         $fine->amountoutstanding($new_amountoutstanding)->store();
         $balance_remaining = $balance_remaining - $amount_to_pay;
 
-        if ( $fine->itemnumber && $fine->accounttype && ( $fine->accounttype eq 'Rep' || $fine->accounttype eq 'L' ) )
+        if ( $new_amountoutstanding == 0 && $fine->itemnumber && $fine->accounttype && ( $fine->accounttype eq 'L' ) )
         {
             C4::Circulation::ReturnLostItem( $self->{patron_id}, $fine->itemnumber );
         }
@@ -167,6 +167,11 @@ sub pay {
         my $old_amountoutstanding = $fine->amountoutstanding;
         $fine->amountoutstanding( $old_amountoutstanding - $amount_to_pay );
         $fine->store();
+
+        if ( $fine->amountoutstanding == 0 && $fine->itemnumber && $fine->accounttype && ( $fine->accounttype eq 'L' ) )
+        {
+            C4::Circulation::ReturnLostItem( $self->{patron_id}, $fine->itemnumber );
+        }
 
         my $account_offset = Koha::Account::Offset->new(
             {
