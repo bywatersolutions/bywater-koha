@@ -207,7 +207,7 @@ sub checkin {
 
     my $data;
     if ($item) {
-        my $data = $circ->do_checkin( $current_loc, $return_date, $checked_in_ok );
+        $data = $circ->do_checkin( $current_loc, $return_date, $checked_in_ok );
     }
     else {
         $circ->alert(1);
