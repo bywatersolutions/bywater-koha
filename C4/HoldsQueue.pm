@@ -569,7 +569,7 @@ sub MapItemsToHoldRequests {
                     $request->{borrowerbranch} eq $item->{homebranch}
                     && _checkHoldPolicy($item, $request) # Don't fill item level holds that contravene the hold pickup policy at this time
                     && ( !$request->{itemtype} # If hold itemtype is set, item's itemtype must match
-                        || $items_by_itemnumber{ $request->{itemnumber} }->{itype} eq $request->{itemtype} )
+                        || ( $request->{itemnumber} && ( $items_by_itemnumber{ $request->{itemnumber} }->{itype} eq $request->{itemtype} ) ) )
                   )
                 {
                     $itemnumber = $item->{itemnumber};
