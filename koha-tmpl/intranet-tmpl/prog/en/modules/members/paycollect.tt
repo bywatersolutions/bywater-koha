@@ -280,6 +280,10 @@
             var forms = $('#payindivfine, #payfine');
             var change = $('#change')[0];
 
+            [% IF payment_id %]
+                window.open('/cgi-bin/koha/members/printfeercpt.pl?action=print&accountlines_id=[% payment_id %]&borrowernumber=[% patron.borrowernumber %]', '_blank');
+            [% END %]
+
             $('#payindivfine, #payfine').preventDoubleFormSubmit();
             $("#paid, #collected").on("change",function() {
                 moneyFormat( this );
