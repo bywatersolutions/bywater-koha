@@ -105,45 +105,35 @@ Autogenerate next cardnumber from highest value found in database
 =cut
 
 sub fixup_cardnumber {
-    my ( $self, $branchcode ) = @_;
+    my ( $self ) = @_;
+
+    my $branch = Koha::Libraries->find($self->branchcode);
+    return unless $branch;
+    my $patronbarcodeprefix = $branch->patronbarcodeprefix;
+
     my $max = Koha::Patrons->search({
-        cardnumber => {-regexp => '^-?[0-9]+$'}
+        cardnumber => {-regexp => '^-?[0-9]+$'},
+        cardnumber => {-regexp => "^$patronbarcodeprefix"},
     }, {
         select => \'CAST(cardnumber AS SIGNED)',
         as => ['cast_cardnumber']
     })->_resultset->get_column('cast_cardnumber')->max;
+    $max =~ s/^$patronbarcodeprefix//;
+    my $next = $max + 1;
 
-    my $cardnumber;
-    if ($max) {
-        my $branch = Koha::Libraries->find($branchcode);
-        my $cnt = 0;
-        $max =~ s/^$branch->patronbarcodeprefix//;
-        while ( $max =~ /([a-zA-Z]*[0-9]*)\z/ )
-        {    # use perl's magical stringcrement behavior (++).
-            my $incrementable = $1;
-            $incrementable++;
-            if ( length($incrementable) > length($1) )
-            {    # carry a digit to next incrementable fragment
-                $cardnumber = substr( $incrementable, 1 ) . $cardnumber;
-                $max = $`;
-            }
-            else {
-                $cardnumber =
-                    $branch->{'patronbarcodeprefix'}
-                  . $`
-                  . $incrementable
-                  . $cardnumber;
-                last;
-            }
-            last if ( ++$cnt > 10 );
-        }
-        return $cardnumber;
-    }
-    else {
-        return $max + 1;
+    my $patronbarcodelength = C4::Context->preference('patronbarcodelength');
+    my $prefix_len = length( $branch->patronbarcodeprefix );
+    my $next_len = length( $next );
+    my $padding_len = $patronbarcodelength - $prefix_len - $next_len;
+    my $padding = '0' x $padding_len;
+
+    my $cardnumber = $branch->patronbarcodeprefix . $padding . $next;
+
+    while ( my $patron = Koha::Patrons->find( { cardnumber => $cardnumber } ) ) {
+        $cardnumber = $branch->patronbarcodeprefix . $padding . ++$next;
     }
 
-    $self->cardnumber( $cardnumber || $max || 0 );
+    $self->cardnumber( $cardnumber || 0 );
 }
 
 =head3 trim_whitespace
