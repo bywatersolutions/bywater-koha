@@ -93,7 +93,7 @@ if ( $type eq 'str8' && $borrower ) {
                 $biblionumber = $item->{'biblionumber'};
             }
 
-            my $can_item_be_reserved = CanItemBeReserved($borrower->{'borrowernumber'}, $item->itemnumber, $branch)->{status};
+            my $can_item_be_reserved = CanItemBeReserved($borrower->{'borrowernumber'}, $item->{itemnumber}, $branch)->{status};
 
             if ( $can_item_be_reserved eq 'OK' || ( $can_item_be_reserved ne 'itemAlreadyOnHold' && $can_override ) ) {
                 AddReserve( $branch, $borrower->{'borrowernumber'},
