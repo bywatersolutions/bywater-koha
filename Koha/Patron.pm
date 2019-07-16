@@ -105,32 +105,43 @@ Autogenerate next cardnumber from highest value found in database
 =cut
 
 sub fixup_cardnumber {
-    my ( $self ) = @_;
+    my ($self) = @_;
 
-    my $branch = Koha::Libraries->find($self->branchcode);
+    my $branch = Koha::Libraries->find( $self->branchcode );
     return unless $branch;
     my $patronbarcodeprefix = $branch->patronbarcodeprefix;
+    my $patronbarcodelength = C4::Context->preference('patronbarcodelength');
 
-    my $max = Koha::Patrons->search({
-        cardnumber => {-regexp => '^-?[0-9]+$'},
-        cardnumber => {-regexp => "^$patronbarcodeprefix"},
-    }, {
-        select => \'CAST(cardnumber AS SIGNED)',
-        as => ['cast_cardnumber']
-    })->_resultset->get_column('cast_cardnumber')->max;
+    my $max = Koha::Patrons->search(
+        {
+            -and => [
+                cardnumber => { -regexp => '^-?[0-9]+$' },
+                cardnumber => { -regexp => "^$patronbarcodeprefix" },
+                \[ 'LENGTH(cardnumber) = ?', $patronbarcodelength ],
+            ]
+        },
+        {
+            select => \'CAST(cardnumber AS SIGNED)',
+            as     => ['cast_cardnumber']
+        }
+    )->_resultset->get_column('cast_cardnumber')->max;
     $max =~ s/^$patronbarcodeprefix//;
     my $next = $max + 1;
 
-    my $patronbarcodelength = C4::Context->preference('patronbarcodelength');
-    my $prefix_len = length( $branch->patronbarcodeprefix );
-    my $next_len = length( $next );
+    my $prefix_len  = length( $branch->patronbarcodeprefix );
+    my $next_len    = length($next);
     my $padding_len = $patronbarcodelength - $prefix_len - $next_len;
-    my $padding = '0' x $padding_len;
+    my $padding     = '0' x $padding_len;
 
     my $cardnumber = $branch->patronbarcodeprefix . $padding . $next;
 
-    while ( my $patron = Koha::Patrons->find( { cardnumber => $cardnumber } ) ) {
-        $cardnumber = $branch->patronbarcodeprefix . $padding . ++$next;
+    while ( my $patron = Koha::Patrons->find( { cardnumber => $cardnumber } ) )
+    {
+        $next++;
+        $next_len    = length($next);
+        $padding_len = $patronbarcodelength - $prefix_len - $next_len;
+        $padding     = '0' x $padding_len;
+        $cardnumber  = $branch->patronbarcodeprefix . $padding . $next;
     }
 
     $self->cardnumber( $cardnumber || 0 );
