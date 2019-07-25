@@ -673,21 +673,25 @@ modify the barcode by prefixing and padding.
 =back
 =cut
 
-sub _prefix_cardnum{
-    my ($cardnum,$branchcode) = @_;
+sub _prefix_cardnum {
+    my ( $cardnum, $branchcode ) = @_;
 
-    if(C4::Context->preference('patronbarcodelength') && (length($cardnum) < C4::Context->preference('patronbarcodelength'))) {
-        #if we have a system-wide cardnum length and a branch prefix, prepend the prefix.
-        if( ! $branchcode && defined(C4::Context->userenv) ) {
+    my $patron_barcode_length = C4::Context->preference('patronbarcodelength');
+
+    if ( $patron_barcode_length && length($cardnum) < $patron_barcode_length ) {
+        if ( !$branchcode && C4::Context->userenv ) {
             $branchcode = C4::Context->userenv->{'branch'};
         }
         return $cardnum unless $branchcode;
-        my $library = Koha::Libraries->find( $branchcode );
-        return $cardnum unless( $library && $library->patronbarcodeprefix );
-        my $prefix = $library->patronbarcodeprefix ;
-        my $padding = C4::Context->preference('patronbarcodelength') - length($prefix) - length($cardnum) ;
-        $cardnum = $prefix . '0' x $padding . $cardnum if($padding >= 0) ;
-   }
+
+        my $library = Koha::Libraries->find($branchcode);
+        my $prefix  = $library ? $library->patronbarcodeprefix : undef;
+        return $cardnum unless $prefix;
+
+        my $padding = $patron_barcode_length - length($prefix) - length($cardnum);
+        $cardnum = $prefix . '0' x $padding . $cardnum if ( $padding >= 0 );
+    }
+
     return $cardnum;
 }
 
