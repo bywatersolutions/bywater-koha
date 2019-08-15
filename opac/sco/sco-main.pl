@@ -247,7 +247,11 @@ elsif ( $patron and $op eq "checkout" ) {
 } # $op
 
 if ($borrower) {
-    fixup_cardnumber( $borrower->{cardnumber} );
+    # For BARCODE PREFIXES
+    my $temp_patron = Koha::Patron->new( { cardnumber => $borrower->{cardnumber} } );
+    $temp_patron->fixup_cardnumber( C4::Context->userenv->{branch} );
+    $borrower->{cardnumber} = $temp_patron->cardnumber;
+
 #   warn "issuer's  branchcode: " .   $issuer->{branchcode};
 #   warn   "user's  branchcode: " . $borrower->{branchcode};
     my $borrowername = sprintf "%s %s", ($borrower->{firstname} || ''), ($borrower->{surname} || '');
