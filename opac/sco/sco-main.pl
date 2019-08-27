@@ -124,8 +124,14 @@ if (C4::Context->preference('SelfCheckoutByLogin') && !$patronid) {
 }
 
 my ( $borrower, $patron );
-if ( $patronid ) {
-    $patron = Koha::Patrons->find( { cardnumber => $patronid } );
+if ($patronid) {
+    # For BARCODE PREFIXES
+    my $temp_patron = Koha::Patron->new( { cardnumber => $patronid } );
+    $temp_patron->fixup_cardnumber( C4::Context->userenv->{branch} );
+    $patronid_prefixed = $temp_patron->cardnumber;
+
+    $patron = Koha::Patrons->find( { cardnumber => $patronid_prefixed } );
+    $patron ||= Koha::Patrons->find( { cardnumber => $patronid } );
     $borrower = $patron->unblessed if $patron;
 }
 
@@ -265,11 +271,6 @@ elsif ( $patron && ( $op eq 'checkout' || $op eq 'renew' ) ) {
 } # $op
 
 if ($borrower) {
-    # For BARCODE PREFIXES
-    my $temp_patron = Koha::Patron->new( { cardnumber => $borrower->{cardnumber} } );
-    $temp_patron->fixup_cardnumber( C4::Context->userenv->{branch} );
-    $borrower->{cardnumber} = $temp_patron->cardnumber;
-
 #   warn "issuer's  branchcode: " .   $issuer->{branchcode};
 #   warn   "user's  branchcode: " . $borrower->{branchcode};
     my $borrowername = sprintf "%s %s", ($borrower->{firstname} || ''), ($borrower->{surname} || '');
