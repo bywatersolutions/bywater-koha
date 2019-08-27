@@ -1,6 +1,6 @@
 $DBversion = 'XXX'; # will be replaced by the RM
 if( CheckVersion( $DBversion ) ) {
-    $dbh->do({
+    $dbh->do(q{
         INSERT INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `type` ) VALUES
         ('FinePaymentAutoPopup','0',NULL,'If enabled, automatically display a print dialog for a payment receipt when making a payment.','YesNo')
     });
