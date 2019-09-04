@@ -106,6 +106,8 @@ my $borrower_data;
 my $NoUpdateLogin;
 my $userenv = C4::Context->userenv;
 
+$cardnumber = Koha::Patron::_prefix_cardnum( $cardnumber, $userenv->{branch} ) if $cardnumber;
+
 ## Deal with debarments
 $template->param(
     debarments => scalar GetDebarments( { borrowernumber => $borrowernumber } ) );
