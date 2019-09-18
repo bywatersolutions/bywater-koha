@@ -128,7 +128,7 @@ if ($patronid) {
     # For BARCODE PREFIXES
     my $temp_patron = Koha::Patron->new( { cardnumber => $patronid } );
     $temp_patron->fixup_cardnumber( C4::Context->userenv->{branch} );
-    $patronid_prefixed = $temp_patron->cardnumber;
+    my $patronid_prefixed = $temp_patron->cardnumber;
 
     $patron = Koha::Patrons->find( { cardnumber => $patronid_prefixed } );
     $patron ||= Koha::Patrons->find( { cardnumber => $patronid } );
