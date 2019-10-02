@@ -1070,6 +1070,17 @@ canned reports and writing custom SQL reports.</p>
             });
 
             var showsql;
+
+            $("body").on('click',".fetch_chart_data",function(){
+                if( [% unlimited_total || 0 | $raw %] > 1000 ){
+                    if( confirm("Fetching full chart data for reports with many rows can cause performance issues. Are you sure you with to chart this report?") ){
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            });
+
             hide_bar_element();
 
             if ( $('.chart-column-conf').length == 1 ) {
