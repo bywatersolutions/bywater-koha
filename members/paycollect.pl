@@ -175,6 +175,7 @@ if ( $total_paid and $total_paid ne '0.00' ) {
                             lines        => \@selected_accountlines,
                             note         => $note,
                             payment_type => $payment_type,
+                            library_id   => $branch,
                         }
                       );
                 }
@@ -187,6 +188,7 @@ if ( $total_paid and $total_paid ne '0.00' ) {
                         note         => $note,
                         payment_type => $payment_type,
                         interface    => C4::Context->interface
+                        library_id   => $branch,
                     }
                 );
             }
