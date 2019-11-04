@@ -664,20 +664,21 @@ subtest '_koha_notify_reserve() tests' => sub {
 };
 
 subtest 'ReservesNeedReturns' => sub {
-    plan tests => 4;
+    plan tests => 18;
 
-    my $biblioitem = $builder->build_object( { class => 'Koha::Biblioitems' } );
     my $library    = $builder->build_object( { class => 'Koha::Libraries' } );
-    my $itemtype   = $builder->build_object( { class => 'Koha::ItemTypes', value => { rentalcharge => 0 } } );
     my $item_info  = {
-        biblionumber     => $biblioitem->biblionumber,
-        biblioitemnumber => $biblioitem->biblioitemnumber,
         homebranch       => $library->branchcode,
         holdingbranch    => $library->branchcode,
-        itype            => $itemtype->itemtype,
     };
-    my $item = $builder->build_object( { class => 'Koha::Items', value => $item_info } );
+    my $item = $builder->build_sample_item($item_info);
     my $patron   = $builder->build_object(
+        {
+            class => 'Koha::Patrons',
+            value => { branchcode => $library->branchcode, }
+        }
+    );
+    my $patron_2   = $builder->build_object(
         {
             class => 'Koha::Patrons',
             value => { branchcode => $library->branchcode, }
@@ -685,33 +686,72 @@ subtest 'ReservesNeedReturns' => sub {
     );
 
     my $priority = 1;
-    my ( $hold_id, $hold );
 
-    t::lib::Mocks::mock_preference('ReservesNeedReturns', 0); # '0' means 'Automatically mark a hold as found and waiting'
-    $hold_id = C4::Reserves::AddReserve(
-        $library->branchcode, $patron->borrowernumber,
-        $item->biblionumber,  '',
-        $priority,            undef,
-        undef,                '',
-        "title for fee",      $item->itemnumber,
-    );
-    $hold = Koha::Holds->find($hold_id);
-    is( $hold->priority, 0, 'If ReservesNeedReturns is 0, priority must have been set to 0' );
-    is( $hold->found, 'W', 'If ReservesNeedReturns is 0, found must have been set waiting' );
-
-    $hold->delete; # cleanup
-
-    t::lib::Mocks::mock_preference('ReservesNeedReturns', 1); # '0' means "Don't automatically mark a hold as found and waiting"
-    $hold_id = C4::Reserves::AddReserve(
-        $library->branchcode, $patron->borrowernumber,
-        $item->biblionumber,  '',
-        $priority,            undef,
-        undef,                '',
-        "title for fee",      $item->itemnumber,
-    );
-    $hold = Koha::Holds->find($hold_id);
+    t::lib::Mocks::mock_preference('ReservesNeedReturns', 1); # Test with feature disabled
+    my $hold = place_item_hold( $patron, $item, $library, $priority );
     is( $hold->priority, $priority, 'If ReservesNeedReturns is 1, priority must not have been set to changed' );
     is( $hold->found, undef, 'If ReservesNeedReturns is 1, found must not have been set waiting' );
+    $hold->delete;
+
+    t::lib::Mocks::mock_preference('ReservesNeedReturns', 0); # '0' means 'Automatically mark a hold as found and waiting'
+    $hold = place_item_hold( $patron, $item, $library, $priority );
+    is( $hold->priority, 0, 'If ReservesNeedReturns is 0 and no other status, priority must have been set to 0' );
+    is( $hold->found, 'W', 'If ReservesNeedReturns is 0 and no other status, found must have been set waiting' );
+    $hold->delete;
+
+    $item->onloan('2010-01-01')->store;
+    $hold = place_item_hold( $patron, $item, $library, $priority );
+    is( $hold->priority, 1, 'If ReservesNeedReturns is 0 but item onloan priority must be set to 1' );
+    $hold->delete;
+
+    t::lib::Mocks::mock_preference('AllowHoldsOnDamagedItems', 0); # '0' means damaged holds not allowed
+    $item->onloan(undef)->damaged(1)->store;
+    $hold = place_item_hold( $patron, $item, $library, $priority );
+    is( $hold->priority, 1, 'If ReservesNeedReturns is 0 but item damaged and not allowed holds on damaged items priority must be set to 1' );
+    $hold->delete;
+    t::lib::Mocks::mock_preference('AllowHoldsOnDamagedItems', 1); # '0' means damaged holds not allowed
+    $hold = place_item_hold( $patron, $item, $library, $priority );
+    is( $hold->priority, 0, 'If ReservesNeedReturns is 0 and damaged holds allowed, priority must have been set to 0' );
+    is( $hold->found,  'W', 'If ReservesNeedReturns is 0 and damaged holds allowed, found must have been set waiting' );
+    $hold->delete;
+
+    my $hold_1 = place_item_hold( $patron, $item, $library, $priority );
+    is( $hold_1->found,  'W', 'First hold on item is set to waiting with ReservesNeedReturns set to 0' );
+    is( $hold_1->priority, 0, 'First hold on item is set to waiting with ReservesNeedReturns set to 0' );
+    $hold = place_item_hold( $patron_2, $item, $library, $priority );
+    is( $hold->priority, 1, 'If ReservesNeedReturns is 0 but item already on hold priority must be set to 1' );
+    $hold->delete;
+    $hold_1->delete;
+
+    my $transfer = $builder->build_object({
+        class => "Koha::Item::Transfers",
+        value => {
+          itemnumber  => $item->itemnumber,
+          datearrived => undef,
+        }
+    });
+    $item->damaged(0)->store;
+    $hold = place_item_hold( $patron, $item, $library, $priority );
+    is( $hold->found, undef, 'If ReservesNeedReturns is 0 but item in transit the hold must not be set to waiting' );
+    is( $hold->priority, 1,  'If ReservesNeedReturns is 0 but item in transit the hold must not be set to waiting' );
+    $hold->delete;
+    $transfer->delete;
+
+    $hold = place_item_hold( $patron, $item, $library, $priority );
+    is( $hold->priority, 0, 'If ReservesNeedReturns is 0 and no other status, priority must have been set to 0' );
+    is( $hold->found, 'W', 'If ReservesNeedReturns is 0 and no other status, found must have been set waiting' );
+    $hold_1 = place_item_hold( $patron, $item, $library, $priority );
+    is( $hold_1->priority, 1, 'If ReservesNeedReturns is 0 but item has a hold priority is 1' );
+    $hold_1->suspend(1)->store; # We suspend the hold
+    $hold->delete; # Delete the waiting hold
+    $hold = place_item_hold( $patron, $item, $library, $priority );
+    is( $hold->priority, 0, 'If ReservesNeedReturns is 0 and other hold(s) suspended, priority must have been set to 0' );
+    is( $hold->found, 'W', 'If ReservesNeedReturns is 0 and other  hold(s) suspended, found must have been set waiting' );
+
+
+
+
+    t::lib::Mocks::mock_preference('ReservesNeedReturns', 1); # Don't affect other tests
 };
 
 subtest 'ChargeReserveFee tests' => sub {
@@ -775,6 +815,20 @@ sub count_hold_print_messages {
         AND   message_transport_type = 'print'
     });
     return $message_count->[0]->[0];
+}
+
+sub place_item_hold {
+    my ($patron,$item,$library,$priority) = @_;
+
+    my $hold_id = C4::Reserves::AddReserve(
+        $library->branchcode, $patron->borrowernumber,
+        $item->biblionumber,  '',
+        $priority,            undef,
+        undef,                '',
+        "title for fee",      $item->itemnumber,
+    );
+    my $hold = Koha::Holds->find($hold_id);
+    return $hold;
 }
 
 # we reached the finish
