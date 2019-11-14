@@ -137,66 +137,6 @@ __PACKAGE__->set_primary_key("biblionumber");
 
 =head1 RELATIONS
 
-=head2 aqorders
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Aqorder>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqorders",
-  "Koha::Schema::Result::Aqorder",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 article_requests
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::ArticleRequest>
-
-=cut
-
-__PACKAGE__->has_many(
-  "article_requests",
-  "Koha::Schema::Result::ArticleRequest",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 biblio_metadatas
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::BiblioMetadata>
-
-=cut
-
-__PACKAGE__->has_many(
-  "biblio_metadatas",
-  "Koha::Schema::Result::BiblioMetadata",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 biblioimages
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Biblioimage>
-
-=cut
-
-__PACKAGE__->has_many(
-  "biblioimages",
-  "Koha::Schema::Result::Biblioimage",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 biblioitems
 
 Type: has_many
@@ -208,21 +148,6 @@ Related object: L<Koha::Schema::Result::Biblioitem>
 __PACKAGE__->has_many(
   "biblioitems",
   "Koha::Schema::Result::Biblioitem",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 hold_fill_targets
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::HoldFillTarget>
-
-=cut
-
-__PACKAGE__->has_many(
-  "hold_fill_targets",
-  "Koha::Schema::Result::HoldFillTarget",
   { "foreign.biblionumber" => "self.biblionumber" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -257,114 +182,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 ratings
 
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Rating>
-
-=cut
-
-__PACKAGE__->has_many(
-  "ratings",
-  "Koha::Schema::Result::Rating",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 reserves
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Reserve>
-
-=cut
-
-__PACKAGE__->has_many(
-  "reserves",
-  "Koha::Schema::Result::Reserve",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 reviews
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Review>
-
-=cut
-
-__PACKAGE__->has_many(
-  "reviews",
-  "Koha::Schema::Result::Review",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 suggestions
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Suggestion>
-
-=cut
-
-__PACKAGE__->has_many(
-  "suggestions",
-  "Koha::Schema::Result::Suggestion",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 tags_all
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::TagAll>
-
-=cut
-
-__PACKAGE__->has_many(
-  "tags_all",
-  "Koha::Schema::Result::TagAll",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 tags_indexes
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::TagsIndex>
-
-=cut
-
-__PACKAGE__->has_many(
-  "tags_indexes",
-  "Koha::Schema::Result::TagsIndex",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 virtualshelfcontents
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Virtualshelfcontent>
-
-=cut
-
-__PACKAGE__->has_many(
-  "virtualshelfcontents",
-  "Koha::Schema::Result::Virtualshelfcontent",
-  { "foreign.biblionumber" => "self.biblionumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-03-11 12:56:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ebn7Szfm8/HbrdAc7ekTnA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-11-14 19:54:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tcp//q4Q8mSenB02pH+gKA
 
 __PACKAGE__->has_one(
   "metadata",

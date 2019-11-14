@@ -203,71 +203,9 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("categorycode");
 
-=head1 RELATIONS
 
-=head2 borrower_message_preferences
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::BorrowerMessagePreference>
-
-=cut
-
-__PACKAGE__->has_many(
-  "borrower_message_preferences",
-  "Koha::Schema::Result::BorrowerMessagePreference",
-  { "foreign.categorycode" => "self.categorycode" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 borrowers
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Borrower>
-
-=cut
-
-__PACKAGE__->has_many(
-  "borrowers",
-  "Koha::Schema::Result::Borrower",
-  { "foreign.categorycode" => "self.categorycode" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 categories_branches
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::CategoriesBranch>
-
-=cut
-
-__PACKAGE__->has_many(
-  "categories_branches",
-  "Koha::Schema::Result::CategoriesBranch",
-  { "foreign.categorycode" => "self.categorycode" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 circulation_rules
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::CirculationRule>
-
-=cut
-
-__PACKAGE__->has_many(
-  "circulation_rules",
-  "Koha::Schema::Result::CirculationRule",
-  { "foreign.categorycode" => "self.categorycode" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2019-04-12 02:43:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7rwTH9HuxcdRCBP/bj0d/A
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-11-14 19:54:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S27IIpck3Qk7chcNM8PW3w
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

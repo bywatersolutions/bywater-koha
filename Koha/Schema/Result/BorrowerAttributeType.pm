@@ -129,41 +129,9 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("code");
 
-=head1 RELATIONS
 
-=head2 borrower_attribute_types_branches
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::BorrowerAttributeTypesBranch>
-
-=cut
-
-__PACKAGE__->has_many(
-  "borrower_attribute_types_branches",
-  "Koha::Schema::Result::BorrowerAttributeTypesBranch",
-  { "foreign.bat_code" => "self.code" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 borrower_attributes
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::BorrowerAttribute>
-
-=cut
-
-__PACKAGE__->has_many(
-  "borrower_attributes",
-  "Koha::Schema::Result::BorrowerAttribute",
-  { "foreign.code" => "self.code" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-10-25 20:32:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gsPR8PuUUZHFUkr3MIbTpw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-11-14 19:54:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+FUJUmqSEgUFMeac5kRmsg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -436,36 +436,6 @@ __PACKAGE__->add_unique_constraint("itembarcodeidx", ["barcode"]);
 
 =head1 RELATIONS
 
-=head2 accountlines
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Accountline>
-
-=cut
-
-__PACKAGE__->has_many(
-  "accountlines",
-  "Koha::Schema::Result::Accountline",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 article_requests
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::ArticleRequest>
-
-=cut
-
-__PACKAGE__->has_many(
-  "article_requests",
-  "Koha::Schema::Result::ArticleRequest",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 biblioitemnumber
 
 Type: belongs_to
@@ -511,51 +481,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 course_item
-
-Type: might_have
-
-Related object: L<Koha::Schema::Result::CourseItem>
-
-=cut
-
-__PACKAGE__->might_have(
-  "course_item",
-  "Koha::Schema::Result::CourseItem",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 creator_batches
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::CreatorBatch>
-
-=cut
-
-__PACKAGE__->has_many(
-  "creator_batches",
-  "Koha::Schema::Result::CreatorBatch",
-  { "foreign.item_number" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 hold_fill_target
-
-Type: might_have
-
-Related object: L<Koha::Schema::Result::HoldFillTarget>
-
-=cut
-
-__PACKAGE__->might_have(
-  "hold_fill_target",
-  "Koha::Schema::Result::HoldFillTarget",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 holdingbranch
 
 Type: belongs_to
@@ -596,36 +521,6 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 issue
-
-Type: might_have
-
-Related object: L<Koha::Schema::Result::Issue>
-
-=cut
-
-__PACKAGE__->might_have(
-  "issue",
-  "Koha::Schema::Result::Issue",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 items_last_borrower
-
-Type: might_have
-
-Related object: L<Koha::Schema::Result::ItemsLastBorrower>
-
-=cut
-
-__PACKAGE__->might_have(
-  "items_last_borrower",
-  "Koha::Schema::Result::ItemsLastBorrower",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 old_issues
 
 Type: has_many
@@ -656,69 +551,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 reserves
 
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Reserve>
-
-=cut
-
-__PACKAGE__->has_many(
-  "reserves",
-  "Koha::Schema::Result::Reserve",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 serialitem
-
-Type: might_have
-
-Related object: L<Koha::Schema::Result::Serialitem>
-
-=cut
-
-__PACKAGE__->might_have(
-  "serialitem",
-  "Koha::Schema::Result::Serialitem",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 stockrotationitem
-
-Type: might_have
-
-Related object: L<Koha::Schema::Result::Stockrotationitem>
-
-=cut
-
-__PACKAGE__->might_have(
-  "stockrotationitem",
-  "Koha::Schema::Result::Stockrotationitem",
-  { "foreign.itemnumber_id" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 tmp_holdsqueues
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::TmpHoldsqueue>
-
-=cut
-
-__PACKAGE__->has_many(
-  "tmp_holdsqueues",
-  "Koha::Schema::Result::TmpHoldsqueue",
-  { "foreign.itemnumber" => "self.itemnumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-05-14 18:14:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wDXcErUYqg0aoQkzz3P5vg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-11-14 19:54:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:I1nlgkObeyILVnBKrLGM9g
 
 __PACKAGE__->belongs_to( biblioitem => "Koha::Schema::Result::Biblioitem", "biblioitemnumber" );
 

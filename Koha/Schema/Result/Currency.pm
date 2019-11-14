@@ -110,56 +110,9 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("currency");
 
-=head1 RELATIONS
 
-=head2 aqbooksellers_invoiceprices
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Aqbookseller>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqbooksellers_invoiceprices",
-  "Koha::Schema::Result::Aqbookseller",
-  { "foreign.invoiceprice" => "self.currency" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 aqbooksellers_listprices
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Aqbookseller>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqbooksellers_listprices",
-  "Koha::Schema::Result::Aqbookseller",
-  { "foreign.listprice" => "self.currency" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 aqorders
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Aqorder>
-
-=cut
-
-__PACKAGE__->has_many(
-  "aqorders",
-  "Koha::Schema::Result::Aqorder",
-  { "foreign.currency" => "self.currency" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-02-01 14:23:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PnJEcCgrM1Edf99phWFdyQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-11-14 19:54:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oPw36bKn1oNFk6/7x18fYQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

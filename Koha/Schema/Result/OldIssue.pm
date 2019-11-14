@@ -64,23 +64,22 @@ __PACKAGE__->table("old_issues");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
+=head2 return
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 4
+
 =head2 renewals
 
   data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 auto_renew
 
   data_type: 'tinyint'
   default_value: 0
   is_nullable: 1
-
-=head2 auto_renew_error
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 32
 
 =head2 timestamp
 
@@ -100,22 +99,6 @@ __PACKAGE__->table("old_issues");
   data_type: 'integer'
   default_value: 0
   is_nullable: 0
-
-=head2 note
-
-  data_type: 'longtext'
-  is_nullable: 1
-
-=head2 notedate
-
-  data_type: 'datetime'
-  datetime_undef_if_invalid: 1
-  is_nullable: 1
-
-=head2 noteseen
-
-  data_type: 'integer'
-  is_nullable: 1
 
 =cut
 
@@ -146,12 +129,12 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
+  "return",
+  { data_type => "varchar", is_nullable => 1, size => 4 },
   "renewals",
-  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  { data_type => "tinyint", is_nullable => 1 },
   "auto_renew",
   { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "auto_renew_error",
-  { data_type => "varchar", is_nullable => 1, size => 32 },
   "timestamp",
   {
     data_type => "timestamp",
@@ -167,16 +150,6 @@ __PACKAGE__->add_columns(
   },
   "onsite_checkout",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
-  "note",
-  { data_type => "longtext", is_nullable => 1 },
-  "notedate",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
-  },
-  "noteseen",
-  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -192,26 +165,6 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("issue_id");
 
 =head1 RELATIONS
-
-=head2 borrowernumber
-
-Type: belongs_to
-
-Related object: L<Koha::Schema::Result::Borrower>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "borrowernumber",
-  "Koha::Schema::Result::Borrower",
-  { borrowernumber => "borrowernumber" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "SET NULL",
-    on_update     => "SET NULL",
-  },
-);
 
 =head2 itemnumber
 
@@ -234,8 +187,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-04-10 19:55:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E2N2paWcCHg916100ry+2A
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-11-14 19:54:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JzMIRBYDKI4bNbtxCHs9bQ
 
 __PACKAGE__->belongs_to(
     "borrower",

@@ -181,21 +181,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 circulation_rules
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::CirculationRule>
-
-=cut
-
-__PACKAGE__->has_many(
-  "circulation_rules",
-  "Koha::Schema::Result::CirculationRule",
-  { "foreign.itemtype" => "self.itemtype" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 default_branch_item_rule
 
 Type: might_have
@@ -211,39 +196,9 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 old_reserves
 
-Type: has_many
-
-Related object: L<Koha::Schema::Result::OldReserve>
-
-=cut
-
-__PACKAGE__->has_many(
-  "old_reserves",
-  "Koha::Schema::Result::OldReserve",
-  { "foreign.itemtype" => "self.itemtype" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 reserves
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Reserve>
-
-=cut
-
-__PACKAGE__->has_many(
-  "reserves",
-  "Koha::Schema::Result::Reserve",
-  { "foreign.itemtype" => "self.itemtype" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-03-07 17:30:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CDIOU6LmF7suaujk1NQOeg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-11-14 19:54:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hirmTAXBXKBy4fF3gj4zHg
 
 # Use the ItemtypeLocalization view to create the join on localization
 our $LANGUAGE;

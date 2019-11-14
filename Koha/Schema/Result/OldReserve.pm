@@ -72,7 +72,7 @@ __PACKAGE__->table("old_reserves");
 
 =head2 reservenotes
 
-  data_type: 'longtext'
+  data_type: 'mediumtext'
   is_nullable: 1
 
 =head2 priority
@@ -115,7 +115,6 @@ __PACKAGE__->table("old_reserves");
 
   accessor: 'lowest_priority'
   data_type: 'tinyint'
-  default_value: 0
   is_nullable: 0
 
 =head2 suspend
@@ -130,12 +129,10 @@ __PACKAGE__->table("old_reserves");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
-=head2 itemtype
+=head2 printed
 
-  data_type: 'varchar'
-  is_foreign_key: 1
+  data_type: 'tinyint'
   is_nullable: 1
-  size: 10
 
 =cut
 
@@ -157,7 +154,7 @@ __PACKAGE__->add_columns(
   "cancellationdate",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "reservenotes",
-  { data_type => "longtext", is_nullable => 1 },
+  { data_type => "mediumtext", is_nullable => 1 },
   "priority",
   { data_type => "smallint", is_nullable => 1 },
   "found",
@@ -176,12 +173,7 @@ __PACKAGE__->add_columns(
   "expirationdate",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "lowestPriority",
-  {
-    accessor      => "lowest_priority",
-    data_type     => "tinyint",
-    default_value => 0,
-    is_nullable   => 0,
-  },
+  { accessor => "lowest_priority", data_type => "tinyint", is_nullable => 0 },
   "suspend",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
   "suspend_until",
@@ -190,8 +182,8 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
-  "itemtype",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
+  "printed",
+  { data_type => "tinyint", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -228,26 +220,6 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 borrowernumber
-
-Type: belongs_to
-
-Related object: L<Koha::Schema::Result::Borrower>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "borrowernumber",
-  "Koha::Schema::Result::Borrower",
-  { borrowernumber => "borrowernumber" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "SET NULL",
-    on_update     => "SET NULL",
-  },
-);
-
 =head2 itemnumber
 
 Type: belongs_to
@@ -268,29 +240,9 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 itemtype
 
-Type: belongs_to
-
-Related object: L<Koha::Schema::Result::Itemtype>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "itemtype",
-  "Koha::Schema::Result::Itemtype",
-  { itemtype => "itemtype" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "SET NULL",
-    on_update     => "SET NULL",
-  },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-02-16 17:54:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ynb6NtiTN8ZZur2YCvxlNg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-11-14 19:54:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RR7O0NDO3FWjSMHSI43hEQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
