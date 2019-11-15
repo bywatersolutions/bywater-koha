@@ -134,6 +134,11 @@ __PACKAGE__->table("reserves");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
+=head2 printed
+
+  data_type: 'tinyint'
+  is_nullable: 1
+
 =head2 itemtype
 
   data_type: 'varchar'
@@ -204,6 +209,8 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
+  "printed",
+  { data_type => "tinyint", is_nullable => 1 },
   "itemtype",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
 );
@@ -313,8 +320,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-02-16 17:54:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2GCET9quFpUvzuN7MUWZNw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-11-15 15:54:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hsJyXb9LBgBYwKM0ri6Zng
 
 __PACKAGE__->belongs_to(
   "item",
