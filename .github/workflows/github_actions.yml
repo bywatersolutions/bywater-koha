@@ -1,0 +1,51 @@
+name: CI
+on: [push]
+jobs:
+  test:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+      
+    - name: Export additional variables needed by koha-testing-docker
+      run: |
+        export LOCAL_USER_ID="$(id -u)" # Needed for koha-testing-docker
+        export SYNC_REPO=.
+        echo ::set-env name=LOCAL_USER_ID::$LOCAL_USER_ID
+        echo ::set-env name=SYNC_REPO::$SYNC_REPO
+        echo ::set-env name=RUN_TESTS_AND_EXIT::yes
+        echo ::set-env name=KOHA_IMAGE::master
+
+    - name: Set up koha-testing-docker
+      run: |
+        sudo sysctl -w vm.max_map_count=262144
+        wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/master/docker-compose.yml
+        mkdir -p env
+        wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/master/env/defaults.env
+        cp env/defaults.env .env
+        docker-compose pull
+
+#    - name: Setup Debug Session
+#      uses: csexton/debugger-action@master
+
+    - name: Run tests
+      run: |
+        echo "RUN_TESTS_AND_EXIT: $RUN_TESTS_AND_EXIT"
+        echo "SYNC_REPO: $SYNC_REPO"
+        echo "LOCAL_USER_ID: $LOCAL_USER_ID"
+        echo "COVERAGE: $COVERAGE"
+        echo "KOHA_IMAGE: $KOHA_IMAGE"
+        docker-compose -f docker-compose.yml -p koha up --abort-on-container-exit --no-color
+        cat /home/runner/work/bywater-koha/bywater-koha/testing.success
+
+    - name: Post test cleanup
+      run: |
+        docker-compose down
+        docker rm -f $(docker ps -a -f "name=koha_" -q)
+        docker volume prune -f
+        docker image  prune -f
+        rm docker-compose.yml
+        rm -rf env .env
+
+    - name: Check to see if tests were successful
+      run: cat /home/runner/work/bywater-koha/testing.success
