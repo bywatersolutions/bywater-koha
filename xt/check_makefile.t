@@ -33,6 +33,7 @@ my @missing;
 for my $d ( sort @dirs ) {
     chomp $d;
     next if $d        =~ /^debian$/;
+    next if $d        =~ /\.\/(debian|\.git|\.github|\.env|env)$/;
     next if $makefile =~ m{'\./$d('|\/)}xms;
     push @missing, $d;
 }
