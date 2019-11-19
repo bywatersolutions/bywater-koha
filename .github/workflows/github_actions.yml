@@ -1,0 +1,83 @@
+name: CI
+on: [push]
+jobs:
+  unit_test:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+      
+    - name: Export additional variables needed by koha-testing-docker
+      run: |
+        export LOCAL_USER_ID="$(id -u)" # Needed for koha-testing-docker
+        KOHA_BRANCH=${GITHUB_REF##*/}
+        echo "BRANCH: $KOHA_BRANCH"
+        export SYNC_REPO=.
+        echo ::set-env name=LOCAL_USER_ID::$LOCAL_USER_ID
+        echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
+        echo ::set-env name=SYNC_REPO::$SYNC_REPO
+        echo ::set-env name=RUN_TESTS_AND_EXIT::yes
+        echo ::set-env name=KOHA_IMAGE::master
+
+    - name: Set up koha-testing-docker
+      run: |
+        sudo sysctl -w vm.max_map_count=262144
+        wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/master/docker-compose.yml
+        mkdir -p env
+        wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/master/env/defaults.env
+        cp env/defaults.env .env
+        docker-compose pull
+
+#    - name: Setup Debug Session
+#      uses: csexton/debugger-action@master
+
+    - name: Run tests
+      run: |
+        docker-compose -f docker-compose.yml -p koha up --abort-on-container-exit --no-color
+        cat /home/runner/work/bywater-koha/bywater-koha/testing.success
+
+    - name: Post test cleanup
+      run: |
+        docker-compose down
+        docker rm -f $(docker ps -a -f "name=koha_" -q)
+        docker volume prune -f
+        docker image  prune -f
+        rm docker-compose.yml
+        rm -rf env .env
+
+  release_notes: # This container checks out the branch on it's own, so no need for the GitHub checkout action
+    name: Build release notes
+    needs: unit_test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Export additional variables needed by bywater-koha-custom-rebaser
+      run: |
+        KOHA_BRANCH=${GITHUB_REF##*/}
+        echo "KOHA_BRANCH: $KOHA_BRANCH"
+        echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
+
+    - name: Run kylemhall/bywater-koha-release-notes-generator
+      run: |
+        echo "BRANCH: $KOHA_BRANCH"
+        docker run --env DEBUG=0 --env UPLOAD=1 --env GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} --env KOHA_BRANCH=$KOHA_BRANCH kylemhall/bywater-koha-release-notes-generator
+
+  auto_rebase:
+    name: Rebase custom codebases
+    needs: unit_test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Export additional variables needed by bywater-koha-custom-rebaser
+      run: |
+        KOHA_BRANCH=${GITHUB_REF##*/}
+        echo "KOHA_BRANCH: $KOHA_BRANCH"
+        echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
+        export KOHACLONE="$(pwd)" # Needed for koha-testing-docker
+        echo "KOHACLONE: $KOHACLONE"
+        echo ::set-env name=KOHACLONE::$KOHACLONE
+
+    - name: Run kylemhall/bywater-koha-custom-rebaser
+      if: startsWith( github.ref, 'refs/heads/bywater-v' )
+      run: |
+        docker run --mount type=bind,source=$KOHACLONE,target=/kohaclone -e DO_IT=1 -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} -e KOHA_BRANCH=$KOHA_BRANCH kylemhall/bywater-koha-custom-rebaser
