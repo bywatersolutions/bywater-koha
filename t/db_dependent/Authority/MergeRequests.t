@@ -12,7 +12,9 @@ my $schema  = Koha::Database->new->schema;
 $schema->storage->txn_begin;
 
 subtest "Tests for cron_cleanup" => sub {
-    plan tests => 3;
+    plan tests => 4;
+
+    is( 0, 1, "INTENTIONAL UNIT TEST FAILURE" );
 
     my $dt = dt_from_string;
     $dt->subtract( hours => 2 );
