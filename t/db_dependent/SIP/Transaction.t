@@ -4,7 +4,7 @@
 # Current state is very rudimentary. Please help to extend it!
 
 use Modern::Perl;
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 use Koha::Database;
 use t::lib::TestBuilder;
@@ -12,6 +12,7 @@ use t::lib::Mocks;
 use C4::SIP::ILS::Patron;
 use C4::SIP::ILS::Transaction::RenewAll;
 use C4::SIP::ILS::Transaction::Checkout;
+use C4::SIP::ILS::Transaction::Hold;
 
 use C4::Reserves;
 use Koha::IssuingRules;
@@ -95,4 +96,52 @@ subtest fill_holds_at_checkout => sub {
     $transaction = C4::SIP::ILS::Transaction::Checkout->new();
     is( $sip_item->{barcode}, $item1->{barcode}, "Item assigned to transaction" );
 };
+
+subtest cancel_hold => sub {
+    plan tests => 7;
+
+    my $library = $builder->build_object ({ class => 'Koha::Libraries' });
+    my $patron = $builder->build_object(
+        {
+            class => 'Koha::Patrons',
+            value => {
+                branchcode => $library->branchcode,
+            }
+        }
+    );
+    t::lib::Mocks::mock_userenv({ branchcode => $library->branchcode, flags => 1 });
+
+    my $item = $builder->build_sample_item({
+        library       => $library->branchcode,
+    });
+
+    Koha::IssuingRule->new({
+        categorycode     => $patron->categorycode,
+        itemtype         => $item->effective_itemtype,
+        branchcode       => $library->branchcode,
+        onshelfholds     => 1,
+        reservesallowed  => 3,
+        holds_per_record => 3,
+        issuelength      => 5,
+        lengthunit       => 'days',
+    })->store;
+
+    my $reserve1 =
+      AddReserve( $library->branchcode, $patron->borrowernumber,
+        $item->biblio->biblionumber,
+        undef, undef, undef, undef, undef, undef, $item->itemnumber );
+    is( $item->biblio->holds->count(), 1, "Hold was placed on bib");
+    is( Koha::Holds->search({itemnumber=>$item->itemnumber})->count() ,1,"Hold was placed on specific item");
+
+    my $sip_patron = C4::SIP::ILS::Patron->new( $patron->cardnumber );
+    my $sip_item   = C4::SIP::ILS::Item->new( $item->barcode );
+    my $transaction = C4::SIP::ILS::Transaction::Hold->new();
+    is( ref $transaction, "C4::SIP::ILS::Transaction::Hold", "New transaction created" );
+    is( $transaction->patron( $sip_patron ), $sip_patron, "Patron assigned to transaction" );
+    is( $transaction->item( $sip_item ), $sip_item, "Item assigned to transaction" );
+    my $hold = $transaction->drop_hold();
+    is( $item->biblio->holds->count(), 0, "Bib has 0 holds remaining");
+    is( Koha::Holds->search({itemnumber=>$item->itemnumber})->count(), 0,  "Item has 0 holds remaining");
+};
+
 $schema->storage->txn_rollback;
