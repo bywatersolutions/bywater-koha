@@ -74,6 +74,34 @@ $(document).ready(function(){
     });
 
     $('.subfield_line select').select2();
+
+    // Add new item to volume
+    if ( has_volumes ) {
+        $('#volume-add-or-create-form-description-block').hide();
+        $('#volume-add-or-create-form-no-add').attr('selected', 'selected' );
+
+        $('#volume-add-or-create-form-select').on('change', function(){
+            if ( $(this).val() == 'create' ) {
+                $('#volume-add-or-create-form-description')
+                    .addClass('required')
+                    .attr( 'required', 'required' );
+                $('#volume-add-or-create-form-description-block').show();
+            } else {
+                $('#volume-add-or-create-form-description')
+                    .removeClass('required')
+                    .removeAttr('required');
+                $('#volume-add-or-create-form-description-block').hide();
+            }
+        });
+    }
+
+    $('#volume-add-or-create-form-select').on('change', function() {
+        if ( ! $('input.items-enumchron').val() ) {
+            let volume_selector = '#volume-' + $(this).val();
+            let enumchron = $(volume_selector).val();
+            $('input.items-enumchron').val( enumchron );
+        }
+    });
 });
 
 function Check(f) {

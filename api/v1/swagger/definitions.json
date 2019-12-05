@@ -65,6 +65,9 @@
   "vendor": {
     "$ref": "definitions/vendor.json"
   },
+  "volume": {
+    "$ref": "definitions/volume.json"
+  },
   "return_claim": {
     "$ref": "definitions/return_claim.json"
   }
