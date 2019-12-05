@@ -27,20 +27,22 @@ use Try::Tiny;
 use Koha::Database;
 use Koha::DateUtils qw( dt_from_string );
 
-use C4::Context;
+use C4::Biblio qw( ModZebra ); # FIXME This is terrible, we should move the indexation code outside of C4::Biblio
 use C4::Circulation;
-use C4::Reserves;
 use C4::ClassSource; # FIXME We would like to avoid that
+use C4::Context;
 use C4::Log qw( logaction );
+use C4::Reserves;
 
 use Koha::Checkouts;
 use Koha::CirculationRules;
 use Koha::SearchEngine::Indexer;
 use Koha::Item::Transfer::Limits;
 use Koha::Item::Transfers;
+use Koha::ItemTypes;
+use Koha::Libraries;
 use Koha::Patrons;
 use Koha::Plugins;
-use Koha::Libraries;
 use Koha::StockRotationItem;
 use Koha::StockRotationRotas;
 
@@ -199,6 +201,18 @@ sub delete {
     my $indexer = Koha::SearchEngine::Indexer->new({ index => $Koha::SearchEngine::BIBLIOS_INDEX });
     $indexer->index_records( $self->biblionumber, "specialUpdate", "biblioserver" )
         unless $params->{skip_record_index};
+
+    if ( C4::Context->preference('EnableVolumes') ) {
+        my $volume_item =
+          Koha::Biblio::Volume::Items->find( { itemnumber => $self->itemnumber } );
+        my $volume_id = $volume_item ? $volume_item->volume_id : undef;
+
+        # If this item is the last item on a volume, delete the volume as well
+        if ($volume_id) {
+            my $volume = Koha::Biblio::Volumes->find($volume_id);
+            $volume->delete unless $volume->items->count > 1;
+        }
+    }
 
     $self->_after_item_action_hooks({ action => 'delete' });
 
@@ -363,6 +377,26 @@ sub checkout {
     my $checkout_rs = $self->_result->issue;
     return unless $checkout_rs;
     return Koha::Checkout->_new_from_dbic( $checkout_rs );
+}
+
+=head3 volume
+
+my $volume = $item->volume;
+
+Return the volume for this item
+
+=cut
+
+sub volume {
+    my ( $self ) = @_;
+
+    my $volume_item = $self->_result->volume_items->first;
+    return unless $volume_item;
+
+    my $volume_rs = $volume_item->volume;
+    return unless $volume_rs;
+
+    return Koha::Biblio::Volume->_new_from_dbic( $volume_rs );
 }
 
 =head3 holds
