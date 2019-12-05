@@ -50,6 +50,7 @@ my @rank           = $input->multi_param('rank-request');
 my $type           = $input->param('type');
 my $title          = $input->param('title');
 my $checkitem      = $input->param('checkitem');
+my $volume_id      = $input->param('volume_id');
 my $expirationdate = $input->param('expiration_date');
 my $itemtype       = $input->param('itemtype') || undef;
 
@@ -155,6 +156,7 @@ if ( $type eq 'str8' && $borrower ) {
                             itemnumber       => $checkitem,
                             found            => $found,
                             itemtype         => $itemtype,
+                            volume_id        => $volume_id,
                         }
                     );
                 }
