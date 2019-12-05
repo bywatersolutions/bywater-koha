@@ -69,6 +69,7 @@ sub add {
         my $item;
 
         my $biblio_id         = $body->{biblio_id};
+        my $volume_id         = $body->{volume_id};
         my $pickup_library_id = $body->{pickup_library_id};
         my $item_id           = $body->{item_id};
         my $patron_id         = $body->{patron_id};
@@ -198,6 +199,7 @@ sub add {
                 itemnumber       => $item_id,
                 found            => undef,                # TODO: Why not?
                 itemtype         => $item_type,
+                volume_id        => $volume_id,
             }
         );
 
