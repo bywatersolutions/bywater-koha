@@ -1742,6 +1742,37 @@ CREATE TABLE `patronimage` ( -- information related to patron images
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
+-- Table structure for table `volumes`
+--
+
+DROP TABLE IF EXISTS `volumes`;
+CREATE TABLE `volumes` ( -- information related to bibliographic records in Koha
+  `id` int(11) NOT NULL auto_increment, -- primary key, unique identifier assigned by Koha
+  `biblionumber` INT(11) NOT NULL default 0, -- foreign key linking this table to the biblio table
+  `display_order` INT(4) NOT NULL default 0, -- specifies the 'sort order' for volumes
+  `description` MEDIUMTEXT default NULL, -- equivilent to enumchron
+  `created_on` TIMESTAMP NULL, -- Time and date the volume was created
+  `updated_on` TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Time and date of the latest change on the volume (description)
+  PRIMARY KEY  (`id`),
+  CONSTRAINT `volumes_ibfk_1` FOREIGN KEY (`biblionumber`) REFERENCES `biblio` (`biblionumber`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `volume_items`
+--
+
+DROP TABLE IF EXISTS `volume_items`;
+CREATE TABLE `volume_items` ( -- information related to bibliographic records in Koha
+  `id` int(11) NOT NULL auto_increment, -- primary key, unique identifier assigned by Koha
+  `volume_id` int(11) NOT NULL default 0, -- foreign key making this table a 1 to 1 join from items to volumes
+  `itemnumber` int(11) NOT NULL default 0, -- foreign key linking this table to the items table
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY (volume_id,itemnumber),
+  CONSTRAINT `volume_items_iifk_1` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `volume_items_vifk_1` FOREIGN KEY (`volume_id`) REFERENCES `volumes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
 -- Table structure for table `reserves`
 --
 
@@ -1751,6 +1782,7 @@ CREATE TABLE `reserves` ( -- information related to holds/reserves in Koha
   `borrowernumber` int(11) NOT NULL default 0, -- foreign key from the borrowers table defining which patron this hold is for
   `reservedate` date default NULL, -- the date the hold was placed
   `biblionumber` int(11) NOT NULL default 0, -- foreign key from the biblio table defining which bib record this hold is on
+  `volume_id` int(11) NULL default NULL, -- foreign key from the volumes table defining if this is a volume level hold
   `branchcode` varchar(10) default NULL, -- foreign key from the branches table defining which branch the patron wishes to pick this hold up at
   `notificationdate` date default NULL, -- currently unused
   `reminderdate` date default NULL, -- currently unused
@@ -1778,7 +1810,8 @@ CREATE TABLE `reserves` ( -- information related to holds/reserves in Koha
   CONSTRAINT `reserves_ibfk_2` FOREIGN KEY (`biblionumber`) REFERENCES `biblio` (`biblionumber`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `reserves_ibfk_3` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `reserves_ibfk_4` FOREIGN KEY (`branchcode`) REFERENCES `branches` (`branchcode`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `reserves_ibfk_5` FOREIGN KEY (`itemtype`) REFERENCES `itemtypes` (`itemtype`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `reserves_ibfk_5` FOREIGN KEY (`itemtype`) REFERENCES `itemtypes` (`itemtype`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `reserves_ibfk_6` FOREIGN KEY (`volume_id`) REFERENCES `volumes` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -1791,6 +1824,7 @@ CREATE TABLE `old_reserves` ( -- this table holds all holds/reserves that have b
   `borrowernumber` int(11) default NULL, -- foreign key from the borrowers table defining which patron this hold is for
   `reservedate` date default NULL, -- the date the hold was places
   `biblionumber` int(11) default NULL, -- foreign key from the biblio table defining which bib record this hold is on
+  `volume_id` int(11) NULL default NULL, -- foreign key from the volumes table defining if this is a volume level hold
   `branchcode` varchar(10) default NULL, -- foreign key from the branches table defining which branch the patron wishes to pick this hold up at
   `notificationdate` date default NULL, -- currently unused
   `reminderdate` date default NULL, -- currently unused
@@ -1820,6 +1854,8 @@ CREATE TABLE `old_reserves` ( -- this table holds all holds/reserves that have b
   CONSTRAINT `old_reserves_ibfk_3` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`)
     ON DELETE SET NULL ON UPDATE SET NULL,
   CONSTRAINT `old_reserves_ibfk_4` FOREIGN KEY (`itemtype`) REFERENCES `itemtypes` (`itemtype`)
+    ON DELETE SET NULL ON UPDATE SET NULL,
+  CONSTRAINT `old_reserves_ibfk_5` FOREIGN KEY (`volume_id`) REFERENCES `volumes` (`id`)
     ON DELETE SET NULL ON UPDATE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

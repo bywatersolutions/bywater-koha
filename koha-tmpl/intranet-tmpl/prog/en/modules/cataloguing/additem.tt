@@ -3,6 +3,7 @@
 [% USE Koha %]
 [% USE KohaDates %]
 [% USE ColumnsSettings %]
+[% SET footerjs = 1 %]
 [% INCLUDE 'doc-head-open.inc' %]
 <title>Koha &rsaquo; Cataloging &rsaquo; [% title | html %] [% IF ( author ) %] by [% author | html %][% END %] (Record #[% biblionumber | html %]) &rsaquo; Items</title>
 [% INCLUDE 'doc-head-close.inc' %]
@@ -154,12 +155,12 @@
 
                 [% SET mv = ite.marc_value %]
                 [% IF ( mv.type == 'hidden' ) %]
-                    <input type="hidden" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]">
+                    <input type="hidden" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor [% ite.kohafield | html %]" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]">
                 [% ELSIF ( mv.type == 'select' ) %]
-                    [% IF ( mv.readonly ) %]
-                        <select name="field_value" id="[%- mv.id | html -%]" size="1" class="input_marceditor" readonly="readonly" disabled="disabled">
+                    [% IF ( mv.readonly || ite.IS_RETURN_CLAIM ) %]
+                        <select name="field_value" id="[%- mv.id | html -%]" size="1" class="input_marceditor [% ite.kohafield | html %]" readonly="readonly" disabled="disabled">
                     [% ELSE %]
-                        <select name="field_value" id="[%- mv.id | html -%]" size="1" class="input_marceditor">
+                        <select name="field_value" id="[%- mv.id | html -%]" size="1" class="input_marceditor [% ite.kohafield | html %]" data-category="[% mv.category | html %]">
                     [% END %]
                     [% FOREACH aval IN mv.values %]
                         [% IF aval == mv.default %]
@@ -171,17 +172,17 @@
                     </select>
                 [% ELSIF ( mv.type == 'text_auth' ) %]
                     [% IF mv.readonly %]
-                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" readonly="readonly" />
+                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor [% ite.kohafield | html %]" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" readonly="readonly" />
                     [% ELSE %]
-                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" />
+                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor [% ite.kohafield | html %]" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" />
                         [% SET dopop = "Dopop('/cgi-bin/koha/authorities/auth_finder.pl?authtypecode=\"${mv.authtypecode}\"&index=${mv.id}','${mv.id}')" %]
                         <a href="#" class="buttonDot"  onclick="[%- dopop | html -%]; return false;" title="Tag editor">...</a>
                     [% END %]
                 [% ELSIF ( mv.type == 'text_plugin' ) %]
                     [% IF mv.readonly %]
-                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" readonly="readonly" />
+                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor [% ite.kohafield | html %]" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" readonly="readonly" />
                     [% ELSE %]
-                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" />
+                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor [% ite.kohafield | html %]" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" />
                         [% IF ( mv.nopopup ) %]
                             <a href="#" id="buttonDot_[%- mv.id | html -%]" class="[%- mv.class | html -%]" title="No popup">...</a>
                         [% ELSE  %]
@@ -191,15 +192,15 @@
                     [% END %]
                 [% ELSIF ( mv.type == 'text' ) %]
                     [% IF mv.readonly %]
-                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" readonly="readonly" />
+                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor [% ite.kohafield | html %]" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" readonly="readonly" />
                     [% ELSE %]
-                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" />
+                        <input type="text" id="[%- mv.id | html -%]" name="field_value" class="input_marceditor [% ite.kohafield | html %]" size="50" maxlength="[%- mv.maxlength | html -%]" value="[%- mv.value | html -%]" />
                     [% END %]
                 [% ELSIF ( mv.type == 'textarea' ) %]
                     [% IF mv.readonly %]
-                        <textarea id="[%- mv.id | html -%]" name="field_value" class="input_marceditor" rows="5" cols="64" readonly="readonly" >[% mv.value | html %]</textarea>
+                        <textarea id="[%- mv.id | html -%]" name="field_value" class="input_marceditor [% ite.kohafield | html %]" rows="5" cols="64" readonly="readonly" >[% mv.value | html %]</textarea>
                     [% ELSE %]
-                        <textarea id="[%- mv.id | html -%]" name="field_value" class="input_marceditor" rows="5" cols="64" >[% mv.value | html %]</textarea>
+                        <textarea id="[%- mv.id | html -%]" name="field_value" class="input_marceditor [% ite.kohafield | html %]" rows="5" cols="64" >[% mv.value | html %]</textarea>
                     [% END %]
                 [% END %]
 
@@ -222,6 +223,35 @@
     <input type="hidden" name="indicator" value=" " />
     <input type="hidden" name="indicator" value=" " />
     <input type="hidden" name="itemnumber" value="[% itemnumber | html %]" />
+
+[% IF volumes.count && op != 'saveitem' && CAN_user_editcatalogue_manage_volumes %]
+    <fieldset class="rows">
+        <legend><i class="fa fa-plus"></i> Add to volume</legend>
+        [% FOREACH v IN volumes %]
+            <input type="hidden" id="volume-[% v.id | html %]" value="[% v.description | html %]" />
+        [% END %]
+        <p>
+            <label for="select_volume">Options: </label>
+            <select name="volume" id="volume-add-or-create-form-select">
+                <optgroup label="Use existing volume">
+                    [% FOREACH v IN volumes %]
+                        <option value="[% v.id | html %]">Use: [% v.description | html %]</option>
+                    [% END %]
+                </optgroup>
+                <optgroup label="Other options">
+                    <option id="volume-add-or-create-form-no-add" value="">Do not add to volume</option>
+                    <option value="create">Create new volume</option>
+                </optgroup>
+            </select>
+        </p>
+
+        <p id="volume-add-or-create-form-description-block">
+            <label for="volume_description" class="required">Name: </label>
+            <input name="volume_description" id="volume-add-or-create-form-description" type="text" size="30" class="required" />
+            <span class="required">Required</span>
+        </p>
+    </fieldset>
+[% END %]
 
 <fieldset class="action">    [% IF op != 'saveitem' %]
     <input type="submit" name="phony_submit" value="phony_submit" id="phony_submit" style="display:none;" onclick="return false;" />
@@ -268,5 +298,11 @@
             </main>
         </div> <!-- /.col-sm-12 -->
     </div> <!-- /.row -->
+
+[% MACRO jsinclude BLOCK %]
+    <script>
+      var has_volumes = [% volumes.count | html %];
+    </script>
+[% END %]
 
 [% INCLUDE 'intranet-bottom.inc' %]
