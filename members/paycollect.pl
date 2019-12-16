@@ -188,7 +188,7 @@ if ( $total_paid and $total_paid ne '0.00' ) {
                         amount       => $total_paid,
                         note         => $note,
                         payment_type => $payment_type,
-                        interface    => C4::Context->interface
+                        interface    => C4::Context->interface,
                         library_id   => $branch,
                     }
                 );
