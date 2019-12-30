@@ -54,9 +54,7 @@ subtest 'token-based tests' => sub {
 
     my $patron = $builder->build_object({
         class => 'Koha::Patrons',
-        value  => {
-            flags => 16 # no permissions
-        },
+        value  => { flags => 1 },
     });
 
     t::lib::Mocks::mock_preference('RESTOAuth2ClientCredentials', 1);
@@ -80,8 +78,9 @@ subtest 'token-based tests' => sub {
     my $interface;
     my $userenv;
 
-    my $tx = $t->ua->build_tx(GET => '/api/v1/patrons');
+    my $tx = $t->ua->build_tx(GET => '/api/v1/acquisitions/orders');
     $tx->req->headers->authorization("Bearer $access_token");
+    $tx->req->headers->header( 'x-koha-embed' => 'fund' );
 
     $t->app->hook(after_dispatch => sub {
         $stash     = shift->stash;
@@ -99,6 +98,10 @@ subtest 'token-based tests' => sub {
     is( $user->borrowernumber, $patron->borrowernumber, 'The stashed user is the right one' );
     is( $userenv->{number}, $patron->borrowernumber, 'userenv set correctly' );
     is( $interface, 'api', "Interface correctly set to \'api\'" );
+
+    my $embed = $stash->{'koha.embed'};
+    ok( defined $embed, 'The embed hashref is generated and stashed' );
+    is_deeply( $embed, { fund => {} }, 'The embed data structure is correct' );
 
     $schema->storage->txn_rollback;
 };

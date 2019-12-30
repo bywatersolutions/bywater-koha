@@ -154,6 +154,7 @@ sub authenticate_api_request {
     my $spec = $c->openapi->spec || $c->match->endpoint->pattern->defaults->{'openapi.op_spec'};
 
     my $cookie_auth = 0;
+    $c->stash_embed({ spec => $spec });
 
     my $authorization = $spec->{'x-koha-authorization'};
 
