@@ -71,17 +71,101 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Export additional variables needed by bywater-koha-custom-rebaser
+      id: extracted_variables
       run: |
         KOHA_BRANCH=${GITHUB_REF##*/}
         echo "KOHA_BRANCH: $KOHA_BRANCH"
-        echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
+        echo ::set-output name=KOHA_BRANCH::$KOHA_BRANCH
         export KOHACLONE="$(pwd)" # Needed for koha-testing-docker
         echo "KOHACLONE: $KOHACLONE"
-        echo ::set-env name=KOHACLONE::$KOHACLONE
+        echo ::set-output name=KOHACLONE::$KOHACLONE
 
     - name: Run kylemhall/bywater-koha-custom-rebaser
       if: startsWith( github.ref, 'refs/heads/bywater-v' )
       run: |
-        docker run --mount type=bind,source=$KOHACLONE,target=/kohaclone -e DO_IT=1 -e GITHUB_TOKEN=$OUR_GITHUB_TOKEN -e KOHA_BRANCH=$KOHA_BRANCH kylemhall/bywater-koha-custom-rebaser
+        docker run --mount type=bind,source=${{ steps.extracted_variables.outputs.KOHACLONE }},target=/kohaclone -e DO_IT=1 -e GITHUB_TOKEN=$OUR_GITHUB_TOKEN -e KOHA_BRANCH=${{ steps.extracted_variables.outputs.KOHA_BRANCH }} kylemhall/bywater-koha-custom-rebaser
       env:
          OUR_GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
+
+  build_debs:
+    name: Build Debian packages
+    needs: unit_test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Export additional variables
+      id: extracted_variables
+      run: |
+        # Export VERSION as Koha major and minor e.g. 18.11, 19.11, etc.. TODO: Make this into a js based github action.
+        export FULL_VERSION="$(cat Koha.pm | grep '$VERSION =')" && export FULL_VERSION=${FULL_VERSION%\"*} && export FULL_VERSION=${FULL_VERSION##*\"} && echo $FULL_VERSION
+        IFS='.' read -ra VER_PARTS <<< "$FULL_VERSION"
+        KOHA_MAJOR=${VER_PARTS[0]}
+        KOHA_MINOR=${VER_PARTS[1]}
+        MAJOR_MINOR_VERSION="${KOHA_MAJOR}.${KOHA_MINOR}"
+        echo "MAJOR_MINOR_VERSION: $MAJOR_MINOR_VERSION"
+        echo ::set-output name=MAJOR_MINOR_VERSION::$MAJOR_MINOR_VERSION
+        # Export kohaclone path
+        KOHACLONE="$(pwd)"
+        echo "KOHACLONE: $KOHACLONE"
+        echo ::set-output name=KOHACLONE::$KOHACLONE
+        # Export current branch name
+        KOHA_BRANCH=${GITHUB_REF##*/}
+        echo "KOHA_BRANCH: $KOHA_BRANCH"
+        echo ::set-output name=KOHA_BRANCH::$KOHA_BRANCH
+        # Split the branch name into parts ( e.g. bywater-v19.05.01-03 => "bywater", "v19.05.01", "03 )
+        IFS='-' read -ra BRANCH_PARTS <<< "$KOHA_BRANCH"
+        # Extract shortname branch name
+        SHORTNAME=${BRANCH_PARTS[0]}
+        echo "SHORTNAME: $SHORTNAME"
+        echo ::set-output name=SHORTNAME::$SHORTNAME
+        # Extract version without v
+        TMP_VERSION=${BRANCH_PARTS[1]}
+        MMM_VERSION=${TMP_VERSION:1} # Removes the first character i.e. 'v19.05.01' => '19.05.01'
+        echo "MMM_VERSION: $MMM_VERSION"
+        echo ::set-output name=MMM_VERSION::$MMM_VERSION
+        # Extract mark
+        MARK=${BRANCH_PARTS[2]}
+        echo "MARK: $MARK"
+        echo ::set-output name=MARK::$MARK
+
+    - name: Echo KOHA_BRANCH from previous step
+      run: echo "${{ steps.extracted_variables.outputs.KOHA_BRANCH }}"
+
+    - name: Create dir for debian packages
+      run: mkdir /tmp/debs
+
+    - name: Run koha-dpkg-docker
+      run: |
+        docker run --volume=${{ steps.extracted_variables.outputs.KOHACLONE }}:/koha --volume=/tmp/debs:/debs --privileged --env VERSION="${{ steps.extracted_variables.outputs.MMM_VERSION }}~${{ steps.extracted_variables.outputs.SHORTNAME }}~${{ steps.extracted_variables.outputs.MARK }}" koha/koha-dpkg:${{ steps.extracted_variables.outputs.MAJOR_MINOR_VERSION }}
+
+    - name: List file in debs dir
+      run: ls -alh /tmp/debs
+
+    - name: Create artifact zip
+      run: zip --junk-paths -r "/tmp/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip" /tmp/debs/*
+
+    - name: List contents of current directory, should contain artifacts zip
+      run: ls -alh
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+        release_name: Release ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+        draft: false
+        prerelease: false
+
+    - name: Upload asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: /tmp/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip
+        asset_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip
+        asset_content_type: application/zip
