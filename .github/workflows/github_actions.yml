@@ -1,5 +1,10 @@
 name: CI
-on: [push]
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
 jobs:
   unit_test:
     name: Run unit tests
@@ -150,12 +155,13 @@ jobs:
 
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
+      uses: bywatersolutions/github-action-create-release@master
       env:
         GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
       with:
         tag_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
         release_name: Release ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+        target: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
         draft: false
         prerelease: false
 
