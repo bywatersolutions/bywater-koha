@@ -284,6 +284,8 @@ our $to_api_mapping = {
     branchprinter    => undef,
     branchnotes      => 'notes',
     marcorgcode      => 'marc_org_code',
+    itembarcodeprefix => 'itembarcodeprefix',
+    patronbarcodeprefix => 'patronbarcodeprefix',
 };
 
 =head3 $to_model_mapping
@@ -309,6 +311,8 @@ our $to_model_mapping = {
     ip                => 'branchip',
     notes             => 'branchnotes',
     marc_org_code     => 'marcorgcode',
+    itembarcodeprefix => 'itembarcodeprefix',
+    patronbarcodeprefix => 'patronbarcodeprefix',
 };
 
 1;
