@@ -610,6 +610,7 @@ CREATE TABLE `deletedborrowers` ( -- stores data related to the patrons/borrower
   `login_attempts` int(4) default 0, -- number of failed login attemps
   `overdrive_auth_token` MEDIUMTEXT default NULL, -- persist OverDrive auth token
   `anonymized` TINYINT(1) NOT NULL DEFAULT 0, -- flag for data anonymization
+  `autorenew_checkouts` TINYINT(1) NOT NULL DEFAULT 1, -- flag for allowing auto-renewal
   KEY borrowernumber (borrowernumber),
   KEY `cardnumber` (`cardnumber`),
   KEY `sms_provider_id` (`sms_provider_id`)
@@ -1645,6 +1646,7 @@ CREATE TABLE `borrowers` ( -- this table includes information about your patrons
   `login_attempts` int(4) default 0, -- number of failed login attemps
   `overdrive_auth_token` MEDIUMTEXT default NULL, -- persist OverDrive auth token
   `anonymized` TINYINT(1) NOT NULL DEFAULT 0, -- flag for data anonymization
+  `autorenew_checkouts` TINYINT(1) NOT NULL DEFAULT 1, -- flag for allowing auto-renewal
   UNIQUE KEY `cardnumber` (`cardnumber`),
   PRIMARY KEY `borrowernumber` (`borrowernumber`),
   KEY `categorycode` (`categorycode`),
