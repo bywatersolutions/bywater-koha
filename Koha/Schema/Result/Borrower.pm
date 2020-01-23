@@ -458,6 +458,12 @@ __PACKAGE__->table("borrowers");
   default_value: 0
   is_nullable: 0
 
+=head2 autorenew_checkouts
+
+  data_type: 'tinyint'
+  default_value: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -662,6 +668,8 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "anonymized",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "autorenew_checkouts",
+  { data_type => "tinyint", default_value => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -704,7 +712,7 @@ __PACKAGE__->add_unique_constraint("userid", ["userid"]);
 
 =head1 RELATIONS
 
-=head2 accountlines
+=head2 accountlines_borrowernumbers
 
 Type: has_many
 
@@ -713,7 +721,7 @@ Related object: L<Koha::Schema::Result::Accountline>
 =cut
 
 __PACKAGE__->has_many(
-  "accountlines",
+  "accountlines_borrowernumbers",
   "Koha::Schema::Result::Accountline",
   { "foreign.borrowernumber" => "self.borrowernumber" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -1169,21 +1177,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 messages
-
-Type: has_many
-
-Related object: L<Koha::Schema::Result::Message>
-
-=cut
-
-__PACKAGE__->has_many(
-  "messages",
-  "Koha::Schema::Result::Message",
-  { "foreign.manager_id" => "self.borrowernumber" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 messages_borrowernumbers
 
 Type: has_many
@@ -1196,6 +1189,21 @@ __PACKAGE__->has_many(
   "messages_borrowernumbers",
   "Koha::Schema::Result::Message",
   { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 messages_managers
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Message>
+
+=cut
+
+__PACKAGE__->has_many(
+  "messages_managers",
+  "Koha::Schema::Result::Message",
+  { "foreign.manager_id" => "self.borrowernumber" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -1635,21 +1643,9 @@ Composing rels: L</aqorder_users> -> ordernumber
 __PACKAGE__->many_to_many("ordernumbers", "aqorder_users", "ordernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-10-10 14:31:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GjJLIOViIFRm185Yjl9vYA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-04-24 12:29:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v48A9vRMBFqEDt0w19Axbg
 
-__PACKAGE__->add_columns(
-    '+anonymized'    => { is_boolean => 1 },
-    '+lost'          => { is_boolean => 1 },
-    '+gonenoaddress' => { is_boolean => 1 },
-    '+privacy_guarantor_fines' => { is_boolean => 1 }
-);
 
-sub koha_objects_class {
-    'Koha::Patrons';
-}
-sub koha_object_class {
-    'Koha::Patron';
-}
-
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
