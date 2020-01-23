@@ -653,6 +653,20 @@ __PACKAGE__->add_columns(
 # Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-05-22 04:33:29
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zK1jC6Wawwj8B2ch9KFByw
 
+__PACKAGE__->add_columns(
+    '+anonymized'    => { is_boolean => 1 },
+    '+lost'          => { is_boolean => 1 },
+    '+gonenoaddress' => { is_boolean => 1 },
+    '+privacy_guarantor_fines' => { is_boolean => 1 },
+    '+autorenew_checkouts' => { is_boolean => 1 }
+);
+
+sub koha_objects_class {
+    'Koha::Old::Patrons';
+}
+sub koha_object_class {
+    'Koha::Old::Patron';
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -712,37 +712,90 @@
     [% IF ( mandatorysort2 ) %]<span class="required">Required</span>[% END %]
     </li>
         [% END %]
-    [% IF ( Koha.Preference('CheckPrevCheckout') == 'softyes' || Koha.Preference('CheckPrevCheckout') == 'softno' ) %]
-      <li><label for="checkprevcheckout">Check for previous checkouts: </label>
-        <select name="checkprevcheckout" id="checkprevcheckout">
-        [% IF ( checkprevcheckout == 'yes' ) %]
-          <option value="yes" selected="selected">Yes if settings allow it</option>
-          <option value="no">No if settings allow it</option>
-          <option value="inherit">Inherit from settings</option>
-        [% ELSIF ( checkprevcheckout == 'no' ) %]
-          <option value="yes">Yes if settings allow it</option>
-          <option value="no" selected="selected">No if settings allow it</option>
-          <option value="inherit">Inherit from settings</option>
-        [% ELSE %]
-          <option value="yes">Yes if settings allow it</option>
-          <option value="no">No if settings allow it</option>
-          <option value="inherit" selected="selected">Inherit from settings</option>
-        [% END %]
-        </select>
-       </li>
-     [% END %]
-    [% IF Koha.Preference('TranslateNotices') %]
-        <li>
-            <label for="lang">Preferred language for notices: </label>
-            <select id="lang" name="lang">
-                <option value="default">Default</option>
-                [% FOR language IN languages %]
-                    [% FOR sublanguage IN language.sublanguages_loop %]
-                        [% IF language.plural %]
-                            [% IF sublanguage.rfc4646_subtag == lang %]
-                                <option value="[% sublanguage.rfc4646_subtag | html %]" selected="selected">[% sublanguage.native_description | html %] [% sublanguage.region_description | html %] ([% sublanguage.rfc4646_subtag | html %])</option>
-                            [% ELSE %]
-                                <option value="[% sublanguage.rfc4646_subtag | html %]">[% sublanguage.native_description | html %] [% sublanguage.region_description | html %] ([% sublanguage.rfc4646_subtag | html %])</option>
+      [% UNLESS noautorenew_checkouts %]
+          <li class="radio">
+              <label for="yes-autorenew_checkouts">
+                  Allow auto-renewal of items:
+              </label>
+              [% IF ( autorenew_checkouts ) %]
+                  <label for="yes-autorenew_checkouts">
+                      Yes
+                      <input type="radio" id="yes-autorenew_checkouts" name="autorenew_checkouts" value="1" checked="checked" />
+                  </label>
+                  <label for="no-autorenew_checkouts">
+                      No
+                      <input type="radio" id="no-autorenew_checkouts" name="autorenew_checkouts" value="0" />
+                  </label>
+              [% ELSE %]
+                  <label for="yes-autorenew_checkouts">
+                      Yes
+                      <input type="radio" id="yes-autorenew_checkouts" name="autorenew_checkouts" value="1" />
+                  </label>
+                  <label for="no-autorenew_checkouts">
+                      No
+                      <input type="radio" id="no-autorenew_checkouts" name="autorenew_checkouts" value="0" checked="checked" />
+                  </label>
+              [% END %]
+          </li>
+      [% END %]
+
+      [% UNLESS noautorenew_checkouts %]
+          <li class="radio">
+              <label for="yes-autorenew_checkouts">
+                  Allow auto-renewal of items:
+              </label>
+              [% IF ( autorenew_checkouts ) %]
+                  <label for="yes-autorenew_checkouts">
+                      Yes
+                      <input type="radio" id="yes-autorenew_checkouts" name="autorenew_checkouts" value="1" checked="checked" />
+                  </label>
+                  <label for="no-autorenew_checkouts">
+                      No
+                      <input type="radio" id="no-autorenew_checkouts" name="autorenew_checkouts" value="0" />
+                  </label>
+              [% ELSE %]
+                  <label for="yes-autorenew_checkouts">
+                      Yes
+                      <input type="radio" id="yes-autorenew_checkouts" name="autorenew_checkouts" value="1" />
+                  </label>
+                  <label for="no-autorenew_checkouts">
+                      No
+                      <input type="radio" id="no-autorenew_checkouts" name="autorenew_checkouts" value="0" checked="checked" />
+                  </label>
+              [% END %]
+          </li>
+      [% END %]
+      [% IF ( Koha.Preference('CheckPrevCheckout') == 'softyes' || Koha.Preference('CheckPrevCheckout') == 'softno' ) %]
+          <li><label for="checkprevcheckout">Check for previous checkouts: </label>
+              <select name="checkprevcheckout" id="checkprevcheckout">
+                  [% IF ( checkprevcheckout == 'yes' ) %]
+                      <option value="yes" selected="selected">Yes if settings allow it</option>
+                      <option value="no">No if settings allow it</option>
+                      <option value="inherit">Inherit from settings</option>
+                  [% ELSIF ( checkprevcheckout == 'no' ) %]
+                      <option value="yes">Yes if settings allow it</option>
+                      <option value="no" selected="selected">No if settings allow it</option>
+                      <option value="inherit">Inherit from settings</option>
+                  [% ELSE %]
+                      <option value="yes">Yes if settings allow it</option>
+                      <option value="no">No if settings allow it</option>
+                      <option value="inherit" selected="selected">Inherit from settings</option>
+                  [% END %]
+              </select>
+          </li>
+      [% END %]
+      [% IF Koha.Preference('TranslateNotices') %]
+          <li>
+              <label for="lang">Preferred language for notices: </label>
+              <select id="lang" name="lang">
+                  <option value="default">Default</option>
+                  [% FOR language IN languages %]
+                      [% FOR sublanguage IN language.sublanguages_loop %]
+                          [% IF language.plural %]
+                              [% IF sublanguage.rfc4646_subtag == lang %]
+                                  <option value="[% sublanguage.rfc4646_subtag | html %]" selected="selected">[% sublanguage.native_description | html %] [% sublanguage.region_description | html %] ([% sublanguage.rfc4646_subtag | html %])</option>
+                              [% ELSE %]
+                                  <option value="[% sublanguage.rfc4646_subtag | html %]">[% sublanguage.native_description | html %] [% sublanguage.region_description | html %] ([% sublanguage.rfc4646_subtag | html %])</option>
                             [% END %]
                         [% ELSE %]
                             [% IF sublanguage.rfc4646_subtag == lang %]
