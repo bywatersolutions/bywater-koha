@@ -140,11 +140,14 @@ sub GetHoldsQueueItems {
                          biblio.copyrightdate, biblio.subtitle, biblio.medium,
                          biblio.part_number, biblio.part_name,
                          biblioitems.publicationyear, biblioitems.pages, biblioitems.size,
-                         biblioitems.isbn, items.copynumber
+                         biblioitems.isbn, items.copynumber,
+                         volumes.id AS volume_id, volumes.description AS volume_description
                   FROM tmp_holdsqueue
-                       JOIN biblio      USING (biblionumber)
-                  LEFT JOIN biblioitems USING (biblionumber)
-                  LEFT JOIN items       USING (  itemnumber)
+                       JOIN biblio       USING (biblionumber)
+                  LEFT JOIN biblioitems  USING (biblionumber)
+                  LEFT JOIN items        USING (  itemnumber)
+                  LEFT JOIN volume_items USING (  itemnumber)
+                  LEFT JOIN volumes ON ( volume_items.volume_id = volumes.id )
                 /;
     if ($branchlimit) {
         $query .=" WHERE tmp_holdsqueue.holdingbranch = ?";
@@ -280,7 +283,7 @@ sub GetPendingHoldRequestsForBib {
     my $dbh = C4::Context->dbh;
 
     my $request_query = "SELECT biblionumber, borrowernumber, itemnumber, priority, reserves.branchcode,
-                                reservedate, reservenotes, borrowers.branchcode AS borrowerbranch, itemtype, item_level_hold
+                                reservedate, reservenotes, borrowers.branchcode AS borrowerbranch, itemtype, item_level_hold, volume_id
                          FROM reserves
                          JOIN borrowers USING (borrowernumber)
                          WHERE biblionumber = ?
@@ -414,6 +417,8 @@ sub MapItemsToHoldRequests {
 
                 next if $request->{itemnumber} && $request->{itemnumber} != $item->{itemnumber};
 
+                next if $request->{volume_id} && $item->{_object}->volume && $item->{_object}->volume->id ne $request->{volume_id};
+
                 next unless $item->{_object}->can_be_transferred( { to => $libraries->{ $request->{branchcode} } } );
 
                 my $local_holds_priority_item_branchcode =
@@ -469,6 +474,9 @@ sub MapItemsToHoldRequests {
                     || ( $request->{branchcode} eq $items_by_itemnumber{ $request->{itemnumber} }->{ $items_by_itemnumber{ $request->{itemnumber} }->{hold_fulfillment_policy} }  )
                 and ( !$request->{itemtype} # If hold itemtype is set, item's itemtype must match
                     || $items_by_itemnumber{ $request->{itemnumber} }->{itype} eq $request->{itemtype} )
+                and ( !$request->{volume_id} # If hold volume is set, item's volume must match
+                      || ( $items_by_itemnumber{ $request->{itemnumber} }->{_object}->volume
+                        && $items_by_itemnumber{ $request->{itemnumber} }->{_object}->volume->id eq $request->{volume_id} ) )
                 )
                 and $items_by_itemnumber{ $request->{itemnumber} }->{_object}->can_be_transferred( { to => $libraries->{ $request->{branchcode} } } )
 
@@ -525,7 +533,9 @@ sub MapItemsToHoldRequests {
                     && ( ( $item->{hold_fulfillment_policy} eq 'any' ) # Don't fill item level holds that contravene the hold pickup policy at this time
                         || $request->{branchcode} eq $item->{ $item->{hold_fulfillment_policy} } )
                     && ( !$request->{itemtype} # If hold itemtype is set, item's itemtype must match
-                        || ( $request->{itemnumber} && ( $items_by_itemnumber{ $request->{itemnumber} }->{itype} eq $request->{itemtype} ) ) )
+                        || $items_by_itemnumber{ $request->{itemnumber} }->{itype} eq $request->{itemtype} )
+                    && ( !$request->{volume_id} # If hold volume is set, item's volume must match
+                        || ( $item->{_object}->volume && $item->{_object}->volume->id eq $request->{volume_id} ) )
                   )
                 {
                     $itemnumber = $item->{itemnumber};
@@ -551,6 +561,13 @@ sub MapItemsToHoldRequests {
                     # If hold itemtype is set, item's itemtype must match
                     next unless ( !$request->{itemtype}
                         || $item->{itype} eq $request->{itemtype} );
+
+                    # If hold volume is set, item's volume must match
+                    next unless (
+                        !$request->{volume_id}
+                        || (   $item->{_object}->volume
+                            && $item->{_object}->volume->id eq $request->{volume_id} )
+                    );
 
                     $itemnumber = $item->{itemnumber};
                     last;
@@ -589,6 +606,13 @@ sub MapItemsToHoldRequests {
                     next unless ( !$request->{itemtype}
                         || $item->{itype} eq $request->{itemtype} );
 
+                    # If hold volume is set, item's volume must match
+                    next unless (
+                        !$request->{volume_id}
+                        || (   $item->{_object}->volume
+                            && $item->{_object}->volume->id eq $request->{volume_id} )
+                    );
+
                     $itemnumber = $item->{itemnumber};
                     $holdingbranch = $branch;
                     last PULL_BRANCHES;
@@ -607,6 +631,13 @@ sub MapItemsToHoldRequests {
                         # If hold itemtype is set, item's itemtype must match
                         next unless ( !$request->{itemtype}
                             || $current_item->{itype} eq $request->{itemtype} );
+
+                    # If hold volume is set, item's volume must match
+                    next unless (
+                        !$request->{volume_id}
+                        || (   $current_item->{_object}->volume
+                            && $current_item->{_object}->volume->id eq $request->{volume_id} )
+                    );
 
                         next unless $items_by_itemnumber{ $current_item->{itemnumber} }->{_object}->can_be_transferred( { to => $libraries->{ $request->{branchcode} } } );
 
@@ -633,6 +664,13 @@ sub MapItemsToHoldRequests {
                         # If hold itemtype is set, item's itemtype must match
                         next unless ( !$request->{itemtype}
                             || $item->{itype} eq $request->{itemtype} );
+
+                        # If hold volume is set, item's volume must match
+                        next unless (
+                            !$request->{volume_id}
+                            || (   $item->{_object}->volume
+                                && $item->{_object}->volume->id eq $request->{volume_id} )
+                        );
 
                         next unless $items_by_itemnumber{ $item->{itemnumber} }->{_object}->can_be_transferred( { to => $libraries->{ $request->{branchcode} } } );
 

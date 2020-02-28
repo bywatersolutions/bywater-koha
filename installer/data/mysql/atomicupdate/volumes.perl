@@ -10,6 +10,11 @@ if ( CheckVersion( $DBversion ) ) {
         ( 9, 'manage_volumes', 'Create, update and delete volumes, add or remove items from a volume');
     });
 
+    $dbh->do(q{
+        INSERT IGNORE INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `type` ) VALUES
+        ('EnableVolumeHolds','0','','Enable volume level holds feature','YesNo')
+    });
+
     unless ( TableExists('volumes') ) {
         $dbh->do(q{
             CREATE TABLE `volumes` ( -- information related to bibliographic records in Koha
@@ -36,6 +41,22 @@ if ( CheckVersion( $DBversion ) ) {
             CONSTRAINT `volume_items_iifk_1` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`) ON DELETE CASCADE ON UPDATE CASCADE,
             CONSTRAINT `volume_items_vifk_1` FOREIGN KEY (`volume_id`) REFERENCES `volumes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        });
+    }
+
+    unless ( column_exists( 'reserves', 'volume_id' ) ) {
+        $dbh->do(q{
+            ALTER TABLE reserves
+            ADD COLUMN `volume_id` int(11) NULL default NULL AFTER biblionumber,
+            ADD CONSTRAINT `reserves_ibfk_6` FOREIGN KEY (`volume_id`) REFERENCES `volumes` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+        });
+    }
+
+    unless ( column_exists( 'old_reserves', 'volume_id' ) ) {
+        $dbh->do(q{
+            ALTER TABLE old_reserves
+            ADD COLUMN `volume_id` int(11) NULL default NULL AFTER biblionumber,
+            ADD CONSTRAINT `old_reserves_ibfk_5` FOREIGN KEY (`volume_id`) REFERENCES `volumes` (`id`) ON DELETE SET NULL ON UPDATE SET NULL;
         });
     }
 
