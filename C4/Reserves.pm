@@ -189,6 +189,7 @@ sub AddReserve {
     my $found          = $params->{found};
     my $itemtype       = $params->{itemtype};
     my $non_priority   = $params->{non_priority};
+    my $volume_id      = $params->{volume_id};
 
     $resdate = output_pref( { str => dt_from_string( $resdate ), dateonly => 1, dateformat => 'iso' })
         or output_pref({ dt => dt_from_string, dateonly => 1, dateformat => 'iso' });
@@ -242,6 +243,7 @@ sub AddReserve {
         {
             borrowernumber => $borrowernumber,
             biblionumber   => $biblionumber,
+            volume_id      => $volume_id,
             reservedate    => $resdate,
             branchcode     => $branch,
             priority       => $priority,
