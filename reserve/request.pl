@@ -494,6 +494,9 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
                         $item->{itype} = $biblioitem->{itemtype};
                     }
 
+                    my $item_object = Koha::Items->find( $itemnumber );
+                    $item->{object} = $item_object;
+
                     $item->{itypename} = $itemtypes->{ $item->{itype} }{description};
                     $item->{imageurl} = getitemtypeimagelocation( 'intranet', $itemtypes->{ $item->{itype} }{imageurl} );
                     $item->{homebranch} = $item->{homebranch};
@@ -665,6 +668,12 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
                     $biblioloopiter{none_avail} = 1;
                 }
                 $template->param( hiddencount => $hiddencount);
+
+                if ( C4::Context->preference('EnableVolumeHolds') ) {
+                    my $volumes = Koha::Biblio::Volumes->search(
+                        { biblionumber => $biblionumber } );
+                    $biblioitem->{volumes} = $volumes;
+                }
 
                 push @bibitemloop, $biblioitem;
             }
