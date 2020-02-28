@@ -16,6 +16,11 @@ properties:
   biblio_id:
     type: integer
     description: Internal biblio identifier
+  volume_id:
+    type:
+      - integer
+      - "null"
+    description: The id of the volume
   pickup_library_id:
     type:
       - string
