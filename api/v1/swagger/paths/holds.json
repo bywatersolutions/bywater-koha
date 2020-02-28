@@ -32,6 +32,12 @@
           "type": "integer"
         },
         {
+          "name": "volume_id",
+          "in": "query",
+          "description": "Internal volume identifier for the volume to place on hold",
+          "type": "integer"
+        },
+        {
           "name": "pickup_library_id",
           "in": "query",
           "description": "Internal library identifier for the pickup library",
@@ -203,6 +209,10 @@
                 "description": "The date the hold was placed",
                 "type": [ "string", "null" ],
                 "format": "date"
+              },
+              "volume_id": {
+                "description": "Internal volume identifier for the volume to place on hold",
+                "type": [ "integer", "null" ]
               },
               "item_id": {
                 "description": "Internal item identifier",
