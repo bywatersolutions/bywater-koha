@@ -508,6 +508,7 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
 
                     # checking reserve
                     my $item_object = Koha::Items->find( $itemnumber );
+                    $item->{object} = $item_object;
                     my $holds = $item_object->current_holds;
                     if ( my $first_hold = $holds->next ) {
                         my $p = Koha::Patrons->find( $first_hold->borrowernumber );
@@ -663,6 +664,12 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
                 bibitemloop         => \@bibitemloop,
                 available_itemtypes => \@available_itemtypes
             );
+        }
+
+        if ( C4::Context->preference('EnableVolumeHolds') ) {
+            my $volumes = Koha::Biblio::Volumes->search(
+                { biblionumber => $biblionumber } );
+            $biblioitem->{volumes} = $volumes;
         }
 
         # existingreserves building
