@@ -3948,6 +3948,7 @@ CREATE TABLE `old_reserves` (
   `borrowernumber` int(11) DEFAULT NULL COMMENT 'foreign key from the borrowers table defining which patron this hold is for',
   `reservedate` date DEFAULT NULL COMMENT 'the date the hold was places',
   `biblionumber` int(11) DEFAULT NULL COMMENT 'foreign key from the biblio table defining which bib record this hold is on',
+  `volume_id` int(11) NULL default NULL, -- foreign key from the volumes table defining if this is a volume level hold
   `branchcode` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'foreign key from the branches table defining which branch the patron wishes to pick this hold up at',
   `desk_id` int(11) DEFAULT NULL COMMENT 'foreign key from the desks table defining which desk the patron should pick this hold up at',
   `notificationdate` date DEFAULT NULL COMMENT 'currently unused',
@@ -4358,6 +4359,7 @@ CREATE TABLE `reserves` (
   `borrowernumber` int(11) NOT NULL DEFAULT 0 COMMENT 'foreign key from the borrowers table defining which patron this hold is for',
   `reservedate` date DEFAULT NULL COMMENT 'the date the hold was placed',
   `biblionumber` int(11) NOT NULL DEFAULT 0 COMMENT 'foreign key from the biblio table defining which bib record this hold is on',
+  `volume_id` int(11) NULL default NULL, -- foreign key from the volumes table defining if this is a volume level hold
   `branchcode` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'foreign key from the branches table defining which branch the patron wishes to pick this hold up at',
   `desk_id` int(11) DEFAULT NULL COMMENT 'foreign key from the desks table defining which desk the patron should pick this hold up at',
   `notificationdate` date DEFAULT NULL COMMENT 'currently unused',
