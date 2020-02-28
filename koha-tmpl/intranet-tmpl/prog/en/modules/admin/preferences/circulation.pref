@@ -666,6 +666,12 @@ Circulation:
                   no: "Don't enable"
             - the item groups feature to allow collecting groups of items on a record together.
         -
+            - pref: EnableVolumeHolds
+              choices:
+                  yes: Enable
+                  no: "Don't enable"
+            - the ability to place holds on volumes.
+        -
             - In the staff client, split the holds queue into separate tables by
             - pref: HoldsSplitQueue
               choices:
