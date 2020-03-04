@@ -46,7 +46,6 @@ my @biblionumber = $query->multi_param('biblionumber');
 my @borrower = $query->multi_param('borrowernumber');
 my @branch = $query->multi_param('pickup');
 my @itemnumber = $query->multi_param('itemnumber');
-my @suspend_until=$query->multi_param('suspend_until');
 my $multi_hold = $query->param('multi_hold');
 my $biblionumbers = $query->param('biblionumbers');
 my $count=@rank;
@@ -67,12 +66,13 @@ if ($CancelBorrowerNumber) {
 else {
     for (my $i=0;$i<$count;$i++){
         undef $itemnumber[$i] if !$itemnumber[$i];
+        my $suspend_until = $query->param( "suspend_until_" . $reserve_id[$i] );
         ModReserve({
             rank => $rank[$i],
             reserve_id => $reserve_id[$i],
             branchcode => $branch[$i],
             itemnumber => $itemnumber[$i],
-            suspend_until => $suspend_until[$i]
+            suspend_until => $suspend_until,
         });
     }
 }
