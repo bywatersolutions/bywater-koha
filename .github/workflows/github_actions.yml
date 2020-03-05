@@ -143,6 +143,9 @@ jobs:
             - name: Create dir for debian packages
               run: mkdir /tmp/debs
 
+            - name: Clean out old docker images, just in case
+              run: docker system prune -a
+
             - name: Run koha-dpkg-docker
               run: |
                   docker run --volume=${{ steps.extracted_variables.outputs.KOHACLONE }}:/koha --volume=/tmp/debs:/debs --privileged --env VERSION="${{ steps.extracted_variables.outputs.MMM_VERSION }}~${{ steps.extracted_variables.outputs.SHORTNAME }}~${{ steps.extracted_variables.outputs.MARK }}" koha/koha-dpkg:${{ steps.extracted_variables.outputs.MAJOR_MINOR_VERSION }}
