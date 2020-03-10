@@ -809,6 +809,7 @@ sub CheckReserves {
                 # See if this item is more important than what we've got so far
                 if ( ( $res->{'priority'} && $res->{'priority'} < $priority ) || $local_hold_match ) {
                     $item ||= Koha::Items->find($itemnumber);
+                    next if $res->{volume_id} && $item->volume->id != $res->{volume_id};
                     next if $res->{itemtype} && $res->{itemtype} ne $item->effective_itemtype;
                     $patron ||= Koha::Patrons->find( $res->{borrowernumber} );
                     my $branch = GetReservesControlBranch( $item->unblessed, $patron->unblessed );
@@ -1589,7 +1590,8 @@ sub _Findgroupreserve {
                biblioitems.biblioitemnumber AS biblioitemnumber,
                reserves.itemnumber          AS itemnumber,
                reserves.reserve_id          AS reserve_id,
-               reserves.itemtype            AS itemtype
+               reserves.itemtype            AS itemtype,
+               reserves.volume_id           AS volume_id
         FROM reserves
         JOIN biblioitems USING (biblionumber)
         JOIN hold_fill_targets USING (biblionumber, borrowernumber, itemnumber)
@@ -1624,7 +1626,8 @@ sub _Findgroupreserve {
                biblioitems.biblioitemnumber AS biblioitemnumber,
                reserves.itemnumber          AS itemnumber,
                reserves.reserve_id          AS reserve_id,
-               reserves.itemtype            AS itemtype
+               reserves.itemtype            AS itemtype,
+               reserves.volume_id           AS volume_id
         FROM reserves
         JOIN biblioitems USING (biblionumber)
         JOIN hold_fill_targets USING (biblionumber, borrowernumber)
@@ -1658,7 +1661,8 @@ sub _Findgroupreserve {
                reserves.timestamp                  AS timestamp,
                reserves.itemnumber                 AS itemnumber,
                reserves.reserve_id                 AS reserve_id,
-               reserves.itemtype                   AS itemtype
+               reserves.itemtype                   AS itemtype,
+               reserves.volume_id                  AS volume_id
         FROM reserves
         WHERE reserves.biblionumber = ?
           AND (reserves.itemnumber IS NULL OR reserves.itemnumber = ?)
