@@ -61,6 +61,9 @@
                             [% IF HOLD.item_level_hold %]
                                 <p class="hint">Item on hold: [% HOLD.item.barcode | html %]</p>
                             [% END %]
+                            [% IF HOLD.volume_id %]
+                                <br/><strong>Next available item from volume <i>[% HOLD.volume.description | html %]</i></strong>
+                            [% END %]
                         </td>
                         <td class="reservedate" data-order="[% HOLD.reservedate | html %]">
                             <span class="tdlabel">Hold date:</span>
