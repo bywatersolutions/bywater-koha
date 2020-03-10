@@ -288,6 +288,7 @@ if ( $query->param('place_reserve') ) {
             $itemNum = undef;
         }
         my $notes = $query->param('notes_'.$biblioNum)||'';
+        my $volume_id = $query->param("volume_id_$biblioNum") || undef;
 
         if (   $maxreserves
             && $reserve_cnt >= $maxreserves )
@@ -322,6 +323,7 @@ if ( $query->param('place_reserve') ) {
                     itemnumber       => $itemNum,
                     found            => $found,
                     itemtype         => $itemtype,
+                    volume_id        => $volume_id,
                 }
             );
             $failed_holds++ unless $reserve_id;
@@ -432,6 +434,7 @@ foreach my $biblioNum (@biblionumbers) {
     }
 
     my $frameworkcode = GetFrameworkCode( $biblioData->{biblionumber} );
+    $biblioLoopIter{object} = $biblio;
     $biblioLoopIter{biblionumber} = $biblioData->{biblionumber};
     $biblioLoopIter{title} = $biblioData->{title};
     $biblioLoopIter{subtitle} = $biblioData->{'subtitle'};
@@ -649,7 +652,11 @@ foreach my $biblioNum (@biblionumbers) {
     )->forced_hold_level();
     if ($forced_hold_level) {
         $biblioLoopIter{force_hold}   = 1 if $forced_hold_level eq 'item';
+        $biblioLoopIter{force_hold}   = 0 if $forced_hold_level eq 'volume';
+
         $biblioLoopIter{itemholdable} = 0 if $forced_hold_level eq 'record';
+        $biblioLoopIter{itemholdable} = 0 if $forced_hold_level eq 'volume';
+
         $biblioLoopIter{forced_hold_level} = $forced_hold_level;
     }
 
