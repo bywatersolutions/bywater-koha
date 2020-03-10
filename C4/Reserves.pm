@@ -899,6 +899,7 @@ sub CheckReserves {
                 # See if this item is more important than what we've got so far
                 if ( ( $res->{'priority'} && $res->{'priority'} < $priority ) || $local_hold_match ) {
                     $item ||= Koha::Items->find($itemnumber);
+                    next if $res->{volume_id} && ( !$item->volume || $item->volume->id != $res->{volume_id} );
                     next if $res->{itemtype} && $res->{itemtype} ne $item->effective_itemtype;
                     $patron ||= Koha::Patrons->find( $res->{borrowernumber} );
                     my $branch = GetReservesControlBranch( $item->unblessed, $patron->unblessed );
@@ -1728,7 +1729,8 @@ sub _Findgroupreserve {
                reserves.itemnumber          AS itemnumber,
                reserves.reserve_id          AS reserve_id,
                reserves.itemtype            AS itemtype,
-               reserves.non_priority        AS non_priority
+               reserves.non_priority        AS non_priority,
+               reserves.volume_id           AS volume_id
         FROM reserves
         JOIN biblioitems USING (biblionumber)
         JOIN hold_fill_targets USING (reserve_id)
@@ -1764,16 +1766,19 @@ sub _Findgroupreserve {
                reserves.itemnumber          AS itemnumber,
                reserves.reserve_id          AS reserve_id,
                reserves.itemtype            AS itemtype,
-               reserves.non_priority        AS non_priority
+               reserves.non_priority        AS non_priority,
+               reserves.volume_id           AS volume_id
         FROM reserves
         JOIN biblioitems USING (biblionumber)
         JOIN hold_fill_targets USING (reserve_id)
+        LEFT JOIN volume_items ON ( volume_items.itemnumber = hold_fill_targets.itemnumber )
         WHERE found IS NULL
         AND priority > 0
         AND item_level_request = 0
         AND hold_fill_targets.itemnumber = ?
         AND reservedate <= DATE_ADD(NOW(),INTERVAL ? DAY)
         AND suspend = 0
+        AND reserves.volume_id = volume_items.volume_id
         ORDER BY priority
     };
     $sth = $dbh->prepare($title_level_target_query);
@@ -1799,7 +1804,8 @@ sub _Findgroupreserve {
                reserves.itemnumber                 AS itemnumber,
                reserves.reserve_id                 AS reserve_id,
                reserves.itemtype                   AS itemtype,
-               reserves.non_priority        AS non_priority
+               reserves.non_priority               AS non_priority,
+               reserves.volume_id                  AS volume_id
         FROM reserves
         WHERE reserves.biblionumber = ?
           AND (reserves.itemnumber IS NULL OR reserves.itemnumber = ?)
