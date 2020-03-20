@@ -145,7 +145,7 @@ subtest "as_marc_field() tests" => sub {
 };
 
 subtest 'renewal_branchcode' => sub {
-    plan tests => 15;
+    plan tests => 13;
 
     $schema->storage->txn_begin;
 
@@ -189,4 +189,5 @@ subtest 'renewal_branchcode' => sub {
     is( $item->renewal_branchcode, $item->homebranch, "If interface opac and OpacRenewalBranch set to itemhomebranch, we get homebranch of item");
     is( $item->renewal_branchcode({branch=>'MANATEE'}), $item->homebranch, "If interface opac and OpacRenewalBranch set to itemhomebranch, we get homebranch of item even if branch passed");
 
+    $schema->storage->txn_rollback;
 };
