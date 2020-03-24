@@ -3240,7 +3240,7 @@ subtest 'Incremented fee tests' => sub {
     $issue =
       AddIssue( $patron->unblessed, $item->barcode, $dt_to, undef, $dt_from );
     $accountline = Koha::Account::Lines->find( { itemnumber => $item->id } );
-    is( $accountline->amount + 0, 36,
+    is( $accountline->amount + 0, 30,
         "Hourly rental charge calculated correctly with finesCalendar = noFinesWhenClosed and closed Wednesdays (168h - 24h * 0.25u)" );
     $accountline->delete();
     AddRenewal( $patron->id, $item->id, $library->id, $dt_to_renew, $dt_to );
