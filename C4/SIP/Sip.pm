@@ -60,6 +60,9 @@ sub timestamp {
 sub add_field {
     my ($field_id, $value, $server) = @_;
 
+    # $value may be populated with the $server object if the method call did not return anything
+    ( $value, $server ) = ( $server, $value ) if ref($value) eq 'C4::SIP::SIPServer';
+
     if ( my $hide_fields = $server->{account}->{hide_fields} ) {
         my @fields = split( ',', $hide_fields );
         return q{} if first { $_ eq $field_id } @fields;
@@ -93,6 +96,9 @@ sub add_field {
 #
 sub maybe_add {
     my ($fid, $value, $server) = @_;
+
+    # $value may be populated with the $server object if the method call did not return anything
+    ( $value, $server ) = ( $server, $value ) if ref($value) eq 'C4::SIP::SIPServer';
 
     if ( my $hide_fields = $server->{account}->{hide_fields} ) {
         my @fields = split( ',', $hide_fields );
