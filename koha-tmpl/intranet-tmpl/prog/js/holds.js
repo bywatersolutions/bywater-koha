@@ -153,6 +153,10 @@ $(document).ready(function() {
                                 data += NEXT_AVAILABLE_ITYPE.format( oObj.itemtype_limit );
                             }
 
+                            if ( oObj.volume_id ) {
+                                data += NEXT_AVAILABLE_VOLUME.format( oObj.volume_description );
+                            }
+
                             if ( oObj.barcode ) {
                                 data += "<em>";
                                 if ( oObj.found == "W" ) {
