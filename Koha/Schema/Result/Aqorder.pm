@@ -661,8 +661,8 @@ Composing rels: L</aqorder_users> -> borrowernumber
 __PACKAGE__->many_to_many("borrowernumbers", "aqorder_users", "borrowernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2018-08-31 11:51:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GQEXetlivZm7buQohl8m4A
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-04-02 17:24:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nNzB8OVAccrFVSB+tfm1Tg
 
 sub koha_objects_class {
     'Koha::Acquisition::Orders';

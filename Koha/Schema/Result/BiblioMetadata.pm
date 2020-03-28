@@ -132,8 +132,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-01-30 11:34:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FJk/YOw8Y/QRmmPPL3G5qQ
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-04-02 17:24:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:20q9ZjcQBke/5MT5FpPC8A
 
 sub koha_object_class {
     'Koha::Biblio::Metadata';

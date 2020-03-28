@@ -166,8 +166,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-02-28 14:28:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Qg1AhIgW7n2Ws8rAwdFSpw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-04-02 17:24:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mN5BpjWGoOR5zXFNBncylw
 
 sub koha_objects_class {
     'Koha::Biblio::Volumes';

@@ -125,8 +125,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-02-24 11:26:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kKgCjlgDCv3FgqYffaAyng
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-04-02 17:24:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qKZZjRalHwz9JIYsNbPMdA
 
 sub koha_object_class {
     'Koha::Biblio::Volume::Item';

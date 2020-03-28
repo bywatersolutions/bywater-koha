@@ -126,8 +126,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-08-20 15:14:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZymvWAn9Nzfuh1lExUIhIg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-04-02 17:24:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:D7/m36jA0cJgrRRPxunTig
 
 sub koha_objects_class {
     'Koha::Patron::Relationships';
