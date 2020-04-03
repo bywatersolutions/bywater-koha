@@ -453,7 +453,7 @@ sub marc_records_to_documents {
                         if (@{$mappings}) {
                             $self->_process_mappings($mappings, $data, $record_document, $altscript);
                         }
-                        if ( defined @{$mappings}[0] && grep /match-heading/, @{@{$mappings}[0]} ){
+                        if ( @{$mappings} && grep { $_->[0] eq 'match-heading'} @{$mappings} ){
                             # Used by the authority linker the match-heading field requires a specific syntax
                             # that is specified in C4/Heading
                             my $heading = C4::Heading->new_from_field( $field, undef, 1 ); #new auth heading

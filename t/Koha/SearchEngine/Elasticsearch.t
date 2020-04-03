@@ -526,16 +526,17 @@ subtest 'Koha::SearchEngine::Elasticsearch::marc_records_to_documents () authori
 
     my @mappings = (
         {
-            name => 'match-heading',
+            name => 'match',
             type => 'string',
             facet => 0,
             suggestible => 0,
-            sort => undef,
+            searchable => 1,
+            sort => 0,
             marc_type => 'marc21',
-            marc_field => '150',
+            marc_field => '150(ae)',
         },
         {
-            name => 'match-heading',
+            name => 'heading',
             type => 'string',
             facet => 0,
             suggestible => 0,
@@ -544,13 +545,43 @@ subtest 'Koha::SearchEngine::Elasticsearch::marc_records_to_documents () authori
             marc_field => '150a',
         },
         {
-            name => 'match-heading',
+            name => 'heading',
             type => 'string',
             facet => 0,
             suggestible => 0,
             sort => 0,
             marc_type => 'marc21',
             marc_field => '150(ae)',
+        },
+        {
+            name => 'heading-main',
+            type => 'string',
+            facet => 0,
+            suggestible => 0,
+            searchable => 1,
+            sort => 0,
+            marc_type => 'marc21',
+            marc_field => '150a',
+        },
+        {
+            name => 'heading',
+            type => 'string',
+            facet => 0,
+            suggestible => 0,
+            searchable => 1,
+            sort => 0,
+            marc_type => 'marc21',
+            marc_field => '150',
+        },
+        {
+            name => 'match-heading',
+            type => 'string',
+            facet => 0,
+            suggestible => 0,
+            searchable => 1,
+            sort => 0,
+            marc_type => 'marc21',
+            marc_field => '150',
         },
     );
 
@@ -572,7 +603,6 @@ subtest 'Koha::SearchEngine::Elasticsearch::marc_records_to_documents () authori
     });
 
     my $see = Koha::SearchEngine::Elasticsearch::Search->new({ index => $Koha::SearchEngine::Elasticsearch::AUTHORITIES_INDEX });
-
     my $marc_record_1 = MARC::Record->new();
     $marc_record_1->append_fields(
         MARC::Field->new('001', '123'),
