@@ -7,7 +7,7 @@ on:
             - "**"
 jobs:
     unit_test:
-        if: github.repository == 'bywatersolutions/bywater-koha'
+        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
         name: Run unit tests
         runs-on: ubuntu-latest
         steps:
@@ -96,7 +96,7 @@ jobs:
                   OUR_GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
 
     build_debs:
-        if: github.repository == 'bywatersolutions/bywater-koha'
+        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
         name: Build Debian packages
         needs: unit_test
         runs-on: ubuntu-latest
