@@ -248,9 +248,8 @@ __PACKAGE__->table("items");
 
 =head2 uri
 
-  data_type: 'varchar'
+  data_type: 'mediumtext'
   is_nullable: 1
-  size: 255
 
 =head2 itype
 
@@ -393,7 +392,7 @@ __PACKAGE__->add_columns(
   "materials",
   { data_type => "mediumtext", is_nullable => 1 },
   "uri",
-  { data_type => "varchar", is_nullable => 1, size => 255 },
+  { data_type => "mediumtext", is_nullable => 1 },
   "itype",
   { data_type => "varchar", is_nullable => 1, size => 10 },
   "more_subfields_xml",
@@ -747,8 +746,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-10-10 14:31:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dqUjo9pJysKKBhF8PM5KnA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-04-07 11:32:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FreZ9++Zl/QVwGIIaOF3dQ
 
 __PACKAGE__->belongs_to( biblioitem => "Koha::Schema::Result::Biblioitem", "biblioitemnumber" );
 
