@@ -203,7 +203,6 @@ jobs:
                     - fredh
                     - keys
                     - library
-#                   - moab
                     - nrhtx
                     - nyam
                     - nycrecords
@@ -217,6 +216,7 @@ jobs:
                     - taft
                     - vatech
                     - vatechtest
+                    - arlington
 
         steps:
             - uses: actions/checkout@v1
