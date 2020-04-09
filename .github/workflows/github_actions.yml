@@ -66,9 +66,10 @@ jobs:
             - name: Run kylemhall/bywater-koha-release-notes-generator
               run: |
                   echo "BRANCH: $KOHA_BRANCH"
-                  docker run --env DEBUG=0 --env UPLOAD=1 --env GITHUB_TOKEN=$OUR_GITHUB_TOKEN --env KOHA_BRANCH=$KOHA_BRANCH kylemhall/bywater-koha-release-notes-generator
+                  docker run --env DEBUG=1 --env UPLOAD=1 --env GITHUB_TOKEN=$OUR_GITHUB_TOKEN --env SLACK_WEBHOOK=$SLACK_EDUCATION_WEBHOOK --env KOHA_BRANCH=$KOHA_BRANCH quay.io/bywatersolutions/bywater-koha-release-notes-generator 
               env:
-                  OUR_GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_EDUCATION_WEBHOOK }}
 
     auto_rebase:
         if: startsWith( github.ref, 'refs/heads/bywater-v' )
