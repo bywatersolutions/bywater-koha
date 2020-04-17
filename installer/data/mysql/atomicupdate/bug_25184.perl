@@ -1,0 +1,12 @@
+$DBversion = 'XXX'; # will be replaced by the RM
+if( CheckVersion( $DBversion ) ) {
+    # $dbh->do( "ALTER TABLE biblio ADD COLUMN badtaste int" );
+    $dbh->do(q{
+        INSERT INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `type` ) VALUES
+        ('TrapHoldsOnOrder','1',NULL,'If enabled, Koha will trap holds for on order items ( notforloan < 0 )','YesNo')
+    });
+
+    # Always end with this (adjust the bug info)
+    SetVersion( $DBversion );
+    print "Upgrade to $DBversion done (Bug 25184 - Items with a negative notforloan status should not be captured for holds)\n";
+}
