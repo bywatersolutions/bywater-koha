@@ -455,6 +455,12 @@ __PACKAGE__->table("deletedborrowers");
   default_value: 0
   is_nullable: 0
 
+=head2 autorenew_checkouts
+
+  data_type: 'tinyint'
+  default_value: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -647,11 +653,13 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "anonymized",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "autorenew_checkouts",
+  { data_type => "tinyint", default_value => 1, is_nullable => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-05-22 04:33:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zK1jC6Wawwj8B2ch9KFByw
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-04-24 14:39:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uuB/DX5fiJ1nopODx78zCg
 
 __PACKAGE__->add_columns(
     '+anonymized'    => { is_boolean => 1 },
