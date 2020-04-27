@@ -17,7 +17,7 @@
 [% INCLUDE 'str/cataloging_additem.inc' %]
 [% Asset.js("js/cataloging_additem.js") | $raw %]
 <script>
-  var has_volumes = [% volumes.count %];
+  var has_volumes = [% volumes.count | html %];
 </script>
 </head>
 
