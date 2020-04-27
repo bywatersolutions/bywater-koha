@@ -1226,7 +1226,7 @@
                     {
                         "mDataProp": function( oObj ) {
                             return `<button class='volume-edit btn btn-default btn-xs' data-volume-id='${oObj.volume_id}'>
-                                <i class='fa fa-edit'></i> ${_('Edit')}
+                                <i class='fa fa-edit'></i> ${_("Edit")}
                             </button>`
                             + '&nbsp'
                             + `<button class='volume-delete btn btn-default btn-xs' data-volume-id='${oObj.volume_id}'>
