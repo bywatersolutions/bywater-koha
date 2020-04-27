@@ -405,9 +405,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 volumes
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2019-10-01 07:08:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:otCex8qzJmZyc+JXpKNdpQ
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Volume>
+
+=cut
+
+__PACKAGE__->has_many(
+  "volumes",
+  "Koha::Schema::Result::Volume",
+  { "foreign.biblionumber" => "self.biblionumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-04-27 19:10:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:91yGSrLLmB1EftVNeV+WyQ
 
 
 __PACKAGE__->has_one(
