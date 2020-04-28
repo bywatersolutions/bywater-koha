@@ -40,6 +40,8 @@ jobs:
             - name: Run tests
               run: |
                   docker-compose -f docker-compose.yml -p koha up --abort-on-container-exit --no-color
+                  pwd
+                  ls -alh /home/runner/work/bywater-koha/bywater-koha/testing
                   cat /home/runner/work/bywater-koha/bywater-koha/testing.success
 
             - name: Post test cleanup
