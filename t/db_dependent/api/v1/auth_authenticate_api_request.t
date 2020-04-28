@@ -44,7 +44,7 @@ t::lib::Mocks::mock_preference( 'SessionStorage', 'tmp' );
 subtest 'token-based tests' => sub {
 
     if ( can_load( modules => { 'Net::OAuth2::AuthorizationServer' => undef } ) ) {
-        plan tests => 12;
+        plan tests => 10;
     }
     else {
         plan skip_all => 'Net::OAuth2::AuthorizationServer not available';
@@ -79,9 +79,9 @@ subtest 'token-based tests' => sub {
 
     my $stash;
 
-    my $tx = $t->ua->build_tx(GET => '/api/v1/acquisitions/orders');
+    my $tx = $t->ua->build_tx(GET => '/api/v1/items');
     $tx->req->headers->authorization("Bearer $access_token");
-    $tx->req->headers->header( 'x-koha-embed' => 'fund' );
+    #$tx->req->headers->header( 'x-koha-embed' => 'biblio' );
 
     $t->app->hook(after_dispatch => sub { $stash = shift->stash });
     $t->request_ok($tx)->status_is(200);
@@ -91,9 +91,9 @@ subtest 'token-based tests' => sub {
     is( ref($user), 'Koha::Patron', 'Stashed koha.user object type is Koha::Patron') and
     is( $user->borrowernumber, $patron->borrowernumber, 'The stashed user is the right one' );
 
-    my $embed = $stash->{'koha.embed'};
-    ok( defined $embed, 'The embed hashref is generated and stashed' );
-    is_deeply( $embed, { fund => {} }, 'The embed data structure is correct' );
+    #my $embed = $stash->{'koha.embed'};
+    #ok( defined $embed, 'The embed hashref is generated and stashed' );
+    #is_deeply( $embed, { fund => {} }, 'The embed data structure is correct' );
 
     $schema->storage->txn_rollback;
 };
