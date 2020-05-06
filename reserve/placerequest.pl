@@ -52,6 +52,7 @@ my $title          = $input->param('title');
 my $checkitem      = $input->param('checkitem');
 my $expirationdate = $input->param('expiration_date');
 my $itemtype       = $input->param('itemtype') || undef;
+my $volume_id      = $input->param('volume_id') || undef;
 
 my $borrower = Koha::Patrons->find( $borrowernumber );
 $borrower = $borrower->unblessed if $borrower;
@@ -117,7 +118,7 @@ if ( $type eq 'str8' && $borrower ) {
                 if ( $can_override || CanBookBeReserved($borrower->{'borrowernumber'}, $biblionumber)->{status} eq 'OK' ) {
                     AddReserve( $branch, $borrower->{'borrowernumber'},
                         $biblionumber, \@realbi, $rank[0], $startdate, $expirationdate, $notes, $title,
-                        $checkitem, $found, $itemtype );
+                        $checkitem, $found, $itemtype, $volume_id );
                 }
             }
         }
