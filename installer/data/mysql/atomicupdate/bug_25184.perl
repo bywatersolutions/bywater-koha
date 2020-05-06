@@ -7,5 +7,6 @@ if( CheckVersion( $DBversion ) ) {
     });
 
     # Always end with this (adjust the bug info)
-    NewVersion( $DBversion, 25184, "Items with a negative notforloan status should not be captured for holds");
+    SetVersion( $DBversion );
+    print "Upgrade to $DBversion done (Bug 25184 - Items with a negative notforloan status should not be captured for holds)\n";
 }
