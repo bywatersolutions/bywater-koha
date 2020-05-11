@@ -38,9 +38,11 @@ jobs:
             #      uses: csexton/debugger-action@master
 
             - name: Run tests
-              run: |
-                  docker-compose -f docker-compose.yml -p koha up --abort-on-container-exit --no-color
-                  cat $GITHUB_WORKSPACE/testing.success
+              run: docker-compose -f docker-compose.yml -p koha up --abort-on-container-exit --no-color
+
+            - name: Check tests success
+              if: "! contains(toJSON(github.event.commits.*.message), '[force build]')"
+              run: cat $GITHUB_WORKSPACE/testing.success
 
             - name: Post test cleanup
               run: |
