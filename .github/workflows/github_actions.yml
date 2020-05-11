@@ -7,7 +7,7 @@ on:
             - "**"
 jobs:
     unit_test:
-        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
+        if: ( github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future' ) && contains(toJSON(github.event.commits.*.message), 'Set bwsbranch to')
         name: Run unit tests
         runs-on: ubuntu-latest
         steps:
