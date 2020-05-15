@@ -10,6 +10,11 @@ if ( CheckVersion( $DBversion ) ) {
         ('EnableVolumeHolds','0','','Enable volume level holds feature','YesNo')
     });
 
+    $dbh->do(q{
+        INSERT IGNORE INTO permissions (module_bit, code, description) VALUES
+        ( 9, 'manage_volumes', 'Create, update and delete volumes, add or remove items from a volume');
+    });
+
     unless ( TableExists('volumes') ) {
         $dbh->do(q{
             CREATE TABLE `volumes` ( -- information related to bibliographic records in Koha
