@@ -440,6 +440,12 @@ __PACKAGE__->table("deletedborrowers");
   default_value: 0
   is_nullable: 0
 
+=head2 autorenew_checkouts
+
+  data_type: 'tinyint'
+  default_value: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -612,11 +618,13 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "anonymized",
   { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "autorenew_checkouts",
+  { data_type => "tinyint", default_value => 1, is_nullable => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-07-16 16:16:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HiETuS+0kBHCvN7dJ2FDQg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-07-22 13:20:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fkAzdue6tZvnyZyh6MoJvQ
 
 __PACKAGE__->add_columns(
     '+anonymized'    => { is_boolean => 1 },
@@ -635,3 +643,5 @@ sub koha_object_class {
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
+
+
