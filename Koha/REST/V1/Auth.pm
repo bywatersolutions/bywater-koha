@@ -136,7 +136,7 @@ sub authenticate_api_request {
 
     my $user;
 
-    my $spec = $c->match->endpoint->pattern->defaults->{'openapi.op_spec'};
+    my $spec = $c->openapi->spec || $c->match->endpoint->pattern->defaults->{'openapi.op_spec'};
     my $authorization = $spec->{'x-koha-authorization'};
 
     my $authorization_header = $c->req->headers->authorization;
