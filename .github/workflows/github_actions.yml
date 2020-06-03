@@ -23,7 +23,7 @@ jobs:
                   echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
                   echo ::set-env name=SYNC_REPO::$SYNC_REPO
                   echo ::set-env name=RUN_TESTS_AND_EXIT::yes
-                  echo ::set-env name=KOHA_IMAGE::master
+                  echo ::set-env name=KOHA_IMAGE::19.11-stretch
 
             - name: Set up koha-testing-docker
               run: |
