@@ -19229,7 +19229,7 @@ if( CheckVersion( $DBversion ) ) {
         });
     }
 
-    $dbh->do("UPDATE marc_subfield_structure JOIN fieldmapping ON tagfield = fieldcode AND subfieldcode=tagsubfield SET kohafield='biblio.subtitle' WHERE fieldmapping.frameworkcode=''");
+    $dbh->do(q{UPDATE marc_subfield_structure JOIN fieldmapping ON tagfield = fieldcode AND subfieldcode=tagsubfield SET kohafield='biblio.subtitle' WHERE fieldmapping.frameworkcode='' AND field = 'subtitle'});
     $sth = $dbh->prepare("SELECT * FROM fieldmapping WHERE frameworkcode != '' OR field != 'subtitle'");
     $sth->execute;
     my @fails_11529;
