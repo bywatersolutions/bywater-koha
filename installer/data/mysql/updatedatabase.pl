@@ -19249,7 +19249,7 @@ if( CheckVersion( $DBversion ) ) {
         }
     }
 
-    $dbh->do( "DROP TABLE IF EXISTS fieldmapping" );
+    #$dbh->do( "DROP TABLE IF EXISTS fieldmapping" );
 
     $dbh->do( "DELETE FROM user_permissions WHERE code='manage_keywords2koha_mappings'" );
 
