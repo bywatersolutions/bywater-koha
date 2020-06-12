@@ -66,10 +66,31 @@ jobs:
             - name: Run kylemhall/bywater-koha-release-notes-generator
               run: |
                   echo "BRANCH: $KOHA_BRANCH"
-                  docker run --env DEBUG=1 --env UPLOAD=1 --env GITHUB_TOKEN=$OUR_GITHUB_TOKEN --env SLACK_WEBHOOK=$SLACK_EDUCATION_WEBHOOK --env KOHA_BRANCH=$KOHA_BRANCH quay.io/bywatersolutions/bywater-koha-release-notes-generator 
+                  docker run --env DEBUG=1 --env UPLOAD=1 --env GITHUB_TOKEN=$OUR_GITHUB_TOKEN --env KOHA_BRANCH=$KOHA_BRANCH quay.io/bywatersolutions/bywater-koha-release-notes-generator
               env:
                   GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
-                  SLACK_WEBHOOK: ${{ secrets.SLACK_EDUCATION_WEBHOOK }}
+
+    release_notes_notify:
+        name: Notify release notes
+        needs: release_notes
+        runs-on: ubuntu-latest
+        steps:
+            - name: Export additional variables needed by bywater-koha-custom-rebaser
+              run: |
+                  KOHA_BRANCH=${GITHUB_REF##*/}
+                  echo "KOHA_BRANCH: $KOHA_BRANCH"
+                  echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
+
+            - name: Slack Notification
+              uses: rtCamp/action-slack-notify@v2.0.2
+              env:
+                SLACK_CHANNEL: general
+                SLACK_COLOR: '#3278BD'
+                SLACK_ICON: https://emojis.slackmojis.com/emojis/images/1563480763/5999/meow_party.gif?1563480763
+                SLACK_MESSAGE: "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${KOHA_BRANCH}.md"
+                SLACK_TITLE: Release Notes Notifier
+                SLACK_USERNAME: BWSBot
+                SLACK_WEBHOOK: ${{ secrets.SLACK_GENERAL_WEBHOOK }}
 
     auto_rebase:
         if: startsWith( github.ref, 'refs/heads/bywater-v' )
