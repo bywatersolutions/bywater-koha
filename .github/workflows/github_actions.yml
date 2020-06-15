@@ -92,6 +92,7 @@ jobs:
                 SLACK_TITLE: Release Notes Notifier
                 SLACK_USERNAME: BWSBot
                 SLACK_WEBHOOK: ${{ secrets.SLACK_GENERAL_WEBHOOK }}
+                MSG_MINIMAL: true
 
     release_notes_notify_slack_channel: # Message #release-notes for all codebases
         name: Notify release-notes channel about new release notes
@@ -99,6 +100,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Export additional variables needed by bywater-koha-custom-rebaser
+              id: extracted_variables
               run: |
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "KOHA_BRANCH: $KOHA_BRANCH"
@@ -110,10 +112,11 @@ jobs:
                 SLACK_CHANNEL: general
                 SLACK_COLOR: '#3278BD'
                 SLACK_ICON: https://emojis.slackmojis.com/emojis/images/1563480763/5999/meow_party.gif?1563480763
-                SLACK_MESSAGE: "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${KOHA_BRANCH}.md"
+                SLACK_MESSAGE: "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.md"
                 SLACK_TITLE: Release Notes Notifier
                 SLACK_USERNAME: BWSBot
                 SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_NOTES_WEBHOOK }}
+                MSG_MINIMAL: true
 
     auto_rebase:
         if: startsWith( github.ref, 'refs/heads/bywater-v' )
