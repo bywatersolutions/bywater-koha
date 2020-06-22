@@ -81,18 +81,7 @@ jobs:
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "KOHA_BRANCH: $KOHA_BRANCH"
                   echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
-
-            - name: Slack Notification
-              uses: rtCamp/action-slack-notify@v2.0.2
-              env:
-                SLACK_CHANNEL: general
-                SLACK_COLOR: '#3278BD'
-                SLACK_ICON: https://emojis.slackmojis.com/emojis/images/1563480763/5999/meow_party.gif?1563480763
-                SLACK_MESSAGE: "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${KOHA_BRANCH}.md"
-                SLACK_TITLE: Release Notes Notifier
-                SLACK_USERNAME: BWSBot
-                SLACK_WEBHOOK: ${{ secrets.SLACK_GENERAL_WEBHOOK }}
-                MSG_MINIMAL: true
+                  curl -X POST -H 'Content-type: application/json' --data '{ "blocks": [{"type": "section","text": {  "type": "mrkdwn","text": "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${KOHA_BRANCH}.md"}}]}' ${{ secrets.SLACK_GENERAL_WEBHOOK }}
 
     release_notes_notify_slack_channel: # Message #release-notes for all codebases
         name: Notify release-notes channel about new release notes
@@ -105,18 +94,7 @@ jobs:
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "KOHA_BRANCH: $KOHA_BRANCH"
                   echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
-
-            - name: Slack Notification
-              uses: rtCamp/action-slack-notify@v2.0.2
-              env:
-                SLACK_CHANNEL: general
-                SLACK_COLOR: '#3278BD'
-                SLACK_ICON: https://emojis.slackmojis.com/emojis/images/1563480763/5999/meow_party.gif?1563480763
-                SLACK_MESSAGE: "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.md"
-                SLACK_TITLE: Release Notes Notifier
-                SLACK_USERNAME: BWSBot
-                SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_NOTES_WEBHOOK }}
-                MSG_MINIMAL: true
+                  curl -X POST -H 'Content-type: application/json' --data '{ "blocks": [{"type": "section","text": {  "type": "mrkdwn","text": "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${KOHA_BRANCH}.md"}}]}' ${{ secrets.SLACK_RELEASE_NOTES_WEBHOOK }}
 
     auto_rebase:
         if: startsWith( github.ref, 'refs/heads/bywater-v' )
