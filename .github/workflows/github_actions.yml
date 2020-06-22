@@ -76,25 +76,34 @@ jobs:
         needs: release_notes
         runs-on: ubuntu-latest
         steps:
-            - name: Export additional variables needed by bywater-koha-custom-rebaser
+            - name: Export additional variables
+              id: extracted_variables
               run: |
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "KOHA_BRANCH: $KOHA_BRANCH"
+                  echo ::set-output name=KOHA_BRANCH::$KOHA_BRANCH
                   echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
-                  curl -X POST -H 'Content-type: application/json' --data '{ "blocks": [{"type": "section","text": {  "type": "mrkdwn","text": "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${KOHA_BRANCH}.md"}}]}' ${{ secrets.SLACK_GENERAL_WEBHOOK }}
+
+            - name: Notify Slack
+              run: |
+                  curl -X POST -H 'Content-type: application/json' --data '{ "blocks": [{"type": "section","text": {  "type": "mrkdwn","text": "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.md"}}]}' ${{ secrets.SLACK_GENERAL_WEBHOOK }}
 
     release_notes_notify_slack_channel: # Message #release-notes for all codebases
         name: Notify release-notes channel about new release notes
         needs: release_notes
         runs-on: ubuntu-latest
         steps:
-            - name: Export additional variables needed by bywater-koha-custom-rebaser
+            - name: Export additional variables
               id: extracted_variables
               run: |
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "KOHA_BRANCH: $KOHA_BRANCH"
+                  echo ::set-output name=KOHA_BRANCH::$KOHA_BRANCH
                   echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
-                  curl -X POST -H 'Content-type: application/json' --data '{ "blocks": [{"type": "section","text": {  "type": "mrkdwn","text": "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${KOHA_BRANCH}.md"}}]}' ${{ secrets.SLACK_RELEASE_NOTES_WEBHOOK }}
+
+            - name: Notify Slack
+              run: |
+                  curl -X POST -H 'Content-type: application/json' --data '{ "blocks": [{"type": "section","text": {  "type": "mrkdwn","text": "@channel, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.md"}}]}' ${{ secrets.SLACK_RELEASE_NOTES_WEBHOOK }}
 
     auto_rebase:
         if: startsWith( github.ref, 'refs/heads/bywater-v' )
