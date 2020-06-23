@@ -66,9 +66,7 @@ jobs:
             - name: Run kylemhall/bywater-koha-release-notes-generator
               run: |
                   echo "BRANCH: $KOHA_BRANCH"
-                  docker run --env DEBUG=1 --env UPLOAD=1 --env GITHUB_TOKEN=$OUR_GITHUB_TOKEN --env KOHA_BRANCH=$KOHA_BRANCH quay.io/bywatersolutions/bywater-koha-release-notes-generator
-              env:
-                  GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
+                  docker run --env DEBUG=1 --env UPLOAD=1 --env GITHUB_TOKEN=${{ secrets.OUR_GITHUB_TOKEN }} --env KOHA_BRANCH=$KOHA_BRANCH quay.io/bywatersolutions/bywater-koha-release-notes-generator
 
     release_notes_notify_general: # Message #general only for bywater releases
         if: contains(github.ref, 'bywater-v')
