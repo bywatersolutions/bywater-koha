@@ -69,7 +69,7 @@ jobs:
               if: always() # Pick up events even if the job fails or is canceled.
 
     release_notes: # This container checks out the branch on it's own, so no need for the GitHub checkout action
-        if: github.repository == 'bywatersolutions/bywater-koha'
+        if: github.repository == 'bywatersolutions/bywater-koha' && contains(github.event.head_commit.message, ' - Set bwsbranch to')
         name: Build release notes
         needs: [unit_test, is_a_mark]
         runs-on: ubuntu-latest
@@ -121,7 +121,7 @@ jobs:
                   curl -X POST -H 'Content-type: application/json' --data '{ "blocks": [{"type": "section","text": {  "type": "mrkdwn","text": "@here, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.md"}}]}' ${{ secrets.SLACK_RELEASE_NOTES_WEBHOOK }}
 
     auto_rebase:
-        if: startsWith( github.ref, 'refs/heads/bywater-v' )
+        if: startsWith( github.ref, 'refs/heads/bywater-v' ) && contains(github.event.head_commit.message, ' - Set bwsbranch to')
         name: Rebase custom codebases
         needs: [unit_test, is_a_mark]
         runs-on: ubuntu-latest
@@ -153,7 +153,7 @@ jobs:
               if: always() # Pick up events even if the job fails or is canceled.
 
     build_debs:
-        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
+        if: ( github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future' ) && contains(github.event.head_commit.message, ' - Set bwsbranch to')
         name: Build Debian packages
         needs: [unit_test, is_a_mark]
         runs-on: ubuntu-latest
