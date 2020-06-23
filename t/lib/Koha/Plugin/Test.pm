@@ -155,6 +155,15 @@ sub after_item_action {
     }
 }
 
+sub after_circ_action {
+    my ( $self, $params ) = @_;
+
+    my $action   = $params->{action};
+    my $checkout = $params->{payload}->{checkout};
+
+    Koha::Exceptions::Exception->throw("after_circ_action called with action: $action, ref: " . ref($checkout));
+}
+
 sub api_routes {
     my ( $self, $args ) = @_;
 
