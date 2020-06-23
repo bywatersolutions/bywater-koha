@@ -63,6 +63,7 @@ use Koha::SearchEngine::Indexer;
 use Carp;
 use List::MoreUtils qw( uniq any );
 use Scalar::Util qw( looks_like_number );
+use Try::Tiny;
 use Date::Calc qw(
   Today
   Today_and_Now
@@ -3045,6 +3046,15 @@ sub AddRenewal {
 
         #Log the renewal
         logaction("CIRCULATION", "RENEWAL", $borrowernumber, $itemnumber) if C4::Context->preference("RenewalLog");
+
+        _after_circ_actions(
+            {
+                action  => 'renewal',
+                payload => {
+                    checkout  => $issue->get_from_storage
+                }
+            }
+        ) if C4::Context->config("enable_plugins");
     });
 
     return $datedue;
@@ -4143,6 +4153,10 @@ sub GetTopIssues {
     return @$rows;
 }
 
+=head2 Internal methods
+
+=cut
+
 sub _CalculateAndUpdateFine {
     my ($params) = @_;
 
@@ -4219,6 +4233,29 @@ sub _item_denied_renewal {
     return 0;
 }
 
+=head3 _after_circ_actions
+
+Internal method that calls the after_circ_action plugin hook on configured
+plugins.
+
+=cut
+
+sub _after_circ_actions {
+    my ($params) = @_;
+
+    my @plugins = Koha::Plugins->new->GetPlugins({
+        method => 'after_circ_action',
+    });
+
+    foreach my $plugin ( @plugins ) {
+        try {
+            $plugin->after_circ_action( $params );
+        }
+        catch {
+            warn "$_";
+        };
+    }
+}
 
 1;
 
