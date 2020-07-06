@@ -22,7 +22,7 @@ use Test::Warn;
 
 use File::Basename;
 
-use C4::Circulation qw(AddIssue AddRenewal);
+use C4::Circulation qw(AddIssue AddRenewal AddReturn);
 
 use t::lib::Mocks;
 use t::lib::TestBuilder;
@@ -44,7 +44,7 @@ t::lib::Mocks::mock_config( 'enable_plugins', 1 );
 
 subtest 'after_circ_action() hook tests' => sub {
 
-    plan tests => 1;
+    plan tests => 3;
 
     $schema->storage->txn_begin;
 
@@ -53,7 +53,7 @@ subtest 'after_circ_action() hook tests' => sub {
 
     my $plugin = Koha::Plugin::Test->new->enable;
 
-    my $patron = $builder->build_object({ class => 'Koha::Patrons' });
+    my $patron = $builder->build_object( { class => 'Koha::Patrons' } );
 
     t::lib::Mocks::mock_userenv(
         {
@@ -64,16 +64,42 @@ subtest 'after_circ_action() hook tests' => sub {
 
     # Avoid testing useless warnings
     my $test_plugin = Test::MockModule->new('Koha::Plugin::Test');
-    $test_plugin->mock( 'after_item_action', undef );
+    $test_plugin->mock( 'after_item_action',   undef );
     $test_plugin->mock( 'after_biblio_action', undef );
 
     my $biblio = $builder->build_sample_biblio();
-    my $item   = $builder->build_sample_item({ biblionumber => $biblio->biblionumber });
-    AddIssue( $patron->unblessed, $item->barcode );
+    my $item_1 = $builder->build_sample_item( { biblionumber => $biblio->biblionumber } );
+    my $item_2 = $builder->build_sample_item( { biblionumber => $biblio->biblionumber } );
 
-    warning_like { AddRenewal( $patron->borrowernumber, $item->id, $patron->branchcode ); }
-            qr/after_circ_action called with action: renewal, ref: Koha::Checkout/,
-            'AddRenewal calls the after_circ_action hook';
+    subtest 'AddIssue' => sub {
+        plan tests => 2;
+
+        warning_like { AddIssue( $patron->unblessed, $item_1->barcode ); }
+        qr/after_circ_action called with action: checkout, ref: Koha::Checkout type: issue/,
+          'AddIssue calls the after_circ_action hook';
+
+        warning_like { AddIssue( $patron->unblessed, $item_2->barcode, undef, undef, undef, undef, { onsite_checkout => 1 } ); }
+        qr/after_circ_action called with action: checkout, ref: Koha::Checkout type: onsite_checkout/,
+          'AddIssue calls the after_circ_action hook (onsite_checkout case)';
+    };
+
+    subtest 'AddRenewal' => sub {
+        plan tests => 1;
+
+        warning_like { AddRenewal( $patron->borrowernumber, $item_1->id, $patron->branchcode ); }
+                qr/after_circ_action called with action: renewal, ref: Koha::Checkout/,
+                'AddRenewal calls the after_circ_action hook';
+    };
+
+    subtest 'AddReturn' => sub {
+        plan tests => 1;
+
+        warning_like {
+            AddReturn( $item_1->barcode, $patron->branchcode );
+        }
+        qr/after_circ_action called with action: checkin, ref: Koha::Old::Checkout/,
+          'AddReturn calls the after_circ_action hook';
+    };
 
     $schema->storage->txn_rollback;
     Koha::Plugins::Methods->delete;

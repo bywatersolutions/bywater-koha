@@ -1521,6 +1521,16 @@ sub AddIssue {
                 $borrower->{'borrowernumber'},
                 $item_object->itemnumber,
             ) if C4::Context->preference("IssueLog");
+
+            _after_circ_actions(
+                {
+                    action  => 'checkout',
+                    payload => {
+                        type     => ( $onsite_checkout ? 'onsite_checkout' : 'issue' ),
+                        checkout => $issue->get_from_storage
+                    }
+                }
+            ) if C4::Context->config("enable_plugins");
         }
     }
     return $issue;
@@ -2167,6 +2177,17 @@ sub AddReturn {
 
     my $indexer = Koha::SearchEngine::Indexer->new({ index => $Koha::SearchEngine::BIBLIOS_INDEX });
     $indexer->index_records( $item->biblionumber, "specialUpdate", "biblioserver" );
+
+    my $checkin = Koha::Old::Checkouts->find($issue->id);
+
+    _after_circ_actions(
+        {
+            action  => 'checkin',
+            payload => {
+                checkout=> $checkin
+            }
+        }
+    ) if C4::Context->config("enable_plugins");
 
     return ( $doreturn, $messages, $issue, ( $patron ? $patron->unblessed : {} ));
 }
