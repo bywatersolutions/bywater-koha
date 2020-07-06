@@ -160,8 +160,19 @@ sub after_circ_action {
 
     my $action   = $params->{action};
     my $checkout = $params->{payload}->{checkout};
+    my $payload  = $params->{payload};
 
-    Koha::Exceptions::Exception->throw("after_circ_action called with action: $action, ref: " . ref($checkout));
+    my $type = $payload->{type};
+
+    if ( $action eq 'renewal' ) {
+        Koha::Exceptions::Exception->throw("after_circ_action called with action: $action, ref: " . ref($checkout));
+    }
+    elsif ( $action eq 'checkout') {
+        Koha::Exceptions::Exception->throw("after_circ_action called with action: $action, ref: " . ref($checkout) . " type: $type");
+    }
+    elsif ( $action eq 'checkin' ) {
+        Koha::Exceptions::Exception->throw("after_circ_action called with action: $action, ref: " . ref($checkout));
+    }
 }
 
 sub api_routes {
