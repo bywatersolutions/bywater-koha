@@ -82,7 +82,7 @@ subtest 'exception_holidays() tests' => sub {
     use POSIX qw(tzset);
     tzset;
 
-    my $calendar = Koha::Calendar->new( branchcode => $branch );
+    $calendar = Koha::Calendar->new( branchcode => $branch );
 
     C4::Calendar->new( branchcode => $branch )->insert_exception_holiday(
         day         => 6,
