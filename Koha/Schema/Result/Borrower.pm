@@ -1626,6 +1626,13 @@ sub koha_object_class {
     'Koha::Patron';
 }
 
+__PACKAGE__->has_many(
+  "accountlines",
+  "Koha::Schema::Result::Accountline",
+  { "foreign.borrowernumber" => "self.borrowernumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 1;
 
 
