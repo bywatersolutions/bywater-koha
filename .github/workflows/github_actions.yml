@@ -60,6 +60,14 @@ jobs:
                   rm docker-compose.yml
                   rm -rf env .env
 
+            - uses: bywatersolutions/action-slack@v3
+              with:
+                status: ${{ job.status }}
+                fields: repo,message,commit,author,action,eventName,ref,workflow,job,took # selectable (default: repo,message)
+              env:
+                SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
+              if: always() # Pick up events even if the job fails or is canceled.
+
     release_notes: # This container checks out the branch on it's own, so no need for the GitHub checkout action
         if: github.repository == 'bywatersolutions/bywater-koha'
         name: Build release notes
@@ -135,6 +143,14 @@ jobs:
                   docker run --mount type=bind,source=${{ steps.extracted_variables.outputs.KOHACLONE }},target=/kohaclone -e DO_IT=1 -e GITHUB_TOKEN=$OUR_GITHUB_TOKEN -e KOHA_BRANCH=${{ steps.extracted_variables.outputs.KOHA_BRANCH }} kylemhall/bywater-koha-custom-rebaser
               env:
                   OUR_GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
+
+            - uses: bywatersolutions/action-slack@v3
+              with:
+                status: ${{ job.status }}
+                fields: repo,message,commit,author,action,eventName,ref,workflow,job,took # selectable (default: repo,message)
+              env:
+                SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
+              if: always() # Pick up events even if the job fails or is canceled.
 
     build_debs:
         if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
@@ -223,6 +239,14 @@ jobs:
                   asset_path: /tmp/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip
                   asset_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip
                   asset_content_type: application/zip
+
+            - uses: bywatersolutions/action-slack@v3
+              with:
+                status: ${{ job.status }}
+                fields: repo,message,commit,author,action,eventName,ref,workflow,job,took # selectable (default: repo,message)
+              env:
+                SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
+              if: always() # Pick up events even if the job fails or is canceled.
 
     auto_rebase_xslt:
         if: false
