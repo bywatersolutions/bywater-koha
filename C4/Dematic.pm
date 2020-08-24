@@ -18,15 +18,16 @@ package C4::Dematic;
 #
 # You should have received a copy of the GNU General Public License
 # along with Koha; if not, see <http://www.gnu.org/licenses>.
-use strict;
+use Modern::Perl;
 
 use Carp;
-use C4::Context;
-use C4::Items;
-use Koha::Database;
 use DateTime::Format::MySQL;
-use Koha::DateUtils qw/dt_from_string/;
 use IO::Socket::INET;
+
+use C4::Context;
+use Koha::Database;
+use Koha::DateUtils qw/dt_from_string/;
+use Koha::Holds;
 
 use vars qw($VERSION @ISA @EXPORT);
 
@@ -441,6 +442,10 @@ Accepts a Reserve ID from the B<Reserves> table.
 sub REQI {
     my ($reserve_id) = @_;
 
+    my $hold = Koha::Holds->find( $reserve_id );
+
+    return unless $hold;
+
     my $sequence_number = '00001';
 
     # EMS scalars
@@ -452,54 +457,12 @@ sub REQI {
     my $dbh = C4::Context->dbh;
     my $sth;                             # DBI Statement Handler
 
-    my $barcode;
-    my $dbi_barcode;                     # item barcode
-    my $dbi_cardnumber;                  # patron card number
-    my $dbi_lastname;                    # patron last name
-    my $dbi_firstname;                   # patron first name
+    my $barcode = $hold->item->barcode;
+    $patronNumber = $hold->borrower->id;
+    $patronName = $hold->borrower->surname . ', ' . $hold->borrower->firstname;
+    my $itemLocation = $hold->item->location;
 
-    # Query Koha 'reserves' table for barcode,
-    # patron card number, patron last name,
-    # and patron first name where reserves.reserve_id = $reserve_id
-    $sth = $dbh->prepare( "
-        SELECT
-            reserves.reserve_id,
-            reserves.borrowernumber,
-            biblio.biblionumber,
-            items.barcode,
-            borrowers.borrowernumber,
-            borrowers.cardnumber,
-            borrowers.surname,
-            borrowers.firstname
-        FROM
-            reserves
-        INNER JOIN borrowers
-            ON borrowers.borrowernumber = reserves.borrowernumber
-        INNER JOIN biblio
-            ON biblio.biblionumber = reserves.biblionumber
-        INNER JOIN items
-            ON items.biblionumber = biblio.biblionumber
-        WHERE reserves.reserve_id = $reserve_id
-        AND items.itemnumber = reserves.itemnumber
-    " );
-    $sth->execute();
-
-    ## Assign scalars with each output column
-    $sth->bind_col( 4, \$dbi_barcode );
-    $sth->bind_col( 6, \$dbi_cardnumber );
-    $sth->bind_col( 7, \$dbi_lastname );
-    $sth->bind_col( 8, \$dbi_firstname );
-
-    while ( $sth->fetch ) {
-        $barcode      = $dbi_barcode;
-        $patronNumber = $dbi_cardnumber;
-        $patronName   = $dbi_lastname . ', ' . $dbi_firstname;
-    }
-    $sth->finish;
-
-    my $itemDetail = C4::Items::GetItem( undef, $dbi_barcode );
-    my $itemLocation = $itemDetail->{location};
-    emsLog( $dbi_barcode, 'REQI',
+    emsLog( $barcode, 'REQI',
         "Item location (using dbi_barcode) - $itemLocation" );
     emsLog( $barcode, 'REQI', "Item location (using barcode) - $itemLocation" );
     unless ( $itemLocation eq 'ARCHITECH'
@@ -517,7 +480,7 @@ sub REQI {
         $handle = initConnection();
 
         if ( !$handle ) {
-            emsLog( $dbi_barcode, "REQI", "Could not connect! $!" );
+            emsLog( $barcode, "REQI", "Could not connect! $!" );
         }
         else {
             my $msglength =
@@ -554,33 +517,33 @@ sub REQI {
                 if ( $resp_msg !~ /RSNR0000500000/ ) {
 
                     if ( $resp_msg =~ /RSNR0000500001/ ) {
-                        emsLog( $dbi_barcode, "REQI",
+                        emsLog( $barcode, "REQI",
                             "$barcode has already been committed to work - $resp_msg"
                         );
                     }
                     elsif ( $resp_msg =~ /RSNR0000500002/ ) {
-                        emsLog( $dbi_barcode, "REQI",
+                        emsLog( $barcode, "REQI",
                             "$barcode is checked out of container - $resp_msg"
                         );
                     }
                     elsif ( $resp_msg =~ /RSNR0000500003/ ) {
-                        emsLog( $dbi_barcode, "REQI",
+                        emsLog( $barcode, "REQI",
                             "$barcode is not in EMS database - $resp_msg" );
                     }
                     elsif ( $resp_msg =~ /RSNR0000500004/ ) {
-                        emsLog( $dbi_barcode, "REQI",
+                        emsLog( $barcode, "REQI",
                             "$barcode is missing - $resp_msg" );
                     }
                     elsif ( $resp_msg =~ /RSNR0000500005/ ) {
-                        emsLog( $dbi_barcode, "REQI",
+                        emsLog( $barcode, "REQI",
                             "$barcode has NOT been returned - $resp_msg" );
                     }
                     elsif ( $resp_msg =~ /RSNR0000500010/ ) {
-                        emsLog( $dbi_barcode, "REQI",
+                        emsLog( $barcode, "REQI",
                             "$barcode is in Locked location - $resp_msg" );
                     }
                     elsif ( $resp_msg =~ /RSNR0000500011/ ) {
-                        emsLog( $dbi_barcode, "REQI",
+                        emsLog( $barcode, "REQI",
                             "Work request for $barcode was deleted before completion - $resp_msg"
                         );
                     }
