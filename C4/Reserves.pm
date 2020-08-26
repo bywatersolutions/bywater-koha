@@ -1631,12 +1631,14 @@ sub _Findgroupreserve {
         FROM reserves
         JOIN biblioitems USING (biblionumber)
         JOIN hold_fill_targets USING (biblionumber, borrowernumber)
+        LEFT JOIN volume_items ON ( volume_items.itemnumber = hold_fill_targets.itemnumber )
         WHERE found IS NULL
         AND priority > 0
         AND item_level_request = 0
         AND hold_fill_targets.itemnumber = ?
         AND reservedate <= DATE_ADD(NOW(),INTERVAL ? DAY)
         AND suspend = 0
+        AND reserves.volume_id = volume_items.volume_id
         ORDER BY priority
     };
     $sth = $dbh->prepare($title_level_target_query);
