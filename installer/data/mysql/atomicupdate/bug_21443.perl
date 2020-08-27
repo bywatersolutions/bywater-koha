@@ -16,9 +16,9 @@ if( CheckVersion( $DBversion ) ) {
         });
     }
 
-    my $finesCalendar = C4::Context->preference('finesCalendar');
-    my $value = $finesCalendar eq 'noFinesWhenClosed' ? 1 : 0;
-    $dbh->do("UPDATE itemtypes SET rentalcharge_hourly_calendar = $value, rentalcharge_daily_calendar = $value");
+#    my $finesCalendar = C4::Context->preference('finesCalendar');
+#    my $value = $finesCalendar eq 'noFinesWhenClosed' ? 1 : 0;
+#    $dbh->do("UPDATE itemtypes SET rentalcharge_hourly_calendar = $value, rentalcharge_daily_calendar = $value");
 
     # Always end with this (adjust the bug info)
     SetVersion( $DBversion );
