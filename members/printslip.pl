@@ -39,6 +39,7 @@ use C4::Auth qw/:DEFAULT get_session/;
 use C4::Output;
 use C4::Members;
 use C4::Koha;
+use Koha::DateUtils;
 
 #use Smart::Comments;
 #use Data::Dumper;
@@ -79,7 +80,45 @@ output_and_exit_if_error( $input, $cookie, $template, { module => 'members', log
 
 my $branch=C4::Context->userenv->{'branch'};
 my ($slip, $is_html);
-if (my $letter = IssueSlip ($session->param('branch') || $branch, $borrowernumber, $print eq "qslip")) {
+if ( $print eq 'checkinslip' ) {
+    my $checkinslip_branch = $session->param('branch') ? $session->param('branch') : $branch;
+
+    # get today's checkins
+    my $dtf = Koha::Database->new->schema->storage->datetime_parser;
+    my $today = dt_from_string;
+    my $today_start = $today->clone->set( hour => 0, minute => 0, second => 0 );
+    my $today_end   = $today->clone->set( hour => 23, minute => 59, second => 0 );
+    $today_start = $dtf->format_datetime( $today_start );
+    $today_end   = $dtf->format_datetime( $today_end );
+    my @todays_checkins = $patron->old_checkouts->search({
+        returndate => {
+            '>=' => $today_start,
+            '<=' => $today_end,
+        },
+        branchcode => $checkinslip_branch,
+    });
+
+    my %loops = (
+        old_issues => [ map { $_->itemnumber } @todays_checkins ],
+    );
+
+    my $letter = C4::Letters::GetPreparedLetter(
+        module      => 'circulation',
+        letter_code => 'CHECKINSLIP',
+        branchcode  => $checkinslip_branch,
+        lang        => $patron->lang,
+        tables      => {
+            branches  => $checkinslip_branch,
+            borrowers => $borrowernumber,
+        },
+        loops                  => \%loops,
+        message_transport_type => 'print'
+    );
+
+    $slip    = $letter->{content};
+    $is_html = $letter->{is_html};
+
+} elsif (my $letter = IssueSlip ($session->param('branch') || $branch, $borrowernumber, $print eq "qslip")) {
     $slip = $letter->{content};
     $is_html = $letter->{is_html};
 }
