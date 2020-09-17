@@ -857,6 +857,7 @@
                                                         </span>
                                                     </span>
                                                 [% END %]
+                                                <a class="btn btn-default btn-xs printcheckinslip" href="#" data-borrowernumber="[% riloo.patron.borrowernumber | html %]"><i class="fa fa-print"></i> Print checkin slip</a>
                                             [% ELSE %]
                                                 Not checked out
                                             [% END %]
@@ -1073,6 +1074,13 @@
                 }
             });
             $('[data-toggle="tooltip"]').tooltip();
+
+            $(".printcheckinslip").on("click", function(e){
+                e.preventDefault();
+                var borrowernumber = $(this).data('borrowernumber');
+                window.open("/cgi-bin/koha/members/printslip.pl?borrowernumber=" + borrowernumber + "&amp;print=checkinslip", "printwindow");
+            });
+
         });
     </script>
 [% END %]
