@@ -121,7 +121,7 @@ jobs:
                   curl -X POST -H 'Content-type: application/json' --data '{ "blocks": [{"type": "section","text": {  "type": "mrkdwn","text": "@here, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.md"}}]}' ${{ secrets.SLACK_RELEASE_NOTES_WEBHOOK }}
 
     auto_rebase:
-        if: startsWith( github.ref, 'refs/heads/bywater-v' )
+        if: startsWith( github.ref, 'refs/heads/bywater-v' ) && github.repository == 'bywatersolutions/bywater-koha'
         name: Rebase custom codebases
         needs: [unit_test, is_a_mark]
         runs-on: ubuntu-latest
@@ -206,7 +206,7 @@ jobs:
 
             - name: Run koha-dpkg-docker
               run: |
-                  docker run --volume=${{ steps.extracted_variables.outputs.KOHACLONE }}:/koha --volume=/tmp/debs:/debs --privileged --env VERSION="${{ steps.extracted_variables.outputs.MMM_VERSION }}~${{ steps.extracted_variables.outputs.SHORTNAME }}~${{ steps.extracted_variables.outputs.MARK }}" koha/koha-dpkg:${{ steps.extracted_variables.outputs.MAJOR_MINOR_VERSION }}
+                  docker run --volume=${{ steps.extracted_variables.outputs.KOHACLONE }}:/koha --volume=/tmp/debs:/debs --privileged --env VERSION="${{ steps.extracted_variables.outputs.MMM_VERSION }}~${{ steps.extracted_variables.outputs.SHORTNAME }}~${{ steps.extracted_variables.outputs.MARK }}" koha/koha-dpkg:master
 
             - name: List file in debs dir
               run: ls -alh /tmp/debs
