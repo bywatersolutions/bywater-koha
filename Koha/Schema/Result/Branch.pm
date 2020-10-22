@@ -140,6 +140,18 @@ __PACKAGE__->table("branches");
   default_value: 1
   is_nullable: 0
 
+=head2 itembarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
+=head2 patronbarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -187,6 +199,10 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 16 },
   "pickup_location",
   { data_type => "tinyint", default_value => 1, is_nullable => 0 },
+  "itembarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
+  "patronbarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
@@ -789,8 +805,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-04-29 16:09:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9f0Crr57ffdoe8syXgawng
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-10-22 18:17:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ssp3ilbBVEgWbf2/1ryr5w
 
 __PACKAGE__->add_columns(
     '+pickup_location' => { is_boolean => 1 }
