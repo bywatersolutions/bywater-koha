@@ -38,7 +38,7 @@
                             [% END %]
                         </select>
                     [% ELSE #BranchTransferLimitsType == "ccode" %]
-                        <label for="value_selector">Select a collection code:</label>
+                        <label for="value_selector">Select a collection:</label>
                         <select id="value_selector">
                             <option value="" selected></option>
                             [% SET ccodes = AuthorisedValues.Get('CCODE') %]
@@ -121,7 +121,6 @@
 [% MACRO jsinclude BLOCK %]
     [% Asset.js("js/admin-menu.js") | $raw %]
     [% INCLUDE 'datatables.inc' %]
-    [% Asset.js("lib/jquery/plugins/jquery.checkboxes.min.js") | $raw %]
     <script>
         const branchTransferLimitsType = "[% BranchTransferLimitsType | html %]";
         const val_type = branchTransferLimitsType == "itemtype" ? "item_type" : "collection_code";
@@ -266,6 +265,8 @@
             });
 
             $("#value_selector").on('change', function() {
+                const val = $('#value_selector').val();
+                window.history.replaceState(null, "", `/cgi-bin/koha/admin/transfer_limits.pl?code=${val}`);
                 updateTransferLimitsTable();
             });
 
@@ -286,6 +287,14 @@
             });
 
             updateTransferLimitsTable();
+
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            const code = urlParams.get('code');
+            if ( code ) {
+                $('#value_selector').val(code);
+                updateTransferLimitsTable();
+            }
         });
 
         function delLimit(checkbox) {
@@ -359,9 +368,11 @@
                         checkbox.attr('checked', false);
                         $(`#spinner-${id}`).hide();
                         checkbox.show();
-                        $('.limit-action').removeClass('disabled');
-                        $('#value_selector').prop('disabled',false);
                     }
+                },
+                complete: function() {
+                    $('.limit-action').removeClass('disabled');
+                    $('#value_selector').prop('disabled',false);
                 },
                 error: function(xhr, status, error) {
                     var errorMessage = xhr.status + ': ' + xhr.statusText
@@ -389,9 +400,11 @@
                         checkbox.attr('checked', true);
                         $(`#spinner-${id}`).hide();
                         checkbox.show();
-                        $('.limit-action').removeClass('disabled');
-                        $('#value_selector').prop('disabled',false);
                     }
+                },
+                complete: function() {
+                    $('.limit-action').removeClass('disabled');
+                    $('#value_selector').prop('disabled',false);
                 },
                 error: function(xhr, status, error) {
                     var errorMessage = xhr.status + ': ' + xhr.statusText
@@ -416,19 +429,28 @@
             if (val) {
                 $('#loading_limits').show();
 
-                $.getJSON(url, function(data) {
-                    $(".limit-checkboxes").attr("disabled", false);
-                    $(".limit-checkboxes").attr("checked", true);
-                    $(".limit-checkboxes").data('limit_id', null);
+                $.ajax({
+                    dataType: "json",
+                    url: url,
+                    success: function(data) {
+                        $(".limit-checkboxes").attr("disabled", false);
+                        $(".limit-checkboxes").attr("checked", true);
+                        $(".limit-checkboxes").data('limit_id', null);
 
-                    for (var i = 0; i < data.length; i++) {
-                        let limit = data[i];
-                        let checkbox = $(`#limit-${limit.from_library_id}-${limit.to_library_id}`);
-                        checkbox.attr('checked', false);
-                        checkbox.data('limit_id', limit.limit_id);
+                        for (var i = 0; i < data.length; i++) {
+                            let limit = data[i];
+                            let checkbox = $(`#limit-${limit.from_library_id}-${limit.to_library_id}`);
+                            checkbox.attr('checked', false);
+                            checkbox.data('limit_id', limit.limit_id);
+                        }
+                    },
+                    complete: function() {
+                        $('#loading_limits').hide();
+                    },
+                    error: function(xhr, status, error) {
+                        var errorMessage = xhr.status + ': ' + xhr.statusText
+                        alert('Error - ' + errorMessage);
                     }
-
-                    $('#loading_limits').hide();
                 });
             }
         }
