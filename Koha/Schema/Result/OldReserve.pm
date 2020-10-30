@@ -46,6 +46,12 @@ __PACKAGE__->table("old_reserves");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 volume_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 branchcode
 
   data_type: 'varchar'
@@ -154,6 +160,8 @@ __PACKAGE__->add_columns(
   "reservedate",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "biblionumber",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "volume_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "branchcode",
   { data_type => "varchar", is_nullable => 1, size => 10 },
@@ -297,9 +305,29 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 volume
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-03-18 12:43:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4vMUC/1kSr3vgQ7n0Pmuug
+Type: belongs_to
+
+Related object: L<Koha::Schema::Result::Volume>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "volume",
+  "Koha::Schema::Result::Volume",
+  { id => "volume_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "SET NULL",
+    on_update     => "SET NULL",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-10-30 11:04:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:n7aRW3FkQrUNtHMGcVYR/Q
 
 __PACKAGE__->add_columns(
     '+item_level_hold' => { is_boolean => 1 },
