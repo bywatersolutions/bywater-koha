@@ -189,7 +189,17 @@ MARC Organization Code, see http://www.loc.gov/marc/organizations/orgshome.html,
   default_value: 1
   is_nullable: 0
 
-the ability to act as a pickup location
+=head2 itembarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
+=head2 patronbarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
 
 =cut
 
@@ -240,6 +250,10 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 16 },
   "pickup_location",
   { data_type => "tinyint", default_value => 1, is_nullable => 0 },
+  "itembarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
+  "patronbarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
@@ -887,8 +901,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-01-21 13:39:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Uu8m3hyDhM50oTSeNTJbdg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-10-30 10:55:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Y2XlALjVNukQdx1P24Gi3w
 
 __PACKAGE__->add_columns(
     '+pickup_location' => { is_boolean => 1 }
