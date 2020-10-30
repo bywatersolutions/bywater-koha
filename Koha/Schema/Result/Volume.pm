@@ -120,6 +120,36 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 old_reserves
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::OldReserve>
+
+=cut
+
+__PACKAGE__->has_many(
+  "old_reserves",
+  "Koha::Schema::Result::OldReserve",
+  { "foreign.volume_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 reserves
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Reserve>
+
+=cut
+
+__PACKAGE__->has_many(
+  "reserves",
+  "Koha::Schema::Result::Reserve",
+  { "foreign.volume_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 volume_items
 
 Type: has_many
@@ -136,8 +166,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-10-22 18:36:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SsSPr0Er07g5yQ+d6eXHkA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2020-10-30 11:04:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7vsX8Xt099IAARmIHPzpUw
 
 =head2 koha_objects_class
 
