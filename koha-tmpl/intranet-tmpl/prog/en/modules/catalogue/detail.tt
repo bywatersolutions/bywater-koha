@@ -1360,7 +1360,7 @@ Note that permanent location is a code, and location may be an authval.
                 "bPaginate": false,
                 "bProcessing": true,
                 "bServerSide": false,
-                "sAjaxSource": `/api/v1/biblios/${biblionumber}/volumes`,
+                "sAjaxSource": `/api/v1/biblios/${biblionumber}/volumes?_per_page=-1`,
                 "sAjaxDataProp": "",
                 "fnServerData": function ( sSource, aoData, fnCallback ) {
                     $.getJSON( sSource, aoData, function (json) {
