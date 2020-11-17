@@ -28,11 +28,11 @@ jobs:
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "BRANCH: $KOHA_BRANCH"
                   export SYNC_REPO=.
-                  echo ::set-env name=LOCAL_USER_ID::$LOCAL_USER_ID
-                  echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
-                  echo ::set-env name=SYNC_REPO::$SYNC_REPO
-                  echo ::set-env name=RUN_TESTS_AND_EXIT::yes
-                  echo ::set-env name=KOHA_IMAGE::20.05-stretch
+                  echo "LOCAL_USER_ID=$LOCAL_USER_ID" >> $GIHUB_ENV
+                  echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GIHUB_ENV
+                  echo "SYNC_REPO=$SYNC_REPO" >> $GIHUB_ENV
+                  echo "RUN_TESTS_AND_EXIT=yes" >> $GIHUB_ENV
+                  echo "KOHA_IMAGE=20.05-stretch" >> $GIHUB_ENV
 
             - name: Set up koha-testing-docker
               run: |
@@ -78,7 +78,7 @@ jobs:
               run: |
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "KOHA_BRANCH: $KOHA_BRANCH"
-                  echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
+                  echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GITHUB_ENV
 
             - name: Run kylemhall/bywater-koha-release-notes-generator
               run: |
@@ -97,7 +97,7 @@ jobs:
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "KOHA_BRANCH: $KOHA_BRANCH"
                   echo ::set-output name=KOHA_BRANCH::$KOHA_BRANCH
-                  echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
+                  echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GITHUB_ENV
 
             - name: Notify Slack
               run: |
@@ -114,7 +114,7 @@ jobs:
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "KOHA_BRANCH: $KOHA_BRANCH"
                   echo ::set-output name=KOHA_BRANCH::$KOHA_BRANCH
-                  echo ::set-env name=KOHA_BRANCH::$KOHA_BRANCH
+                  echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GITHUB_ENV
 
             - name: Notify Slack
               run: |
