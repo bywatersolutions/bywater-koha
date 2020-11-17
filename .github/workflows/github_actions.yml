@@ -28,11 +28,11 @@ jobs:
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "BRANCH: $KOHA_BRANCH"
                   export SYNC_REPO=.
-                  echo "LOCAL_USER_ID=$LOCAL_USER_ID" >> $GIHUB_ENV
-                  echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GIHUB_ENV
-                  echo "SYNC_REPO=$SYNC_REPO" >> $GIHUB_ENV
-                  echo "RUN_TESTS_AND_EXIT=yes" >> $GIHUB_ENV
-                  echo "KOHA_IMAGE=20.05-stretch" >> $GIHUB_ENV
+                  echo "LOCAL_USER_ID=$LOCAL_USER_ID" >> $GITHUB_ENV
+                  echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GITHUB_ENV
+                  echo "SYNC_REPO=$SYNC_REPO" >> $GITHUB_ENV
+                  echo "RUN_TESTS_AND_EXIT=yes" >> $GITHUB_ENV
+                  echo "KOHA_IMAGE=20.05-stretch" >> $GITHUB_ENV
 
             - name: Set up koha-testing-docker
               run: |
