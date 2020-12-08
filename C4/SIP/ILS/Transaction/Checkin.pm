@@ -77,6 +77,8 @@ sub do_checkin {
     $debug and warn "do_checkin() calling AddReturn($barcode, $branch)";
     my ($return, $messages, $issue, $borrower) = AddReturn($barcode, $branch, undef, $return_date);
 
+    my $item = Koha::Items->find( { barcode => $barcode } );
+
     if ( $checked_in_ok ) {
         delete $messages->{ItemLocationUpdated};
         delete $messages->{NotIssued};
@@ -112,7 +114,7 @@ sub do_checkin {
         $self->alert_type('04');            # send to other branch
     }
     if ($messages->{WasTransfered}) { # set into transit so tell unit
-        $self->{item}->destination_loc($issue->item->homebranch);
+        $self->{item}->destination_loc($item->homebranch);
         $self->alert_type('04');            # send to other branch
     }
     if ($messages->{ResFound}) {
