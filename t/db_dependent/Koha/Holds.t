@@ -192,15 +192,16 @@ subtest 'cancel' => sub {
                 value => { biblionumber => $item->biblionumber }
             }
         );
-        my $reserve_id = C4::Reserves::AddReserve(
-            $library->branchcode, $patron->borrowernumber,
-            $item->biblionumber,  '',
-            1,                    undef,
-            undef,                '',
-            "title for fee",      $item->itemnumber,
-            'W',                  undef,
-            $volume->id
-        );
+        my $reserve_id = C4::Reserves::AddReserve({
+            branchcode => $library->branchcode,
+	    borrowernumber => $patron->borrowernumber,
+            biblionumber => $item->biblionumber, 
+	    itemnumber => $item->itemnumber,
+	    priority => 1,
+            notes => "title for fee",
+            found => 'W',
+            volume_id => $volume->id,
+    	});
 
         my $hold = Koha::Holds->find($reserve_id);
         is( $hold->volume_id, $volume->id,
