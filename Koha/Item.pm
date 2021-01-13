@@ -196,12 +196,6 @@ sub delete {
     # FIXME check the item has no current issues
     # i.e. raise the appropriate exception
 
-    my $result = $self->SUPER::delete;
-
-    my $indexer = Koha::SearchEngine::Indexer->new({ index => $Koha::SearchEngine::BIBLIOS_INDEX });
-    $indexer->index_records( $self->biblionumber, "specialUpdate", "biblioserver" )
-        unless $params->{skip_record_index};
-
     if ( C4::Context->preference('EnableVolumes') ) {
         my $volume_item =
           Koha::Biblio::Volume::Items->find( { itemnumber => $self->itemnumber } );
@@ -213,6 +207,12 @@ sub delete {
             $volume->delete unless $volume->items->count > 1;
         }
     }
+
+    my $result = $self->SUPER::delete;
+
+    my $indexer = Koha::SearchEngine::Indexer->new({ index => $Koha::SearchEngine::BIBLIOS_INDEX });
+    $indexer->index_records( $self->biblionumber, "specialUpdate", "biblioserver" )
+        unless $params->{skip_record_index};
 
     $self->_after_item_action_hooks({ action => 'delete' });
 
