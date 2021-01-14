@@ -16,6 +16,9 @@
 [% INCLUDE 'calendar.inc' %]
 [% INCLUDE 'str/cataloging_additem.inc' %]
 [% Asset.js("js/cataloging_additem.js") | $raw %]
+    <script>
+      var has_volumes = [% volumes.count | html %];
+    </script>
 </head>
 
 <body id="cat_additem" class="cat">
@@ -298,11 +301,5 @@
             </main>
         </div> <!-- /.col-sm-12 -->
     </div> <!-- /.row -->
-
-[% MACRO jsinclude BLOCK %]
-    <script>
-      var has_volumes = [% volumes.count | html %];
-    </script>
-[% END %]
 
 [% INCLUDE 'intranet-bottom.inc' %]
