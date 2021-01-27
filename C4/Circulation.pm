@@ -2178,7 +2178,9 @@ sub AddReturn {
     my $indexer = Koha::SearchEngine::Indexer->new({ index => $Koha::SearchEngine::BIBLIOS_INDEX });
     $indexer->index_records( $item->biblionumber, "specialUpdate", "biblioserver" );
 
-    my $checkin = Koha::Old::Checkouts->find($issue->id);
+    my $checkin = undef;
+    $checkin = Koha::Old::Checkouts->find($issue->id)
+        if $issue;
 
     _after_circ_actions(
         {
@@ -2187,7 +2189,7 @@ sub AddReturn {
                 checkout=> $checkin
             }
         }
-    ) if C4::Context->config("enable_plugins");
+    ) if C4::Context->config("enable_plugins") && $checkin;
 
     return ( $doreturn, $messages, $issue, ( $patron ? $patron->unblessed : {} ));
 }
