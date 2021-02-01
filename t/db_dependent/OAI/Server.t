@@ -18,6 +18,7 @@
 # along with Koha; if not, see <http://www.gnu.org/licenses>.
 
 use Modern::Perl;
+use Test::Deep qw( cmp_deeply re );
 use Test::MockTime qw/set_fixed_time restore_time/;
 
 use Test::More tests => 30;
@@ -72,12 +73,13 @@ $dbh->do('DELETE FROM oai_sets');
 
 set_fixed_time(CORE::time());
 
-my $base_datetime = dt_from_string();
+my $base_datetime = dt_from_string(undef, undef, 'UTC');
 my $date_added = $base_datetime->ymd . ' ' .$base_datetime->hms . 'Z';
 my $date_to = substr($date_added, 0, 10) . 'T23:59:59Z';
 my (@header, @marcxml, @oaidc);
 my $sth = $dbh->prepare('UPDATE biblioitems     SET timestamp=? WHERE biblionumber=?');
 my $sth2 = $dbh->prepare('UPDATE biblio_metadata SET timestamp=? WHERE biblionumber=?');
+my $first_bn = 0;
 
 # Add biblio records
 foreach my $index ( 0 .. NUMBER_OF_MARC_RECORDS - 1 ) {
@@ -90,6 +92,7 @@ foreach my $index ( 0 .. NUMBER_OF_MARC_RECORDS - 1 ) {
         $record->append_fields( MARC::Field->new('245', '', '', 'a' => "Title $index" ) );
     }
     my ($biblionumber) = AddBiblio($record, '');
+    $first_bn = $biblionumber unless $first_bn;
     my $timestamp = $base_datetime->ymd . ' ' .$base_datetime->hms;
     $sth->execute($timestamp,$biblionumber);
     $sth2->execute($timestamp,$biblionumber);
@@ -160,7 +163,7 @@ sub test_query {
     }
 
     delete $response->{responseDate};
-    unless (is_deeply($response, \%full_expected, $test)) {
+    unless (cmp_deeply($response, \%full_expected, $test)) {
         diag
             "PARAM:" . Dump($param) .
             "EXPECTED:" . Dump(\%full_expected) .
@@ -201,7 +204,7 @@ test_query('ListIdentifiers', {verb => 'ListIdentifiers', metadataPrefix => 'mar
     ListIdentifiers => {
         header => [ @header[0..2] ],
         resumptionToken => {
-            content => "marcxml/3/1970-01-01T00:00:00Z/$date_to//0/0",
+            content => re( qr{^marcxml/3////0/0/\d+$} ),
             cursor  => 3,
         },
     },
@@ -211,7 +214,7 @@ test_query('ListIdentifiers', {verb => 'ListIdentifiers', metadataPrefix => 'mar
     ListIdentifiers => {
         header => [ @header[0..2] ],
         resumptionToken => {
-            content => "marcxml/3/1970-01-01T00:00:00Z/$date_to//0/0",
+            content => re( qr{^marcxml/3////0/0/\d+$} ),
             cursor  => 3,
         },
     },
@@ -219,12 +222,12 @@ test_query('ListIdentifiers', {verb => 'ListIdentifiers', metadataPrefix => 'mar
 
 test_query(
     'ListIdentifiers with resumptionToken 1',
-    { verb => 'ListIdentifiers', resumptionToken => "marcxml/3/1970-01-01T00:00:00Z/$date_to//0/0" },
+    { verb => 'ListIdentifiers', resumptionToken => "marcxml/3/1970-01-01T00:00:00Z/$date_to//0/0/" . ($first_bn + 3) },
     {
         ListIdentifiers => {
             header => [ @header[3..5] ],
             resumptionToken => {
-              content => "marcxml/6/1970-01-01T00:00:00Z/$date_to//0/0",
+              content => re( qr{^marcxml/6/1970-01-01T00:00:00Z/$date_to//0/0/\d+$} ),
               cursor  => 6,
             },
           },
@@ -233,12 +236,12 @@ test_query(
 
 test_query(
     'ListIdentifiers with resumptionToken 2',
-    { verb => 'ListIdentifiers', resumptionToken => "marcxml/6/1970-01-01T00:00:00Z/$date_to//0/0" },
+    { verb => 'ListIdentifiers', resumptionToken => "marcxml/6/1970-01-01T00:00:00Z/$date_to//0/0/" . ($first_bn + 6) },
     {
         ListIdentifiers => {
             header => [ @header[6..8] ],
             resumptionToken => {
-              content => "marcxml/9/1970-01-01T00:00:00Z/$date_to//0/0",
+              content => re( qr{^marcxml/9/1970-01-01T00:00:00Z/$date_to//0/0/\d+$} ),
               cursor  => 9,
             },
           },
@@ -247,7 +250,7 @@ test_query(
 
 test_query(
     'ListIdentifiers with resumptionToken 3, response without resumption',
-    { verb => 'ListIdentifiers', resumptionToken => "marcxml/9/1970-01-01T00:00:00Z/$date_to//0/0" },
+    { verb => 'ListIdentifiers', resumptionToken => "marcxml/9/1970-01-01T00:00:00Z/$date_to//0/0/" . ($first_bn + 9) },
     {
         ListIdentifiers => {
             header => $header[9],
@@ -266,7 +269,7 @@ test_query('ListRecords marcxml', {verb => 'ListRecords', metadataPrefix => 'mar
     ListRecords => {
         record => [ @marcxml[0..2] ],
         resumptionToken => {
-          content => "marcxml/3/1970-01-01T00:00:00Z/$date_to//0/0",
+          content => re( qr{^marcxml/3////0/0/\d+$} ),
           cursor  => 3,
         },
     },
@@ -274,11 +277,11 @@ test_query('ListRecords marcxml', {verb => 'ListRecords', metadataPrefix => 'mar
 
 test_query(
     'ListRecords marcxml with resumptionToken 1',
-    { verb => 'ListRecords', resumptionToken => "marcxml/3/1970-01-01T00:00:00Z/$date_to//0/0" },
+    { verb => 'ListRecords', resumptionToken => "marcxml/3////0/0/" . ($first_bn + 3) },
     { ListRecords => {
         record => [ @marcxml[3..5] ],
         resumptionToken => {
-          content => "marcxml/6/1970-01-01T00:00:00Z/$date_to//0/0",
+          content => re( qr{^marcxml/6////0/0/\d+$} ),
           cursor  => 6,
         },
     },
@@ -286,11 +289,11 @@ test_query(
 
 test_query(
     'ListRecords marcxml with resumptionToken 2',
-    { verb => 'ListRecords', resumptionToken => "marcxml/6/1970-01-01T00:00:00Z/$date_to//0/0" },
+    { verb => 'ListRecords', resumptionToken => "marcxml/6/1970-01-01T00:00:00Z/$date_to//0/0/" . ($first_bn + 6) },
     { ListRecords => {
         record => [ @marcxml[6..8] ],
         resumptionToken => {
-          content => "marcxml/9/1970-01-01T00:00:00Z/$date_to//0/0",
+          content => re( qr{^marcxml/9/1970-01-01T00:00:00Z/$date_to//0/0/\d+$} ),
           cursor  => 9,
         },
     },
@@ -299,7 +302,7 @@ test_query(
 # Last record, so no resumption token
 test_query(
     'ListRecords marcxml with resumptionToken 3, response without resumption',
-    { verb => 'ListRecords', resumptionToken => "marcxml/9/1970-01-01T00:00:00Z/$date_to//0/0" },
+    { verb => 'ListRecords', resumptionToken => "marcxml/9/1970-01-01T00:00:00Z/$date_to//0/0/" . ($first_bn + 9) },
     { ListRecords => {
         record => $marcxml[9],
     },
@@ -309,7 +312,7 @@ test_query('ListRecords oai_dc', {verb => 'ListRecords', metadataPrefix => 'oai_
     ListRecords => {
         record => [ @oaidc[0..2] ],
         resumptionToken => {
-          content => "oai_dc/3/1970-01-01T00:00:00Z/$date_to//0/0",
+          content => re( qr{^oai_dc/3////0/0/\d+$} ),
           cursor  => 3,
         },
     },
@@ -317,11 +320,11 @@ test_query('ListRecords oai_dc', {verb => 'ListRecords', metadataPrefix => 'oai_
 
 test_query(
     'ListRecords oai_dc with resumptionToken 1',
-    { verb => 'ListRecords', resumptionToken => "oai_dc/3/1970-01-01T00:00:00Z/$date_to//0/0" },
+    { verb => 'ListRecords', resumptionToken => "oai_dc/3////0/0/" . ($first_bn + 3) },
     { ListRecords => {
         record => [ @oaidc[3..5] ],
         resumptionToken => {
-          content => "oai_dc/6/1970-01-01T00:00:00Z/$date_to//0/0",
+          content => re( qr{^oai_dc/6////0/0/\d+$} ),
           cursor  => 6,
         },
     },
@@ -329,11 +332,11 @@ test_query(
 
 test_query(
     'ListRecords oai_dc with resumptionToken 2',
-    { verb => 'ListRecords', resumptionToken => "oai_dc/6/1970-01-01T00:00:00Z/$date_to//0/0" },
+    { verb => 'ListRecords', resumptionToken => "oai_dc/6/1970-01-01T00:00:00Z/$date_to//0/0/" . ($first_bn + 6) },
     { ListRecords => {
         record => [ @oaidc[6..8] ],
         resumptionToken => {
-          content => "oai_dc/9/1970-01-01T00:00:00Z/$date_to//0/0",
+          content => re( qr{^oai_dc/9/1970-01-01T00:00:00Z/$date_to//0/0/\d+$} ),
           cursor  => 9,
         },
     },
@@ -342,7 +345,7 @@ test_query(
 # Last record, so no resumption token
 test_query(
     'ListRecords oai_dc with resumptionToken 3, response without resumption',
-    { verb => 'ListRecords', resumptionToken => "oai_dc/9/1970-01-01T00:00:00Z/$date_to//0/0" },
+    { verb => 'ListRecords', resumptionToken => "oai_dc/9/1970-01-01T00:00:00Z/$date_to//0/0/" . ($first_bn + 9) },
     { ListRecords => {
         record => $oaidc[9],
     },
