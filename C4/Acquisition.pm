@@ -1862,7 +1862,7 @@ sub DelOrder {
     while ( my $item = $items->next ) { # Should be moved to Koha::Acquisition::Order->delete
         my $delcheck = $item->safe_delete;
 
-        if($delcheck ne '1') {
+        if ( ref $delcheck ne 'Koha::Item') {
             $error->{'delitem'} = 1;
         }
     }
