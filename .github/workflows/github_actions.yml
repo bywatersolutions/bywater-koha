@@ -233,6 +233,13 @@ jobs:
             - name: List file in debs dir
               run: ls -alh /tmp/debs
 
+            - name: Stash koha-common deb file name
+              id: find_koha_common
+              run: |
+                  KOHA_COMMON_DEB=$(ls /tmp/debs | grep koha-common)
+                  echo "KOHA COMMON DEB: $KOHA_COMMON_DEB"
+                  echo ::set-output name=KOHA_COMMON_DEB::$KOHA_COMMON_DEB
+
             - name: Create artifact zip
               run: zip --junk-paths -r "/tmp/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip" /tmp/debs/*
 
@@ -261,6 +268,16 @@ jobs:
                   asset_path: /tmp/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip
                   asset_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip
                   asset_content_type: application/zip
+
+            - name: Upload koha-common debian file asset
+              id: upload-release-asset
+              uses: actions/upload-release-asset@v1.0.1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
+              with:
+                  upload_url: ${{ steps.create_release.outputs.upload_url }}
+                  asset_path: /tmp/debs/${{ steps.find_koha_common.outputs.KOHA_COMMON_DEB }}
+                  asset_name: ${{ steps.find_koha_common.outputs.KOHA_COMMON_DEB }}
 
             - uses: bywatersolutions/action-slack@v3
               with:
