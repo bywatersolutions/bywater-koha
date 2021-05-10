@@ -258,26 +258,15 @@ jobs:
                   draft: false
                   prerelease: false
 
-            - name: Upload asset
-              id: upload-release-asset
-              uses: actions/upload-release-asset@v1.0.1
-              env:
-                  GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
+            - name: Upload assets
+              uses: softprops/action-gh-release@v1
               with:
-                  upload_url: ${{ steps.create_release.outputs.upload_url }}
-                  asset_path: /tmp/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip
-                  asset_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip
-                  asset_content_type: application/zip
-
-            - name: Upload koha-common debian file asset
-              id: upload-release-asset
-              uses: actions/upload-release-asset@v1.0.1
+                tag_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+                files: |
+                  /tmp/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip
+                  /tmp/debs/${{ steps.find_koha_common.outputs.KOHA_COMMON_DEB }}
               env:
-                  GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
-              with:
-                  upload_url: ${{ steps.create_release.outputs.upload_url }}
-                  asset_path: /tmp/debs/${{ steps.find_koha_common.outputs.KOHA_COMMON_DEB }}
-                  asset_name: ${{ steps.find_koha_common.outputs.KOHA_COMMON_DEB }}
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - uses: bywatersolutions/action-slack@v3
               with:
