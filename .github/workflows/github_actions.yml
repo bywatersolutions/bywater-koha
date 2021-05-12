@@ -301,6 +301,72 @@ jobs:
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_KYLE_WEBHOOK }}
 
+    build_docker:
+        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-futureNOT'
+        name: Build Docker image
+        needs: build_debs
+        runs-on: ubuntu-latest
+        steps:
+            - name: Git clone koha-docker
+              run: git clone https://gitlab.com/koha-community/docker/koha-docker.git --depth 1 --branch master
+
+            - name: Export additional variables
+              id: extracted_variables
+              run: |
+                  # Export VERSION as Koha major and minor e.g. 18.11, 20.05, etc.. TODO: Make this into a js based github action.
+                  export FULL_VERSION="$(cat Koha.pm | grep '$VERSION =')" && export FULL_VERSION=${FULL_VERSION%\"*} && export FULL_VERSION=${FULL_VERSION##*\"} && echo $FULL_VERSION
+                  IFS='.' read -ra VER_PARTS <<< "$FULL_VERSION"
+                  KOHA_MAJOR=${VER_PARTS[0]}
+                  KOHA_MINOR=${VER_PARTS[1]}
+                  MAJOR_MINOR_VERSION="${KOHA_MAJOR}.${KOHA_MINOR}"
+                  echo "MAJOR_MINOR_VERSION: $MAJOR_MINOR_VERSION"
+                  echo ::set-output name=MAJOR_MINOR_VERSION::$MAJOR_MINOR_VERSION
+                  # Export current branch name
+                  KOHA_BRANCH=${GITHUB_REF##*/}
+                  echo "KOHA_BRANCH: $KOHA_BRANCH"
+                  echo ::set-output name=KOHA_BRANCH::$KOHA_BRANCH
+                  # Split the branch name into parts ( e.g. bywater-v19.05.01-03 => "bywater", "v19.05.01", "03 )
+                  IFS='-' read -ra BRANCH_PARTS <<< "$KOHA_BRANCH"
+                  # Extract shortname branch name
+                  SHORTNAME=${BRANCH_PARTS[0]}
+                  echo "SHORTNAME: $SHORTNAME"
+                  echo ::set-output name=SHORTNAME::$SHORTNAME
+                  # Extract version without v
+                  TMP_VERSION=${BRANCH_PARTS[1]}
+                  MMM_VERSION=${TMP_VERSION:1} # Removes the first character i.e. 'v19.05.01' => '19.05.01'
+                  echo "MMM_VERSION: $MMM_VERSION"
+                  echo ::set-output name=MMM_VERSION::$MMM_VERSION
+                  # Extract mark
+                  MARK=${BRANCH_PARTS[2]}
+                  echo "MARK: $MARK"
+                  echo ::set-output name=MARK::$MARK
+                  # Build the branch specific part of the download path
+                  DOWNLOAD_PATH="${KOHA_BRANCH}/koha-common_${MMM_VERSION}.${SHORTNAME}.${MARK}-1_all.deb"
+                  echo ::set-output name=DOWNLOAD_PATH::$DOWNLOAD_PATH
+                  echo "DOWNLOAD PATH: $DOWNLOAD_PATH"
+                  # Set the base path of the URL, TODO: needs to change for bywater-koha-future
+                  BASE_URL="https://github.com/bywatersolutions/bywater-koha/releases/download/"
+                  DEB_URL="${BASE_URL}${DOWNLOAD_PATH}
+                  echo "DEB_URL: $DEB_URL"
+                  echo ::set-output name=DEB_URL::$DEB_URL
+
+            - name: Echo DEB_URL from previous step
+              run: echo "${{ steps.extracted_variables.outputs.DEB_URL }}"
+
+            - name: cd into koha-docker
+              run: cd koha-docker
+
+            - name: Build the Docker image
+              run: docker build --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.KOHA_BRANCH }} --build-arg KOHA_COMMMON_DEB_URL=${{ steps.extracted_variables.outputs.DEB_URL }}  .
+            - name: Log in to Docker Hub
+              env:
+                QUAY_USER: ${{secrets.QUAY_USER}}
+                QUAY_PASSWORD: ${{secrets.QUAY_PASSWORD}}
+              run: docker login quay.io -u $QUAY_USER -p $QUAY_PASSWORD
+
+            - name: Push to Docker Hub
+              run: docker push quay.io/bywatersolutions/koha
+
     auto_rebase_xslt:
         if: false
         #if: startsWith( github.ref, 'refs/heads/bywater-v' )
