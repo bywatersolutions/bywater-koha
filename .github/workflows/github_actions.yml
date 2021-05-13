@@ -314,13 +314,6 @@ jobs:
               id: extracted_variables
               run: |
                   # Export VERSION as Koha major and minor e.g. 18.11, 20.05, etc.. TODO: Make this into a js based github action.
-                  export FULL_VERSION="$(cat Koha.pm | grep '$VERSION =')" && export FULL_VERSION=${FULL_VERSION%\"*} && export FULL_VERSION=${FULL_VERSION##*\"} && echo $FULL_VERSION
-                  IFS='.' read -ra VER_PARTS <<< "$FULL_VERSION"
-                  KOHA_MAJOR=${VER_PARTS[0]}
-                  KOHA_MINOR=${VER_PARTS[1]}
-                  MAJOR_MINOR_VERSION="${KOHA_MAJOR}.${KOHA_MINOR}"
-                  echo "MAJOR_MINOR_VERSION: $MAJOR_MINOR_VERSION"
-                  echo ::set-output name=MAJOR_MINOR_VERSION::$MAJOR_MINOR_VERSION
                   # Export current branch name
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "KOHA_BRANCH: $KOHA_BRANCH"
