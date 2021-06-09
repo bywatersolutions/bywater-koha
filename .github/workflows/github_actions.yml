@@ -84,15 +84,8 @@ jobs:
 
             - uses: bywatersolutions/action-slack@v3
               with:
-                status: custom
-                fields: workflow,job,commit,repo,ref,author,took
-                custom_payload: |
-                  {
-                    attachments: [{
-                      color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
-                      text: `${process.env.AS_WORKFLOW}\n${process.env.AS_JOB} (${process.env.AS_COMMIT}) of ${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} ${{ job.status }} in ${process.env.AS_TOOK}`,
-                    }]
-                  }
+                status: ${{ job.status }}
+                fields: repo,message,commit,author,action,eventName,ref,workflow,job,took # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
               if: always() # Pick up events even if the job fails or is canceled.
@@ -175,15 +168,8 @@ jobs:
 
             - uses: bywatersolutions/action-slack@v3
               with:
-                status: custom
-                fields: workflow,job,commit,repo,ref,author,took
-                custom_payload: |
-                  {
-                    attachments: [{
-                      color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
-                      text: `${process.env.AS_WORKFLOW}\n${process.env.AS_JOB} (${process.env.AS_COMMIT}) of ${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} ${{ job.status }} in ${process.env.AS_TOOK}`,
-                    }]
-                  }
+                status: ${{ job.status }}
+                fields: repo,message,commit,author,action,eventName,ref,workflow,job,took # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
               if: always() # Pick up events even if the job fails or is canceled.
@@ -284,29 +270,16 @@ jobs:
 
             - uses: bywatersolutions/action-slack@v3
               with:
-                status: custom
-                fields: workflow,job,commit,repo,ref,author,took
-                custom_payload: |
-                  {
-                    attachments: [{
-                      color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
-                      text: `${process.env.AS_WORKFLOW}\n${process.env.AS_JOB} (${process.env.AS_COMMIT}) of ${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} ${{ job.status }} in ${process.env.AS_TOOK}`,
-                    }]
-                  }
+                status: ${{ job.status }}
+                fields: repo,message,commit,author,action,eventName,ref,workflow,job,took # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
               if: always() # Pick up events even if the job fails or is canceled.
 
             - uses: bywatersolutions/action-slack@v3
               with:
-                status: custom
-                fields: workflow,job,commit,repo,ref,author,took
-                custom_payload: |
-                  {
-                    attachments: [{
-                      color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
-                      text: `${process.env.AS_WORKFLOW}\n${process.env.AS_JOB} (${process.env.AS_COMMIT}) of ${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} ${{ job.status }} in ${process.env.AS_TOOK}`,
-                    }]
+                status: ${{ job.status }}
+                fields: repo,message,commit,author,action,eventName,ref,workflow,job,took # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_KYLE_WEBHOOK }} # required
               if: always() # Pick up events even if the job fails or is canceled.
