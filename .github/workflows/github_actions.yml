@@ -356,7 +356,8 @@ jobs:
               run: ls -alh
 
             - name: Build the Docker image
-              run: cd koha-docker; docker build --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.KOHA_BRANCH }} --build-arg KOHA_COMMMON_DEB_URL=${{ steps.extracted_variables.outputs.DEB_URL }}  .
+              run: cd koha-docker; docker build --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.KOHA_BRANCH }} --build-arg KOHA_COMMMON_DEB_URL=${{ steps.extracted_variables.outputs.DEB_URL }} --build-arg KOHA_VERSION=20.05 .
+
             - name: Log in to Docker Hub
               env:
                 QUAY_USER: ${{secrets.QUAY_USER}}
