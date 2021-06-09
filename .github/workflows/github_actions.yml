@@ -345,6 +345,12 @@ jobs:
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "KOHA_BRANCH: $KOHA_BRANCH"
                   echo ::set-output name=KOHA_BRANCH::$KOHA_BRANCH
+                  IFS='-' read -ra VER_PARTS <<< "$KOHA_BRANCH"
+                  TMP_KOHA_BRANCH=${VER_PARTS[1]}
+                  IFS='.' read -ra VER_PARTS <<< "$TMP_KOHA_BRANCH"
+                  KOHA_MAJOR_MINOR="${VER_PARTS[0]}.${VER_PARTS[1]}"
+                  echo "KOHA_MAJOR_MINOR: $KOHA_MAJOR_MINOR"
+                  echo ::set-output name=KOHA_MAJOR_MINOR::$KOHA_MAJOR_MINOR
                   # Split the branch name into parts ( e.g. bywater-v19.05.01-03 => "bywater", "v19.05.01", "03 )
                   IFS='-' read -ra BRANCH_PARTS <<< "$KOHA_BRANCH"
                   # Extract shortname branch name
@@ -383,7 +389,7 @@ jobs:
               run: ls -alh
 
             - name: Build the Docker image
-              run: cd koha-docker; docker build --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.shortname }}-latest --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.KOHA_BRANCH }} --build-arg KOHA_COMMMON_DEB_URL=${{ steps.extracted_variables.outputs.DEB_URL }} --build-arg KOHA_VERSION=20.05 .
+              run: cd koha-docker; docker build --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.KOHA_MAJOR_MINOR }}-latest --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.KOHA_BRANCH }} --build-arg KOHA_COMMMON_DEB_URL=${{ steps.extracted_variables.outputs.DEB_URL }} --build-arg KOHA_VERSION=20.05 .
 
             - name: Log in to Docker Hub
               env:
