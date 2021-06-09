@@ -370,8 +370,11 @@ jobs:
                 QUAY_PASSWORD: ${{secrets.QUAY_PASSWORD}}
               run: docker login quay.io -u $QUAY_USER -p $QUAY_PASSWORD
 
-            - name: Push to Docker Hub
+            - name: Push to Quay.io
               run: docker push quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+
+            - name: Push to Quay.io - tag 'latest'
+              run: docker push quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.KOHA_MAJOR_MINOR }}-latest
 
     auto_rebase_xslt:
         if: false
