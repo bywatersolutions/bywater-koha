@@ -173,6 +173,12 @@ Cataloging:
                 duplicate: "when editing records as new (duplicating)"
                 changed: "when changing the framework while editing the existing record"
                 imported: "when importing a record via z39.50"
+        -
+            - Control Number (001) is
+            - pref: autoControlNumber
+              choices:
+                  biblionumber: generated as biblionumber.
+                  "OFF": not generated automatically.
     Display:
         -
             - 'Separate main entry and subdivisions with '
