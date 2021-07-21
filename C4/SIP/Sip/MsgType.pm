@@ -21,6 +21,7 @@ use C4::Auth qw(&check_api_auth);
 use Koha::Patrons;
 use Koha::Patron::Attributes;
 use Koha::Items;
+use Koha::DateUtils qw( output_pref );
 
 use UNIVERSAL::can;
 
@@ -562,7 +563,13 @@ sub handle_checkout {
         $resp .= add_field( FID_ITEM_ID,   $item_id, $server );
         $resp .= add_field( FID_TITLE_ID,  $item->title_id, $server );
         if ( $item->due_date ) {
-            $resp .= add_field( FID_DUE_DATE, timestamp( $item->due_date ), $server );
+            my $due_date;
+            if( $account->{format_due_date} ){
+                $due_date = output_pref({ str => $item->due_date, as_due_date => 1 });
+            } else {
+                $due_date = timestamp( $item->due_date );
+            }
+            $resp .= add_field( FID_DUE_DATE, $due_date, $server );
         } else {
             $resp .= add_field( FID_DUE_DATE, q{}, $server );
         }
