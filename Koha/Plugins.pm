@@ -53,6 +53,35 @@ sub new {
     return bless( $args, $class );
 }
 
+=head2 call
+
+Calls a plugin method for all enabled plugins
+
+    @responses = Koha::Plugins->call($method, @args)
+
+=cut
+
+sub call {
+
+    my ($class, $method, @args) = @_;
+
+    if (C4::Context->config('enable_plugins')) {
+
+        my @plugins = $class->new({ enable_plugins => 1 })->GetPlugins({ method => $method });
+        my @responses;
+
+        foreach my $plugin (@plugins) {
+            my $response = eval { $plugin->$method(@args) };
+            if ($@) {
+                warn sprintf("Plugin error (%s): %s", $plugin->get_metadata->{name}, $@);
+                next;
+            }
+        }
+
+        return @responses;
+    }
+}
+
 =head2 GetPlugins
 
 This will return a list of all available plugins, optionally limited by
