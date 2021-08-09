@@ -455,5 +455,9 @@ __END_SRU_PUBLICSERVER__
      <do_not_remove_cookie>KohaOpacLanguage</do_not_remove_cookie>
  -->
 
+ <holds_queue_builder>
+     <parallel_loops_count>1</parallel_loops_count>
+ </holds_queue_builder>
+
 </config>
 </yazgfs>
