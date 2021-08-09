@@ -18,8 +18,10 @@ BEGIN {
 use Koha::Script -cron;
 use C4::HoldsQueue qw(CreateQueue);
 use C4::Log;
+use C4::Context;
 
 cronlogaction();
 
-CreateQueue();
+my $loops = C4::Context->config('holds_queue_builder')->{parallel_loops_count};
+CreateQueue($loops);
 
