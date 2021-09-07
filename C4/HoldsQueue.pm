@@ -126,7 +126,13 @@ sub GetHoldsQueueItems {
     my $dbh   = C4::Context->dbh;
 
     my @bind_params = ();
-    my $query = q/SELECT tmp_holdsqueue.*, biblio.author, items.ccode, items.itype, biblioitems.itemtype, items.location,
+    my $query = q/SELECT borrowers.surname,
+                         borrowers.othernames,
+                         borrowers.firstname,
+                         borrowers.cardnumber,
+                         borrowers.borrowernumber,
+                         borrowers.title AS borrower_title,
+                         tmp_holdsqueue.*, biblio.author, items.ccode, items.itype, biblioitems.itemtype, items.location,
                          items.enumchron, items.cn_sort, biblioitems.publishercode,
                          biblio.copyrightdate, biblio.subtitle, biblio.medium,
                          biblio.part_number, biblio.part_name,
@@ -139,6 +145,7 @@ sub GetHoldsQueueItems {
                   LEFT JOIN items       USING (  itemnumber)
                   LEFT JOIN item_group_items ON ( items.itemnumber =  item_group_items.item_id )
                   LEFT JOIN item_groups ON ( item_group_items.item_group_id = item_groups.item_group_id )
+                  LEFT JOIN borrowers   USING (borrowernumber)
                   WHERE 1=1
                 /;
     if ($params->{branchlimit}) {
@@ -167,6 +174,15 @@ sub GetHoldsQueueItems {
             $row->{itype} = $row->{itemtype};
         }
         delete $row->{itemtype};
+
+        $row->{borrower} = {
+            borrowernumber => $row->{borrowernumber},
+            cardnumber     => $row->{cardnumber},
+            firstname      => $row->{firstname},
+            othernames     => $row->{othernames},
+            surname        => $row->{surname},
+            title          => $row->{borrower_title},
+        };
 
         push @$items, $row;
     }
