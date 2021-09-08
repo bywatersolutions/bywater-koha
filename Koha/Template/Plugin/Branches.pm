@@ -27,11 +27,14 @@ use C4::Koha;
 use C4::Context;
 use Koha::Libraries;
 
+our %branches;
+
 sub GetName {
     my ( $self, $branchcode ) = @_;
 
-    my $l = Koha::Libraries->find($branchcode);
-    return $l ? $l->branchname : q{};
+    %branches = map { $_->{branchcode} => $_ } @{Koha::Libraries->search()->unblessed} unless %branches;
+    my $l = $branches{$branchcode};
+    return $l ? $l->{branchname} : q{};
 }
 
 sub GetLoggedInBranchcode {
