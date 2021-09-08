@@ -24,13 +24,17 @@ use base qw( Template::Plugin );
 
 use Koha::ItemTypes;
 
+our %itemtypes;
+
+
 sub GetDescription {
     my ( $self, $itemtypecode, $want_parent ) = @_;
-    my $itemtype = Koha::ItemTypes->find( $itemtypecode );
+    %itemtypes = map { $_->{itemtype} => $_ } @{Koha::ItemTypes->search_with_localization()->unblessed} unless %itemtypes;
+    my $itemtype = $itemtypes{$itemtypecode};
     return q{} unless $itemtype;
     my $parent;
-    $parent = $itemtype->parent if $want_parent;
-    return $parent ? $parent->translated_description . "->" . $itemtype->translated_description : $itemtype->translated_description;
+    $parent = $itemtypes{$itemtype->{parent_type}} if $want_parent;
+    return $parent ? $parent->{translated_description} . "->" . $itemtype->{translated_description} : $itemtype->{translated_description};
 }
 
 sub Get {
