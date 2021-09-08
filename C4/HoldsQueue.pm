@@ -134,7 +134,13 @@ Returns hold queue for a holding branch. If branch is omitted, then whole queue 
 =cut
 
 sub GetHoldsQueueItems {
-    my ($branchlimit) = @_;
+    my ($branchlimit, $limit, $page) = @_;
+
+    $limit ||= 20;
+    $page  ||= 1;
+
+    my $offset = 0 + ( $limit * ( $page - 1 ) );
+
     my $dbh   = C4::Context->dbh;
 
     my @bind_params = ();
@@ -161,6 +167,7 @@ sub GetHoldsQueueItems {
         push @bind_params, $branchlimit;
     }
     $query .= " ORDER BY ccode, location, cn_sort, author, title, pickbranch, reservedate";
+    $query .= " LIMIT $limit OFFSET $offset";
     my $sth = $dbh->prepare($query);
     $sth->execute(@bind_params);
     my $items = [];
@@ -182,7 +189,18 @@ sub GetHoldsQueueItems {
 
         push @$items, $row;
     }
-    return $items;
+
+
+    @bind_params = ();
+    my $total_query = "SELECT COUNT(*) FROM tmp_holdsqueue";
+    if ($branchlimit) {
+        $total_query .=" WHERE tmp_holdsqueue.holdingbranch = ?";
+        push @bind_params, $branchlimit;
+    }
+
+    my ($total_results) = $dbh->selectrow_array( $total_query, undef, @bind_params );
+
+    return ( $items, $total_results );
 }
 
 =head2 CreateQueue
