@@ -127,21 +127,20 @@ sub UpdateTransportCostMatrix {
 
 =head2 GetHoldsQueueItems
 
-  GetHoldsQueueItems($branch);
+  GetHoldsQueueItems({ branchlimit => $branch, itemtypeslimit =>  $itype, ccodeslimit => $ccode, locationslimit => $location );
 
 Returns hold queue for a holding branch. If branch is omitted, then whole queue is returned
 
 =cut
 
 sub GetHoldsQueueItems {
-    my ($branchlimit, $limit, $page) = @_;
+    my $params = shift;
+    my $dbh   = C4::Context->dbh;
 
-    $limit ||= 20;
-    $page  ||= 1;
+    $limit = $params->{limit} || 20;
+    $page  = $params->{page}  || 1;
 
     my $offset = 0 + ( $limit * ( $page - 1 ) );
-
-    my $dbh   = C4::Context->dbh;
 
     my @bind_params = ();
     my $query = q/SELECT borrowers.surname,
@@ -161,10 +160,23 @@ sub GetHoldsQueueItems {
                   LEFT JOIN biblioitems USING (biblionumber)
                   LEFT JOIN items       USING (  itemnumber)
                   LEFT JOIN borrowers   USING (borrowernumber)
+                  WHERE 1=1
                 /;
-    if ($branchlimit) {
-        $query .=" WHERE tmp_holdsqueue.holdingbranch = ?";
-        push @bind_params, $branchlimit;
+    if ($params->{branchlimit}) {
+        $query .="AND tmp_holdsqueue.holdingbranch = ? ";
+        push @bind_params, $params->{branchlimit};
+    }
+    if( $params->{itemtypeslimit} ) {
+        $query .=" AND items.itype = ? ";
+        push @bind_params, $params->{itemtypeslimit};
+    }
+    if( $params->{ccodeslimit} ) {
+        $query .=" AND items.ccode = ? ";
+        push @bind_params, $params->{ccodeslimit};
+    }
+    if( $params->{locationslimit} ) {
+        $query .=" AND items.location = ? ";
+        push @bind_params, $params->{locationslimit};
     }
     $query .= " ORDER BY ccode, location, cn_sort, author, title, pickbranch, reservedate";
     $query .= " LIMIT $limit OFFSET $offset";

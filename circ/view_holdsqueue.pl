@@ -48,15 +48,28 @@ my $run_report     = $params->{'run_report'};
 my $branchlimit    = $params->{'branchlimit'};
 my $limit          = $params->{'limit'} || 20;
 my $page           = $params->{'page'}  || 1;
+my $itemtypeslimit = $params->{'itemtypeslimit'};
+my $ccodeslimit = $params->{'ccodeslimit'};
+my $locationslimit = $params->{'locationslimit'};
 
 if ( $run_report ) {
-    my ( $items, $total ) = GetHoldsQueueItems( $branchlimit, $limit, $page );
+    my ( $items, $total ) = GetHoldsQueueItems({
+        branchlimt => $branchlimit,
+        itemtypeslimit => $itemtypeslimit,
+        ccodeslimit => $ccodeslimit,
+        locationslimit => $locationslimit,
+        limit => $limit,
+        page => $page
+    });
 
     my $pages = int( $total / $limit ) + ( ( $total % $limit ) > 0 ? 1 : 0 );
     warn "LIMIT: $limit";
     warn "PAGES: $pages";
     $template->param(
         branchlimit    => $branchlimit,
+        itemtypeslimit     => $itemtypeslimit,
+        ccodeslimit     => $ccodeslimit,
+        locationslimit     => $locationslimit,
         total          => $total,
         itemsloop      => $items,
         run_report     => $run_report,
