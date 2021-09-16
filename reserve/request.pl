@@ -466,106 +466,105 @@ foreach my $biblionumber (@biblionumbers) {
         # it's complicated logic to analyse.
         # (before this loop was inside that sub loop so it was O(n^2) )
         my $items_any_available;
-        $items_any_available = ItemsAnyAvailableAndNotRestricted( { biblionumber => $biblioitem->{biblionumber}, patron => $patron })
-            if $patron;
+        if ( $patron ) {
+            $items_any_available = ItemsAnyAvailableAndNotRestricted( { biblionumber => $biblioitem->{biblionumber}, patron => $patron });
 
-        foreach my $itemnumber ( @{ $itemnumbers_of_biblioitem{$biblioitemnumber} } )    {
-            my $item = $iteminfos_of->{$itemnumber};
-            my $do_check;
-            if ( $patron ) {
-                $do_check = $patron->do_check_for_previous_checkout($item) if $wants_check;
-                if ( $do_check && $wants_check ) {
-                    $item->{checked_previously} = $do_check;
-                    if ( $multi_hold ) {
-                        $biblioloopiter{checked_previously} = $do_check;
-                    } else {
-                        $template->param( checked_previously => $do_check );
+            foreach my $itemnumber ( @{ $itemnumbers_of_biblioitem{$biblioitemnumber} } )    {
+                my $item = $iteminfos_of->{$itemnumber};
+                my $do_check;
+                if ( $patron ) {
+                    $do_check = $patron->do_check_for_previous_checkout($item) if $wants_check;
+                    if ( $do_check && $wants_check ) {
+                        $item->{checked_previously} = $do_check;
+                        if ( $multi_hold ) {
+                            $biblioloopiter{checked_previously} = $do_check;
+                        } else {
+                            $template->param( checked_previously => $do_check );
+                        }
                     }
                 }
-            }
-            $item->{force_hold_level} = $force_hold_level;
+                $item->{force_hold_level} = $force_hold_level;
 
-            unless (C4::Context->preference('item-level_itypes')) {
-                $item->{itype} = $biblioitem->{itemtype};
-            }
-
-            $item->{itypename} = $itemtypes->{ $item->{itype} }{description};
-            $item->{imageurl} = getitemtypeimagelocation( 'intranet', $itemtypes->{ $item->{itype} }{imageurl} );
-            $item->{homebranch} = $item->{homebranch};
-
-            # if the holdingbranch is different than the homebranch, we show the
-            # holdingbranch of the document too
-            if ( $item->{homebranch} ne $item->{holdingbranch} ) {
-                $item->{holdingbranch} = $item->{holdingbranch};
-            }
-
-            if($item->{biblionumber} ne $biblionumber){
-                $item->{hostitemsflag} = 1;
-                $item->{hosttitle} = Koha::Biblios->find( $item->{biblionumber} )->title;
-            }
-
-            # if the item is currently on loan, we display its return date and
-            # change the background color
-            my $issue = Koha::Checkouts->find( { itemnumber => $itemnumber } );
-            if ( $issue ) {
-                $item->{date_due} = $issue->date_due;
-                $item->{backgroundcolor} = 'onloan';
-            }
-
-            # checking reserve
-            my $item_object = Koha::Items->find( $itemnumber );
-            my $holds = $item_object->current_holds;
-            if ( my $first_hold = $holds->next ) {
-                my $p = Koha::Patrons->find( $first_hold->borrowernumber );
-
-                $item->{backgroundcolor} = 'reserved';
-                $item->{reservedate}     = output_pref({ dt => dt_from_string( $first_hold->reservedate ), dateonly => 1 }); # FIXME Should be formatted in the template
-                $item->{ReservedFor}     = $p;
-                $item->{ExpectedAtLibrary}     = $first_hold->branchcode;
-                $item->{waitingdate} = $first_hold->waitingdate;
-            }
-
-            # Management of the notforloan document
-            if ( $item->{notforloan} ) {
-                $item->{backgroundcolor} = 'other';
-            }
-
-            # Management of lost or long overdue items
-            if ( $item->{itemlost} ) {
-                $item->{backgroundcolor} = 'other';
-                if ($logged_in_patron->category->hidelostitems && !$showallitems) {
-                    $item->{hide} = 1;
-                    $hiddencount++;
+                unless (C4::Context->preference('item-level_itypes')) {
+                    $item->{itype} = $biblioitem->{itemtype};
                 }
-            }
 
-            # Check the transit status
-            my ( $transfertwhen, $transfertfrom, $transfertto ) =
-              GetTransfers($itemnumber);
+                $item->{itypename} = $itemtypes->{ $item->{itype} }{description};
+                $item->{imageurl} = getitemtypeimagelocation( 'intranet', $itemtypes->{ $item->{itype} }{imageurl} );
+                $item->{homebranch} = $item->{homebranch};
 
-            if ( defined $transfertwhen && $transfertwhen ne '' ) {
-                $item->{transfertwhen} = output_pref({ dt => dt_from_string( $transfertwhen ), dateonly => 1 });
-                $item->{transfertfrom} = $transfertfrom;
-                $item->{transfertto} = $transfertto;
-                $item->{nocancel} = 1;
-            }
+                # if the holdingbranch is different than the homebranch, we show the
+                # holdingbranch of the document too
+                if ( $item->{homebranch} ne $item->{holdingbranch} ) {
+                    $item->{holdingbranch} = $item->{holdingbranch};
+                }
 
-            # If there is no loan, return and transfer, we show a checkbox.
-            $item->{notforloan} ||= 0;
+                if($item->{biblionumber} ne $biblionumber){
+                    $item->{hostitemsflag} = 1;
+                    $item->{hosttitle} = Koha::Biblios->find( $item->{biblionumber} )->title;
+                }
 
-            # if independent branches is on we need to check if the person can reserve
-            # for branches they arent logged in to
-            if ( C4::Context->preference("IndependentBranches") ) {
-                if (! C4::Context->preference("canreservefromotherbranches")){
-                    # can't reserve items so need to check if item homebranch and userenv branch match if not we can't reserve
-                    my $userenv = C4::Context->userenv;
-                    unless ( C4::Context->IsSuperLibrarian ) {
-                        $item->{cantreserve} = 1 if ( $item->{homebranch} ne $userenv->{branch} );
+                # if the item is currently on loan, we display its return date and
+                # change the background color
+                my $issue = Koha::Checkouts->find( { itemnumber => $itemnumber } );
+                if ( $issue ) {
+                    $item->{date_due} = $issue->date_due;
+                    $item->{backgroundcolor} = 'onloan';
+                }
+
+                # checking reserve
+                my $item_object = Koha::Items->find( $itemnumber );
+                my $holds = $item_object->current_holds;
+                if ( my $first_hold = $holds->next ) {
+                    my $p = Koha::Patrons->find( $first_hold->borrowernumber );
+
+                    $item->{backgroundcolor} = 'reserved';
+                    $item->{reservedate}     = output_pref({ dt => dt_from_string( $first_hold->reservedate ), dateonly => 1 }); # FIXME Should be formatted in the template
+                    $item->{ReservedFor}     = $p;
+                    $item->{ExpectedAtLibrary}     = $first_hold->branchcode;
+                    $item->{waitingdate} = $first_hold->waitingdate;
+                }
+
+                # Management of the notforloan document
+                if ( $item->{notforloan} ) {
+                    $item->{backgroundcolor} = 'other';
+                }
+
+                # Management of lost or long overdue items
+                if ( $item->{itemlost} ) {
+                    $item->{backgroundcolor} = 'other';
+                    if ($logged_in_patron->category->hidelostitems && !$showallitems) {
+                        $item->{hide} = 1;
+                        $hiddencount++;
                     }
                 }
-            }
 
-            if ( $patron ) {
+                # Check the transit status
+                my ( $transfertwhen, $transfertfrom, $transfertto ) =
+                  GetTransfers($itemnumber);
+
+                if ( defined $transfertwhen && $transfertwhen ne '' ) {
+                    $item->{transfertwhen} = output_pref({ dt => dt_from_string( $transfertwhen ), dateonly => 1 });
+                    $item->{transfertfrom} = $transfertfrom;
+                    $item->{transfertto} = $transfertto;
+                    $item->{nocancel} = 1;
+                }
+
+                # If there is no loan, return and transfer, we show a checkbox.
+                $item->{notforloan} ||= 0;
+
+                # if independent branches is on we need to check if the person can reserve
+                # for branches they arent logged in to
+                if ( C4::Context->preference("IndependentBranches") ) {
+                    if (! C4::Context->preference("canreservefromotherbranches")){
+                        # can't reserve items so need to check if item homebranch and userenv branch match if not we can't reserve
+                        my $userenv = C4::Context->userenv;
+                        unless ( C4::Context->IsSuperLibrarian ) {
+                            $item->{cantreserve} = 1 if ( $item->{homebranch} ne $userenv->{branch} );
+                        }
+                    }
+                }
+
                 my $patron_unblessed = $patron->unblessed;
                 my $branch = C4::Circulation::_GetCircControlBranch($item, $patron_unblessed);
 
@@ -625,9 +624,10 @@ foreach my $biblionumber (@biblionumbers) {
                 if ($item->{ccode}) {
                     $itemdata_ccode = 1;
                 }
-            }
 
             push @{ $biblioitem->{itemloop} }, $item;
+
+            }
         }
 
         # While we can't override an alreay held item, we should be able to override the others
