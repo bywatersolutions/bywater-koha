@@ -56,7 +56,7 @@
                     [% IF ( CAN_user_reserveforothers_modify_holds_priority ) %]
                         [% PROCESS priority_dropdown %]
                     [% ELSE %]
-                        <option value="[% hold.priority | html %]" selected="selected">[% this_priority |     html %]</option>
+                        <option value="[% hold.priority | html %]" selected="selected">[% this_priority | html %]</option>
                     [% END %]
                         <option value="del">del</option>
                     </select>
