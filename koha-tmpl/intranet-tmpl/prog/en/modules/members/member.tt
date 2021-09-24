@@ -450,7 +450,8 @@
                             // redirect if there is only 1 result.
                             if ( json.aaData.length == 1 ) {
                                 var borrowernumber = json.aaData[0].borrowernumber;
-                                document.location.href="/cgi-bin/koha/members/moremember.pl?borrowernumber="+borrowernumber;
+                                var redirect_to = [% UNLESS circsearch %]"members/moremember"[% ELSE %]"circ/circulation"[% END %];
+                                document.location.href="/cgi-bin/koha/"+redirect_to+".pl?borrowernumber="+borrowernumber;
                                 return false;
                             }
                             fnCallback(json);
