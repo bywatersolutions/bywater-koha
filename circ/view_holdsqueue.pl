@@ -63,8 +63,6 @@ if ( $run_report ) {
     });
 
     my $pages = int( $total / $limit ) + ( ( $total % $limit ) > 0 ? 1 : 0 );
-    warn "LIMIT: $limit";
-    warn "PAGES: $pages";
     $template->param(
         branchlimit    => $branchlimit,
         itemtypeslimit     => $itemtypeslimit,
@@ -80,7 +78,14 @@ if ( $run_report ) {
             $pages,
             $page,
             'page',
-            { branchlimit => $branchlimit, limit => $limit, run_report => 1, }
+            {
+                branchlimit    => $branchlimit,
+                itemtypeslimit => $itemtypeslimit,
+                ccodeslimit    => $ccodeslimit,
+                locationslimit => $locationslimit,
+                limit          => $limit,
+                run_report     => 1,
+            }
         ),
     );
 }
