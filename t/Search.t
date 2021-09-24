@@ -182,7 +182,7 @@ subtest "searchResults PassItemMarcToXSLT test" => sub {
     my $mock_xslt = Test::MockModule->new("C4::Search");
     $mock_xslt->mock( XSLTParse4Display => sub {
         my $params = shift;
-        my $record = $params->{record};
+        my $record = shift;
         warn $record->field('952') ? "Item here" : "No item";
         return;
     });
