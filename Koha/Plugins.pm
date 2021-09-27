@@ -25,9 +25,12 @@ use List::MoreUtils qw(any);
 use Module::Load::Conditional qw(can_load);
 use Module::Load qw(load);
 use Module::Pluggable search_path => ['Koha::Plugin'], except => qr/::Edifact(|::Line|::Message|::Order|::Segment|::Transport)$/;
+use Try::Tiny;
 
 use C4::Context;
 use C4::Output;
+
+use Koha::Exceptions::Plugin;
 use Koha::Plugins::Methods;
 
 BEGIN {
@@ -119,11 +122,23 @@ sub GetPlugins {
     while ( my $plugin_class = $plugin_classes->next ) {
 
         if ( can_load( modules => { $plugin_class => undef }, nocache => 1 ) ) {
-            my $plugin = $plugin_class->new({
-                enable_plugins => $self->{'enable_plugins'}
-                    # loads even if plugins are disabled
-                    # FIXME: is this for testing without bothering to mock config?
-            });
+
+            my $plugin;
+            my $failed_instantiation;
+
+            try {
+                $plugin = $plugin_class->new({
+                    enable_plugins => $self->{'enable_plugins'}
+                        # loads even if plugins are disabled
+                        # FIXME: is this for testing without bothering to mock config?
+                });
+            }
+            catch {
+                warn "$_";
+                $failed_instantiation = 1;
+            };
+
+            next if $failed_instantiation;
 
             next unless $plugin->is_enabled or
                         defined($params->{all}) && $params->{all};
@@ -168,7 +183,18 @@ sub InstallPlugins {
         if ( can_load( modules => { $plugin_class => undef }, nocache => 1 ) ) {
             next unless $plugin_class->isa('Koha::Plugins::Base');
 
-            my $plugin = $plugin_class->new({ enable_plugins => $self->{'enable_plugins'} });
+            my $plugin;
+            my $failed_instantiation;
+
+            try {
+                $plugin = $plugin_class->new({ enable_plugins => $self->{'enable_plugins'} });
+            }
+            catch {
+                warn "$_";
+                $failed_instantiation = 1;
+            };
+
+            next if $failed_instantiation;
 
             Koha::Plugins::Methods->search({ plugin_class => $plugin_class })->delete();
 
