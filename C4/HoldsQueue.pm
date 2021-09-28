@@ -229,8 +229,10 @@ sub CreateQueue {
 
     my $dbh = C4::Context->dbh;
 
-    $dbh->do("DELETE FROM tmp_holdsqueue");  # clear the old table for new info
-    $dbh->do("DELETE FROM hold_fill_targets");
+    $dbh->do("DROP TABLE IF EXISTS tmp_holdsqueue_builder");
+    $dbh->do("DROP TABLE IF EXISTS hold_fill_targets_builder");
+    $dbh->do("CREATE TABLE tmp_holdsqueue_builder LIKE tmp_holdsqueue");
+    $dbh->do("CREATE TABLE hold_fill_targets_builder LIKE hold_fill_targets");
 
     my $branches_to_use;
     my $transport_cost_matrix;
@@ -301,6 +303,16 @@ sub _ProcessBiblios {
             #warn Dumper($hold_requests), Dumper($available_items), Dumper($item_map);
         }
     }
+
+    my $do_not_lock = ( exists $ENV{_} && $ENV{_} =~ m|prove| ) || $ENV{KOHA_TESTING};
+    $dbh->{AutoCommit} = 0 unless $do_not_lock;
+    $dbh->do("DELETE FROM tmp_holdsqueue");  # clear the old tables for new info
+    $dbh->do("DELETE FROM hold_fill_targets");
+    $dbh->do("INSERT INTO tmp_holdsqueue SELECT * FROM tmp_holdsqueue_builder");
+    $dbh->do("INSERT INTO hold_fill_targets SELECT * FROM hold_fill_targets_builder");
+    $dbh->do("DROP TABLE tmp_holdsqueue_builder");
+    $dbh->do("DROP TABLE hold_fill_targets_builder");
+    $dbh->commit() unless $do_not_lock;
 }
 
 =head2 GetBibsWithPendingHoldRequests
@@ -793,7 +805,7 @@ sub CreatePicklistFromItemMap {
     my $dbh = C4::Context->dbh;
 
     my $sth_load=$dbh->prepare("
-        INSERT INTO tmp_holdsqueue (biblionumber,itemnumber,barcode,surname,firstname,phone,borrowernumber,
+        INSERT INTO tmp_holdsqueue_builder (biblionumber,itemnumber,barcode,surname,firstname,phone,borrowernumber,
                                     cardnumber,reservedate,title, itemcallnumber,
                                     holdingbranch,pickbranch,notes, item_level_request)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
@@ -838,7 +850,7 @@ sub AddToHoldTargetMap {
     my $dbh = C4::Context->dbh;
 
     my $insert_sql = q(
-        INSERT INTO hold_fill_targets (borrowernumber, biblionumber, itemnumber, source_branchcode, item_level_request, reserve_id)
+        INSERT INTO hold_fill_targets_builder (borrowernumber, biblionumber, itemnumber, source_branchcode, item_level_request, reserve_id)
                                VALUES (?, ?, ?, ?, ?, ?)
     );
     my $sth_insert = $dbh->prepare($insert_sql);
