@@ -270,7 +270,7 @@
  <z3950_responder_options>--add-item-status k -t 5</z3950_responder_options>
 
  <holds_queue_builder>
-     <parallel_loops_count>1</parallel_loops_count>
+     <parallel_loops_count>3</parallel_loops_count>
  </holds_queue_builder>
 
 </config>
