@@ -263,13 +263,13 @@ sub CreateQueue {
         DATA_LOOP:
         foreach my $chunk (@chunks) {
             my $pid = $pm->start and next DATA_LOOP;
-            _ProcessBiblios( $chunk, $branches_to_use, $transport_cost_matrix );
+            _ProcessBiblios( $chunk, $branches_to_use, $transport_cost_matrix, $dbh );
             $pm->finish;
         }
 
         $pm->wait_all_children;
     } else {
-        _ProcessBiblios( $bibs_with_pending_requests, $branches_to_use, $transport_cost_matrix );
+        _ProcessBiblios( $bibs_with_pending_requests, $branches_to_use, $transport_cost_matrix, $dbh );
     }
 
     my $do_not_lock = ( exists $ENV{_} && $ENV{_} =~ m|prove| ) || $ENV{KOHA_TESTING};
@@ -291,6 +291,7 @@ sub _ProcessBiblios {
     my $bibs_with_pending_requests = shift;
     my $branches_to_use = shift;
     my $transport_cost_matrix = shift;
+    my $dbh = shift;
 
     foreach my $biblionumber (@$bibs_with_pending_requests) {
         my $hold_requests   = GetPendingHoldRequestsForBib($biblionumber);
@@ -301,8 +302,8 @@ sub _ProcessBiblios {
         my $item_map_size = scalar(keys %$item_map)
           or next;
 
-        CreatePicklistFromItemMap($item_map);
-        AddToHoldTargetMap($item_map);
+        CreatePicklistFromItemMap($item_map, $dbh);
+        AddToHoldTargetMap($item_map, $dbh);
         if (($item_map_size < scalar(@$hold_requests  )) and
             ($item_map_size < scalar(@$available_items))) {
             # DOUBLE CHECK, but this is probably OK - unfilled item-level requests
@@ -796,8 +797,7 @@ sub MapItemsToHoldRequests {
 
 sub CreatePicklistFromItemMap {
     my $item_map = shift;
-
-    my $dbh = C4::Context->dbh;
+    my $dbh = shift;
 
     my $sth_load=$dbh->prepare("
         INSERT INTO tmp_holdsqueue_builder (biblionumber,itemnumber,barcode,surname,firstname,phone,borrowernumber,
@@ -841,8 +841,7 @@ sub CreatePicklistFromItemMap {
 
 sub AddToHoldTargetMap {
     my $item_map = shift;
-
-    my $dbh = C4::Context->dbh;
+    my $dbh = shift;
 
     my $insert_sql = q(
         INSERT INTO hold_fill_targets_builder (borrowernumber, biblionumber, itemnumber, source_branchcode, item_level_request, reserve_id)
