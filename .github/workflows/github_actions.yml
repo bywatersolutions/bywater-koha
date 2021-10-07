@@ -162,7 +162,7 @@ jobs:
 
             - name: Run kylemhall/bywater-koha-custom-rebaser
               run: |
-                  docker run --mount type=bind,source=${{ steps.extracted_variables.outputs.KOHACLONE }},target=/kohaclone -e DO_IT=1 -e GITHUB_TOKEN=$OUR_GITHUB_TOKEN -e KOHA_BRANCH=${{ steps.extracted_variables.outputs.KOHA_BRANCH }} kylemhall/bywater-koha-custom-rebaser
+                  docker run --mount type=bind,source=${{ steps.extracted_variables.outputs.KOHACLONE }},target=/kohaclone -e DO_IT=1 -e GITHUB_TOKEN=$OUR_GITHUB_TOKEN -e KOHA_BRANCH=${{ steps.extracted_variables.outputs.KOHA_BRANCH }} quay.io/bywatersolutions/bywater-koha-custom-rebaser
               env:
                   OUR_GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
 
