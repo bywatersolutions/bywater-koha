@@ -2638,6 +2638,13 @@ CREATE TABLE `hold_fill_targets` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `hold_fill_targets_builder` is a duplicate of `hold_fill_targets`
+--
+
+DROP TABLE IF EXISTS `hold_fill_targets_builder`;
+CREATE TABLE hold_fill_targets_builder LIKE hold_fill_targets;
+
+--
 -- Table structure for table `housebound_profile`
 --
 
@@ -5103,6 +5110,13 @@ CREATE TABLE `tmp_holdsqueue` (
   CONSTRAINT `tmp_holdsqueue_ibfk_1` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `tmp_holdsqueue_builder` is a duplicate of `tmp_holdsqueue`
+--
+
+DROP TABLE IF EXISTS `tmp_holdsqueue_builder`;
+CREATE TABLE tmp_holdsqueue_builder LIKE tmp_holdsqueue;
 
 --
 -- Table structure for table `transport_cost`
