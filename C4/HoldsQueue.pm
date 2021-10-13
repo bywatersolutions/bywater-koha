@@ -231,10 +231,8 @@ sub CreateQueue {
 
     my $dbh = C4::Context->dbh;
 
-    $dbh->do("DROP TABLE IF EXISTS tmp_holdsqueue_builder");
-    $dbh->do("DROP TABLE IF EXISTS hold_fill_targets_builder");
-    $dbh->do("CREATE TABLE tmp_holdsqueue_builder LIKE tmp_holdsqueue");
-    $dbh->do("CREATE TABLE hold_fill_targets_builder LIKE hold_fill_targets");
+    $dbh->do("DELETE FROM tmp_holdsqueue_builder");
+    $dbh->do("DELETE FROM hold_fill_targets_builder");
 
     my $branches_to_use;
     my $transport_cost_matrix;
@@ -312,8 +310,6 @@ sub _ProcessBiblios {
     $dbh->do("DELETE FROM hold_fill_targets");
     $dbh->do("INSERT INTO tmp_holdsqueue SELECT * FROM tmp_holdsqueue_builder");
     $dbh->do("INSERT INTO hold_fill_targets SELECT * FROM hold_fill_targets_builder");
-    $dbh->do("DROP TABLE tmp_holdsqueue_builder");
-    $dbh->do("DROP TABLE hold_fill_targets_builder");
     $dbh->commit() unless $do_not_lock;
 }
 
