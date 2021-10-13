@@ -258,14 +258,15 @@ sub CreateQueue {
 
     my $bibs_with_pending_requests = GetBibsWithPendingHoldRequests();
 
-    # Split the list of bibs into groups to run in parallel
+    # Split the list of bibs into chunks to run in parallel
     if ( $loops > 1 ) {
-        my $bibs_per_chunk = ceil( scalar @$bibs_with_pending_requests / $loops );
-        $bibs_per_chunk = @$bibs_with_pending_requests if @$bibs_with_pending_requests <= $bibs_per_chunk;
-        my @chunks;
+        my $i = 0;
+        while (@$bibs_with_pending_requests) {
+            push( @{ $chunks[$i] }, pop(@$bibs_with_pending_requests) );
 
-        push( @chunks, [ splice @$bibs_with_pending_requests, 0, $bibs_per_chunk ] ) while @$bibs_with_pending_requests;
-        push( @{$chunks[0]}, @$bibs_with_pending_requests ); # Add any remainders to the first parallel process
+            $i++;
+            $i = 0 if $i >= $loops;
+        }
 
         my $pm = Parallel::ForkManager->new($loops);
 
@@ -335,12 +336,15 @@ that have one or more unfilled hold requests.
 sub GetBibsWithPendingHoldRequests {
     my $dbh = C4::Context->dbh;
 
-    my $bib_query = "SELECT DISTINCT biblionumber
-                     FROM reserves
-                     WHERE found IS NULL
-                     AND priority > 0
-                     AND reservedate <= CURRENT_DATE()
-                     AND suspend = 0
+    my $bib_query = "SELECT biblionumber,
+                            COUNT(biblionumber) AS holds_count
+                     FROM   reserves
+                     WHERE  found IS NULL
+                        AND priority > 0
+                        AND reservedate <= CURRENT_DATE()
+                        AND suspend = 0
+                     GROUP BY biblionumber
+                     ORDER BY biblionumber DESC
                      ";
     my $sth = $dbh->prepare($bib_query);
 
