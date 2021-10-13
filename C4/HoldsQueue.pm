@@ -231,8 +231,10 @@ sub CreateQueue {
 
     my $dbh = C4::Context->dbh;
 
-    $dbh->do("CREATE TEMPORARY TABLE tmp_holdsqueue_builder LIKE tmp_holdsqueue");
-    $dbh->do("CREATE TEMPORARY TABLE hold_fill_targets_builder LIKE hold_fill_targets");
+    $dbh->do("DROP TABLE IF EXISTS tmp_holdsqueue_builder");
+    $dbh->do("DROP TABLE IF EXISTS hold_fill_targets_builder");
+    $dbh->do("CREATE TABLE tmp_holdsqueue_builder LIKE tmp_holdsqueue");
+    $dbh->do("CREATE TABLE hold_fill_targets_builder LIKE hold_fill_targets");
 
     my $branches_to_use;
     my $transport_cost_matrix;
@@ -265,13 +267,13 @@ sub CreateQueue {
         DATA_LOOP:
         foreach my $chunk (@chunks) {
             my $pid = $pm->start and next DATA_LOOP;
-            _ProcessBiblios( $chunk, $branches_to_use, $transport_cost_matrix, $dbh );
+            _ProcessBiblios( $chunk, $branches_to_use, $transport_cost_matrix );
             $pm->finish;
         }
 
         $pm->wait_all_children;
     } else {
-        _ProcessBiblios( $bibs_with_pending_requests, $branches_to_use, $transport_cost_matrix, $dbh );
+        _ProcessBiblios( $bibs_with_pending_requests, $branches_to_use, $transport_cost_matrix );
     }
 
     my $do_not_lock = ( exists $ENV{_} && $ENV{_} =~ m|prove| ) || $ENV{KOHA_TESTING};
@@ -280,8 +282,8 @@ sub CreateQueue {
     $dbh->do("INSERT INTO tmp_holdsqueue SELECT * FROM tmp_holdsqueue_builder");
     $dbh->do("DELETE FROM hold_fill_targets");
     $dbh->do("INSERT INTO hold_fill_targets SELECT * FROM hold_fill_targets_builder");
-    $dbh->do("DROP TEMPORARY TABLE tmp_holdsqueue_builder");
-    $dbh->do("DROP TEMPORARY TABLE hold_fill_targets_builder");
+    $dbh->do("DROP TABLE tmp_holdsqueue_builder");
+    $dbh->do("DROP TABLE hold_fill_targets_builder");
     $dbh->commit() unless $do_not_lock;
 }
 
@@ -293,7 +295,8 @@ sub _ProcessBiblios {
     my $bibs_with_pending_requests = shift;
     my $branches_to_use = shift;
     my $transport_cost_matrix = shift;
-    my $dbh = shift;
+
+    my $dbh = C4::Context->dbh;
 
     foreach my $biblionumber (@$bibs_with_pending_requests) {
         my $hold_requests   = GetPendingHoldRequestsForBib($biblionumber);
