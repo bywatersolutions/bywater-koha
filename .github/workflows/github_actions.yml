@@ -59,9 +59,9 @@ jobs:
             - name: Set up koha-testing-docker
               run: |
                   sudo sysctl -w vm.max_map_count=262144
-                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/master/docker-compose.yml
+                  wget -O docker-compose.yml https://raw.githubusercontent.com/bywatersolutions/koha-testing-docker/master/docker-compose.yml
                   mkdir -p env
-                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/master/env/defaults.env
+                  wget -O env/defaults.env https://raw.githubusercontent.com/bywatersolutions/koha-testing-docker/master/env/defaults.env
                   cp env/defaults.env .env
                   docker-compose pull
 
