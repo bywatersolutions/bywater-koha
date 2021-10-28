@@ -515,9 +515,7 @@ sub MapItemsToHoldRequests {
                 and ( !$request->{volume_id} # If hold volume is set, item's volume must match
                       || ( $items_by_itemnumber{ $request->{itemnumber} }->{_object}->volume
                         && $items_by_itemnumber{ $request->{itemnumber} }->{_object}->volume->id eq $request->{volume_id} ) )
-                )
                 and $items_by_itemnumber{ $request->{itemnumber} }->{_object}->can_be_transferred( { to => $libraries->{ $request->{branchcode} } } )
-
               )
             {
 
