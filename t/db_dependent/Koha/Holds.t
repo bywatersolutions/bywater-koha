@@ -195,13 +195,16 @@ subtest 'cancel' => sub {
             }
         );
         my $reserve_id = C4::Reserves::AddReserve(
-            $library->branchcode, $patron->borrowernumber,
-            $item->biblionumber,  '',
-            1,                    undef,
-            undef,                '',
-            "title for fee",      $item->itemnumber,
-            'W',                  undef,
-            $volume->id
+            {
+                branch         => $library->branchcode,
+                borrowernumber => $patron->borrowernumber,
+                biblionumber   => $item->biblionumber,
+                priority       => 1,
+                title          => "title for fee",
+                checkitem      => $item->itemnumber,
+                found          => 'W',
+                volume_id      => $volume->id,
+            }
         );
 
         my $hold = Koha::Holds->find($reserve_id);

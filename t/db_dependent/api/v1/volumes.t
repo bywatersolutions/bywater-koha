@@ -228,8 +228,8 @@ subtest 'volume items add() + delete() tests' => sub {
     my $volume = Koha::Biblio::Volume->new( { biblionumber => $biblio->id, display_order => 1, description => "Vol 1" } )->store();
     my $volume_id = $volume->id;
 
-    my @items = $volume->items;
-    is( scalar(@items), 0, 'Volume has no items');
+    my $items = $volume->items;
+    is( $items->count, 0, 'Volume has no items');
 
     my $item_1 = $builder->build_sample_item({ biblionumber => $biblio->biblionumber });
     my $item_1_id = $item_1->id;
@@ -241,8 +241,8 @@ subtest 'volume items add() + delete() tests' => sub {
     $t->post_ok( "//$userid:$password@/api/v1/biblios/$biblio_id/volumes/$volume_id/items" => json => { item_id => $item_1->id } )
       ->status_is( 201, 'SWAGGER3.2.1' );
 
-    @items = $volume->items;
-    is( scalar(@items), 1, 'Volume now has one item');
+    $items = $volume->items;
+    is( $items->count, 1, 'Volume now has one item');
 
     my $item_2 = $builder->build_sample_item({ biblionumber => $biblio->biblionumber });
     my $item_2_id = $item_2->id;
@@ -250,15 +250,15 @@ subtest 'volume items add() + delete() tests' => sub {
     $t->post_ok( "//$userid:$password@/api/v1/biblios/$biblio_id/volumes/$volume_id/items" => json => { item_id => $item_2->id } )
       ->status_is( 201, 'SWAGGER3.2.1' );
 
-    @items = $volume->items;
-    is( scalar(@items), 2, 'Volume now has two items');
+    $items = $volume->items;
+    is( $items->count, 2, 'Volume now has two items');
 
     $t->delete_ok( "//$userid:$password@/api/v1/biblios/$biblio_id/volumes/$volume_id/items/$item_1_id" )
         ->status_is(204, 'SWAGGER3.2.4')
         ->content_is('', 'SWAGGER3.3.4');
 
-    @items = $volume->items;
-    is( scalar(@items), 1, 'Volume now has one item');
+    $items = $volume->items;
+    is( $items->count, 1, 'Volume now has one item');
 
     $schema->storage->txn_rollback;
 };
