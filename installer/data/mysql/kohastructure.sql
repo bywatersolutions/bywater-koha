@@ -1986,50 +1986,6 @@ CREATE TABLE `clubs` (
 -- Table structure for table `collections`
 --
 
-DROP TABLE IF EXISTS `reserves`;
-CREATE TABLE `reserves` ( -- information related to holds/reserves in Koha
-  `reserve_id` int(11) NOT NULL auto_increment, -- primary key
-  `borrowernumber` int(11) NOT NULL default 0, -- foreign key from the borrowers table defining which patron this hold is for
-  `reservedate` date default NULL, -- the date the hold was placed
-  `biblionumber` int(11) NOT NULL default 0, -- foreign key from the biblio table defining which bib record this hold is on
-  `volume_id` int(11) NULL default NULL, -- foreign key from the volumes table defining if this is a volume level hold
-  `branchcode` varchar(10) default NULL, -- foreign key from the branches table defining which branch the patron wishes to pick this hold up at
-  `desk_id` int(11) default NULL, -- foreign key from the desks table defining which desk the patron should pick this hold up at
-  `notificationdate` date default NULL, -- currently unused
-  `reminderdate` date default NULL, -- currently unused
-  `cancellationdate` date default NULL, -- the date this hold was cancelled
-  `cancellation_reason` varchar(80) default NULL, -- optional authorised value CANCELLATION_REASON
-  `reservenotes` LONGTEXT, -- notes related to this hold
-  `priority` smallint(6) NOT NULL DEFAULT 1, -- where in the queue the patron sits
-  `found` varchar(1) default NULL, -- a one letter code defining what the status is of the hold is after it has been confirmed
-  `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP, -- the date and time this hold was last updated
-  `itemnumber` int(11) default NULL, -- foreign key from the items table defining the specific item the patron has placed on hold or the item this hold was filled with
-  `waitingdate` date default NULL, -- the date the item was marked as waiting for the patron at the library
-  `expirationdate` DATE DEFAULT NULL, -- the date the hold expires (usually the date entered by the patron to say they don't need the hold after a certain date)
-  `lowestPriority` tinyint(1) NOT NULL DEFAULT 0,
-  `suspend` tinyint(1) NOT NULL DEFAULT 0,
-  `suspend_until` DATETIME NULL DEFAULT NULL,
-  `itemtype` VARCHAR(10) NULL DEFAULT NULL, -- If record level hold, the optional itemtype of the item the patron is requesting
-  `item_level_hold` tinyint(1) NOT NULL DEFAULT 0, -- Is the hpld placed at item level
-  `non_priority` tinyint(1) NOT NULL DEFAULT 0, -- Is this a non priority hold
-  PRIMARY KEY (`reserve_id`),
-  KEY priorityfoundidx (priority,found),
-  KEY `borrowernumber` (`borrowernumber`),
-  KEY `biblionumber` (`biblionumber`),
-  KEY `itemnumber` (`itemnumber`),
-  KEY `branchcode` (`branchcode`),
-  KEY `desk_id` (`desk_id`),
-  KEY `itemtype` (`itemtype`),
-  CONSTRAINT `reserves_ibfk_1` FOREIGN KEY (`borrowernumber`) REFERENCES `borrowers` (`borrowernumber`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `reserves_ibfk_2` FOREIGN KEY (`biblionumber`) REFERENCES `biblio` (`biblionumber`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `reserves_ibfk_3` FOREIGN KEY (`itemnumber`) REFERENCES `items` (`itemnumber`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `reserves_ibfk_4` FOREIGN KEY (`branchcode`) REFERENCES `branches` (`branchcode`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `reserves_ibfk_5` FOREIGN KEY (`itemtype`) REFERENCES `itemtypes` (`itemtype`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `reserves_ibfk_6` FOREIGN KEY (`desk_id`) REFERENCES `desks` (`desk_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `reserves_ibfk_7` FOREIGN KEY (`volume_id`) REFERENCES `volumes` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
 DROP TABLE IF EXISTS `collections`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -4422,6 +4378,7 @@ CREATE TABLE `reserves` (
   `borrowernumber` int(11) NOT NULL DEFAULT 0 COMMENT 'foreign key from the borrowers table defining which patron this hold is for',
   `reservedate` date DEFAULT NULL COMMENT 'the date the hold was placed',
   `biblionumber` int(11) NOT NULL DEFAULT 0 COMMENT 'foreign key from the biblio table defining which bib record this hold is on',
+  `volume_id` int(11) NULL default NULL, -- foreign key from the volumes table defining if this is a volume level hold
   `branchcode` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'foreign key from the branches table defining which branch the patron wishes to pick this hold up at',
   `desk_id` int(11) DEFAULT NULL COMMENT 'foreign key from the desks table defining which desk the patron should pick this hold up at',
   `notificationdate` date DEFAULT NULL COMMENT 'currently unused',
