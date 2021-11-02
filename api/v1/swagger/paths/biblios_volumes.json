@@ -114,7 +114,8 @@
                                 "type": "integer",
                                 "description": "Position in waiting queue"
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     }
                 }
             ],
@@ -286,7 +287,8 @@
                                 "type": "integer",
                                 "description": "Position in waiting queue"
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     }
                 }
             ],
@@ -451,7 +453,8 @@
                                 "type": "integer",
                                 "description": "Internal identifier for an item to be linked"
                             }
-                        }
+                        },
+                        "additionalProperties": false
                     }
                 }
             ],
