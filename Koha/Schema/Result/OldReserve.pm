@@ -54,6 +54,11 @@ the date the hold was places
 
 foreign key from the biblio table defining which bib record this hold is on
 
+=head2 volume_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =head2 branchcode
 
   data_type: 'varchar'
@@ -218,6 +223,8 @@ __PACKAGE__->add_columns(
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "biblionumber",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "volume_id",
+  { data_type => "integer", is_nullable => 1 },
   "branchcode",
   { data_type => "varchar", is_nullable => 1, size => 10 },
   "desk_id",
@@ -367,8 +374,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-01-21 13:39:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aVQsdX811LswCsWyBqkSbQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-11-03 11:40:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XNK/VnuBxzh/S0Vm04R7Aw
 
 __PACKAGE__->belongs_to(
   "item",
