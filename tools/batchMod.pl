@@ -299,7 +299,7 @@ if ($op eq "action") {
     my $max_items = $del ? C4::Context->preference("MaxItemsToDisplayForBatchDel") : C4::Context->preference("MaxItemsToDisplayForBatchMod");
     if (scalar(@itemnumbers) <= $max_items ){
         if (scalar(@itemnumbers) <= 1000 ) {
-            $items_display_hashref=BuildItemsData(@itemnumbers);
+            $items_display_hashref=BuildItemsData($patron, @itemnumbers);
         } else {
             # Else, we only display the barcode
             my @simple_items_display = map {
@@ -389,7 +389,7 @@ if ($op eq "show"){
         : C4::Context->preference("MaxItemsToDisplayForBatchMod");
     $template->param("too_many_items_process" => scalar(@itemnumbers)) if !$del && scalar(@itemnumbers) > C4::Context->preference("MaxItemsToProcessForBatchMod");
     if (scalar(@itemnumbers) <= ( $max_display_items // 1000 ) ) {
-        $items_display_hashref=BuildItemsData(@itemnumbers);
+        $items_display_hashref=BuildItemsData($patron, @itemnumbers);
     } else {
         $template->param("too_many_items_display" => scalar(@itemnumbers));
         # Even if we do not display the items, we need the itemnumbers
@@ -635,7 +635,7 @@ exit;
 # ---------------- Functions
 
 sub BuildItemsData{
-	my @itemnumbers=@_;
+        my ( $patron, @itemnumbers ) = @_;
 		# now, build existiing item list
 		my %witness; #---- stores the list of subfields used at least once, with the "meaning" of the code
 		my @big_array;
