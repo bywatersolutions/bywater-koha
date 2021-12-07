@@ -57,6 +57,12 @@ the date the hold was placed
 
 foreign key from the biblio table defining which bib record this hold is on
 
+=head2 volume_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 branchcode
 
   data_type: 'varchar'
@@ -227,6 +233,8 @@ __PACKAGE__->add_columns(
     is_foreign_key => 1,
     is_nullable    => 0,
   },
+  "volume_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "branchcode",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 10 },
   "desk_id",
@@ -420,9 +428,29 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 volume
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-01-21 13:39:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BlMb2M0MEmFuTiMSSBEseg
+Type: belongs_to
+
+Related object: L<Koha::Schema::Result::Volume>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "volume",
+  "Koha::Schema::Result::Volume",
+  { id => "volume_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "SET NULL",
+    on_update     => "CASCADE",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-12-07 17:32:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1Fv7f8Ft6vTvaYuIjGQZ6g
 
 __PACKAGE__->belongs_to(
   "item",
