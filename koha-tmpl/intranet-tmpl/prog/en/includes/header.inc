@@ -149,7 +149,7 @@
                         </li>
                     [% END %]
 
-                    [% IF !( Koha.Preference('IndependentBranches') && !CAN_user_superlibrarian && !CAN_user_editcatalogue_edit_catalogue ) %]
+                    [% IF !( Koha.Preference('IndependentBranchesLoggedInLibrary') && !CAN_user_superlibrarian && !CAN_user_editcatalogue_edit_catalogue ) %]
                     <li role="separator" class="loggedin-menu-label divider"></li>
                     <li>
                         [% IF Koha.Preference('UseCirculationDesks') && Koha.Preference('UseCashRegisters') %]

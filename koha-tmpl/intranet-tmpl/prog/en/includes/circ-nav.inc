@@ -15,7 +15,7 @@
             [% IF !Koha.Preference('IndependentBranchesTransfers') || CAN_user_superlibrarian %]
                 <li><a href="/cgi-bin/koha/circ/branchtransfers.pl">Transfer</a></li>
             [% END %]
-            [% IF !( Koha.Preference('IndependentBranches') && !CAN_user_superlibrarian && !CAN_user_editcatalogue_edit_catalogue ) %]
+            [% IF !( Koha.Preference('IndependentBranchesLoggedInLibrary') && !CAN_user_superlibrarian && !CAN_user_editcatalogue_edit_catalogue ) %]
                 [% IF Koha.Preference('UseCirculationDesks') %]
                 <li><a href="/cgi-bin/koha/circ/set-library.pl">Set library and desk</a></li>
                 [% ELSE %]
