@@ -37,7 +37,7 @@
                     <li>
                         <a class="circ-button" href="/cgi-bin/koha/circ/renew.pl"><i class="fa fa-retweet"></i> Renew</a>
                     </li>
-                    [% UNLESS IndependentBranches %]
+                    [% IF !Koha.Preference('IndependentBranchesLoggedInLibrary') || CAN_user_superlibrarian %]
                         <li>
                             [% IF Koha.Preference('UseCirculationDesks') %]
                             <a class="circ-button" href="/cgi-bin/koha/circ/set-library.pl"><i class="fa fa-home"></i> Set library and desk</a>
@@ -116,7 +116,6 @@
                 [% END %]
 
                 <h3>Transfers</h3>
-
                 <ul class="buttons-list">
                     [% IF !Koha.Preference('IndependentBranchesTransfers') || CAN_user_superlibrarian %]
                         <li>
