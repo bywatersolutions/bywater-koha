@@ -133,6 +133,13 @@ Administration:
                   1: "Yes"
                   0: "No"
         -
+            - "Prevent staff (but not superlibrarians) from setting or changing their logged in location:"
+            - pref: IndependentBranchesLoggedInLibrary
+              default: 0
+              choices:
+                  1: "Yes"
+                  0: "No"
+        -
             - "Prevent staff (but not superlibrarians) from transfering items to other libraries: "
             - pref: IndependentBranchesTransfers
               default: 0
