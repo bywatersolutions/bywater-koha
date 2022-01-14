@@ -79,7 +79,7 @@ Updated:<ul>
 [% ELSE %]
 
 <form method="post" action="set-library.pl">
-[% IF !( Koha.Preference('IndependentBranches') && !CAN_user_superlibrarian && !CAN_user_editcatalogue_edit_catalogue ) %]
+[% IF !( Koha.Preference('IndependentBranchesLoggedInLibrary') && !CAN_user_superlibrarian && !CAN_user_editcatalogue_edit_catalogue ) %]
 <fieldset class="rows">
     <legend>Set library</legend>
     <ol>
