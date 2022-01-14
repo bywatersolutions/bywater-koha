@@ -295,6 +295,7 @@ INSERT INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `
 ('IncludeSeeFromInSearches','0','','Include see-from references in searches.','YesNo'),
 ('IndependentBranches','0',NULL,'If ON, increases security between libraries','YesNo'),
 ('IndependentBranchesPatronModifications','0', NULL, 'Show only modification request for the logged in branch','YesNo'),
+('IndependentBranchesLoggedInLibrary','0', NULL, 'Allow only superlibrarians the ability to set or change their logged in location','YesNo'),
 ('IndependentBranchesTransfers','0', NULL, 'Allow non-superlibrarians to transfer items between libraries','YesNo'),
 ('IntranetAddMastheadLibraryPulldown','0', NULL, 'Add a library select pulldown menu on the staff header search','YesNo'),
 ('IntranetCatalogSearchPulldown','0', NULL, 'Show a search field pulldown for \"Search the catalog\" boxes','YesNo'),
