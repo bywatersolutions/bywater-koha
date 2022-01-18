@@ -78,7 +78,7 @@ subtest 'Build all sources' => sub {
         my $res;
         # Skip the source if it is a view
         next if $schema->source($source)->isa('DBIx::Class::ResultSource::View');
-        eval { $res = $builder->build( { source => $source } ); };
+        $res = $builder->build( { source => $source } ); 
         push @source_in_failure, $source if $@ || !defined( $res );
     }
     is( @source_in_failure, 0,
