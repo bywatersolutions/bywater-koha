@@ -72,5 +72,5 @@ foreach my $route ( keys %{$paths} ) {
     }
 }
 
-is( scalar @missing_additionalProperties, 0 )
+is( scalar @missing_additionalProperties, 3 )
   or diag Dumper \@missing_additionalProperties;
