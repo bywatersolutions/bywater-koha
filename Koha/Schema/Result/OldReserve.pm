@@ -54,6 +54,13 @@ the date the hold was places
 
 foreign key from the biblio table defining which bib record this hold is on
 
+=head2 volume_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+foreign key from the volumes table defining if this is a volume level hold
+
 =head2 branchcode
 
   data_type: 'varchar'
@@ -218,6 +225,8 @@ __PACKAGE__->add_columns(
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "biblionumber",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "volume_id",
+  { data_type => "integer", is_nullable => 1 },
   "branchcode",
   { data_type => "varchar", is_nullable => 1, size => 10 },
   "desk_id",
@@ -367,8 +376,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-01-21 13:39:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aVQsdX811LswCsWyBqkSbQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-01-18 12:14:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JAaljoHlqFD0JrrVUh9X6Q
 
 __PACKAGE__->belongs_to(
   "item",
@@ -390,6 +399,18 @@ __PACKAGE__->belongs_to(
     is_deferrable => 1,
     join_type     => "LEFT",
     on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+__PACKAGE__->belongs_to(
+  "volume",
+  "Koha::Schema::Result::Volume",
+  { id => "volume_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "SET NULL",
     on_update     => "CASCADE",
   },
 );
