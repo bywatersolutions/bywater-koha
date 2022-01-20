@@ -126,6 +126,11 @@
                     </select>
                     <span>Enables additional debug output in the logs</span>
                 </li>
+                <li>
+                    <label for="smtp_default">Default server: </label>
+                    <input type="checkbox" name="smtp_default" id="smtp_default" />
+                    <span>Sets this SMTP server as the default SMTP server.</span>
+                </li>
             </ol>
         </fieldset>
         <fieldset class="action">
@@ -208,6 +213,28 @@
                     [%- END -%]
                     </select>
                 </li>
+                <li>
+                    <label for="smtp_default">Default server: </label>
+                    [% IF smtp_server.is_default %]
+                        <input type="checkbox" name="smtp_default" id="smtp_default" checked="checked"/>
+                    [% ELSE %]
+                        <input type="checkbox" name="smtp_default" id="smtp_default" />
+                    [% END %]
+                    <span>Sets this SMTP server as the default SMTP server.</span>
+                </li>
+                [% UNLESS smtp_server.is_default %]
+                    <div class="dialog message" id="default_server_message">
+                        <p>Current default configuration:</p>
+
+                        <ul>
+                            <li><strong>Host</strong>: [%- default_config.host | html -%]</li>
+                            <li><strong>Port</strong>: [%- default_config.port | html -%]</li>
+                            <li><strong>Timeout (secs)</strong>: [%- default_config.timeout | html -%]</li>
+                            <li><strong>SSL</strong>: [%- IF default_config.ssl_mode == 'disabled' -%]<span>Disabled</span>[%- ELSIF default_config.ssl_mode == 'ssl' -%]<span>SSL</span>[%- ELSE -%]<span>STARTTLS</span>[%- END -%]</li>
+                            <li><strong>Debug mode</strong>: [%- IF default_config.debug -%]Yes[%- ELSE -%]No[%- END -%]</li>
+                        </ul>
+                    </div>
+                [% END %]
             </ol>
         </fieldset>
         <fieldset class="action">
@@ -225,7 +252,7 @@
 
     <h1>SMTP servers</h1>
 
-        <div class="dialog message" id="default_server_message">
+    <div class="dialog message" id="default_server_message">
         <p>Default configuration:</p>
 
         <ul>
@@ -248,6 +275,7 @@
                         <th>Timeout (secs)</th>
                         <th>SSL</th>
                         <th>Authenticated</th>
+                        <th>Is default</th>
                         <th data-class-name="actions noExport">Actions</th>
                     </tr>
                 </thead>
@@ -273,6 +301,24 @@
                     </div> <!-- /.modal-content -->
                 </div> <!-- /.modal-dialog -->
             </div> <!-- #delete_confirm_modal -->
+
+            <div id="default_confirm_modal" class="modal" tabindex="-1" role="dialog" aria-labelledby="default_confirm_modal_label" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="default_confirm_modal_no closebtn" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="default_confirm_modal_label">Set default server</h3>
+                        </div>
+                        <div class="modal-body">
+                            <div id="default_confirm_dialog">Are you sure you want to change the default SMTP server?</div>
+                        </div>
+                        <div class="modal-footer">
+                            <a id="default_confirm_dialog" href="#" class="btn btn-default default_confirm_modal_yes" id="default_confirm_modal_button" role="button" data-toggle="modal">Yes</a>
+                            <button class="btn btn-link default_confirm_modal_no" data-dismiss="modal" aria-hidden="true">No</button>
+                        </div>
+                    </div> <!-- /.modal-content -->
+                </div> <!-- /.modal-dialog -->
+            </div> <!-- #default_confirm_modal -->
 
             </main>
         </div> <!-- /.col-sm-10.col-sm-push-2 -->
@@ -364,6 +410,18 @@
                     },
                     {
                         "data": function( row, type, val, meta ) {
+                            if ( row.is_default ) {
+                                return _("Yes");
+                            }
+                            else {
+                                return _("No");
+                            }
+                        },
+                        "searchable": false,
+                        "orderable": false
+                    },
+                    {
+                        "data": function( row, type, val, meta ) {
                             var result = '<a class="btn btn-default btn-xs" role="button" href="/cgi-bin/koha/admin/smtp_servers.pl?op=edit_form&amp;smtp_server_id='+ encodeURIComponent(row.smtp_server_id) +'"><i class="fa fa-pencil" aria-hidden="true"></i> '+_("Edit")+'</a>'+"\n";
                             result += '<a class="btn btn-default btn-xs delete_server" role="button" href="#" data-toggle="modal" data-target="#delete_confirm_modal" data-smtp-server-id="'+ encodeURIComponent(row.smtp_server_id) +'" data-smtp-server-name="'+ encodeURIComponent(row.name.escapeHtml()) +'"><i class="fa fa-trash" aria-hidden="true"></i>'+_("Delete")+'</a>';
                             return result;
@@ -373,6 +431,9 @@
                     }
                 ],
                 createdRow: function (row, data, dataIndex) {
+                    if ( data.is_default ) {
+                        $(row).addClass('default warn');
+                    }
                     if ( data.debug ) {
                         $(row).addClass('debug');
                     }
@@ -388,6 +449,17 @@
                 );
                 $("#delete_confirm_modal_button").data('smtp-server-id', smtp_server_id);
                 $("#delete_confirm_modal_button").data('smtp-server-name', smtp_server_name);
+            });
+
+            $('#smtp_default').on( "click", function () {
+                $("#default_confirm_modal").show();
+            });
+            $('.default_confirm_modal_yes').on( "click", function () {
+                $("#default_confirm_modal").hide();
+            });
+            $('.default_confirm_modal_no').on( "click", function () {
+                $("#smtp_default").prop('checked', !$("#smtp_default").prop('checked') );
+                $("#default_confirm_modal").hide();
             });
 
             $("#delete_confirm_modal_button").on( "click", function () {

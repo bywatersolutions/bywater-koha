@@ -52,8 +52,10 @@ if ( $op eq 'add' ) {
     my $user_name  = $input->param('smtp_user_name') || undef;
     my $password   = $input->param('smtp_password') || undef;
     my $debug      = ( scalar $input->param('smtp_debug_mode') ) ? 1 : 0;
+    my $is_default = ( scalar $input->param('smtp_default') ) ? 1 : 0;
 
     try {
+
         Koha::SMTP::Server->new(
             {
                 name       => $name,
@@ -64,6 +66,7 @@ if ( $op eq 'add' ) {
                 user_name  => $user_name,
                 password   => $password,
                 debug      => $debug,
+                is_default => $is_default,
             }
         )->store;
 
@@ -122,21 +125,24 @@ elsif ( $op eq 'edit_save' ) {
         my $user_name  = $input->param('smtp_user_name') || undef;
         my $password   = $input->param('smtp_password') || undef;
         my $debug      = ( scalar $input->param('smtp_debug_mode') ) ? 1 : 0;
+        my $is_default = ( scalar $input->param('smtp_default') ) ? 1 : 0;
 
         try {
+
             $smtp_server->password( $password )
                 if defined $password and $password ne '****'
                     or not defined $password;
 
             $smtp_server->set(
                 {
-                    name      => $name,
-                    host      => $host,
-                    port      => $port,
-                    timeout   => $timeout,
-                    ssl_mode  => $ssl_mode,
-                    user_name => $user_name,
-                    debug     => $debug
+                    name       => $name,
+                    host       => $host,
+                    port       => $port,
+                    timeout    => $timeout,
+                    ssl_mode   => $ssl_mode,
+                    user_name  => $user_name,
+                    debug      => $debug,
+                    is_default => $is_default,
                 }
             )->store;
 
