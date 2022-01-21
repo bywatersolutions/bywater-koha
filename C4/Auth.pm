@@ -949,6 +949,8 @@ sub checkauth {
                 $info{oldip}        = $more_info->{old_ip};
                 $info{newip}        = $more_info->{new_ip};
                 $info{different_ip} = 1;
+            } elsif ( $return eq 'password_expired' ) {
+                $info{password_has_expired} = 1;
             }
         }
     }
@@ -1101,7 +1103,7 @@ sub checkauth {
             }
 
             # $return: 1 = valid user
-            if ($return) {
+            if ($return > 0) {
 
                 if ( $flags = haspermission( $userid, $flagsrequired ) ) {
                     $loggedin = 1;
@@ -1340,7 +1342,7 @@ sub checkauth {
         PatronSelfRegistration                => C4::Context->preference("PatronSelfRegistration"),
         PatronSelfRegistrationDefaultCategory => C4::Context->preference("PatronSelfRegistrationDefaultCategory"),
         opac_css_override                     => $ENV{'OPAC_CSS_OVERRIDE'},
-        too_many_login_attempts               => ( $patron and $patron->account_locked )
+        too_many_login_attempts               => ( $patron and $patron->account_locked ),
     );
 
     $template->param( SCO_login => 1 ) if ( $query->param('sco_user_login') );
@@ -1717,6 +1719,9 @@ sub check_cookie_auth {
 
         } elsif ( $userid ) {
             $session->param( 'lasttime', time() );
+            my $patron = Koha::Patrons->find({ userid => $userid });
+            $patron = Koha::Patron->find({ cardnumber => $userid }) unless $patron;
+            return ("password_expired", undef ) if $patron->password_expired;
             my $flags = defined($flagsrequired) ? haspermission( $userid, $flagsrequired ) : 1;
             if ($flags) {
                 C4::Context->_new_userenv($sessionID);
@@ -1825,7 +1830,7 @@ sub checkpw {
     # 0 if auth is nok
     # -1 if user bind failed (LDAP only)
 
-    if ( $patron and $patron->account_locked ) {
+    if ( $patron and ( $patron->account_locked )  ) {
         # Nothing to check, account is locked
     } elsif ($ldap && defined($password)) {
         my ( $retval, $retcard, $retuserid ) = checkpw_ldap(@_);    # EXTERNAL AUTH
@@ -1879,6 +1884,9 @@ sub checkpw {
     if( $patron ) {
         if ( $passwd_ok ) {
             $patron->update({ login_attempts => 0 });
+            if( $patron->password_expired ){
+                @return = (-2);
+            }
         } elsif( !$patron->account_locked ) {
             $patron->update({ login_attempts => $patron->login_attempts + 1 });
         }
