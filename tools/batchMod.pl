@@ -79,7 +79,7 @@ my ($template, $loggedinuser, $cookie)
 $template->param( searchid => scalar $input->param('searchid'), );
 
 # Does the user have a restricted item edition permission?
-my $patron = Koha::Patrons->find( $loggedinuser );
+our $patron = Koha::Patrons->find( $loggedinuser );
 my $uid = $loggedinuser ? $patron->userid : undef;
 my $restrictededition = $uid ? haspermission($uid,  {'tools' => 'items_batchmod_restricted'}) : undef;
 # In case user is a superlibrarian, edition is not restricted
