@@ -403,17 +403,18 @@ __PACKAGE__->belongs_to(
   },
 );
 
-__PACKAGE__->belongs_to(
-  "volume",
-  "Koha::Schema::Result::Volume",
-  { id => "volume_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "SET NULL",
-    on_update     => "CASCADE",
-  },
-);
+## This breaks TestBuilder.t
+#__PACKAGE__->belongs_to(
+#  "volume",
+#  "Koha::Schema::Result::Volume",
+#  { id => "volume_id" },
+#  {
+#    is_deferrable => 1,
+#    join_type     => "LEFT",
+#    on_delete     => "SET NULL",
+#    on_update     => "CASCADE",
+#  },
+#);
 
 __PACKAGE__->add_columns(
     '+item_level_hold' => { is_boolean => 1 },
