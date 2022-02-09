@@ -228,7 +228,7 @@ subtest 'volume items add() + delete() tests' => sub {
     my $volume = Koha::Biblio::Volume->new( { biblionumber => $biblio->id, display_order => 1, description => "Vol 1" } )->store();
     my $volume_id = $volume->id;
 
-    my @items = $volume->items;
+    my @items = $volume->items->as_list;
     is( scalar(@items), 0, 'Volume has no items');
 
     my $item_1 = $builder->build_sample_item({ biblionumber => $biblio->biblionumber });
