@@ -289,6 +289,12 @@
       "items": {
         "$ref": "patron_extended_attribute.json"
       }
+    },
+    "password_expiration_date": {
+      "type": ["string", "null"],
+      "format": "date",
+      "readOnly": true,
+      "description": "day a patron's password expires and must be changed/reset"
     }
   },
   "additionalProperties": false,
