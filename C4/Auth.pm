@@ -1147,7 +1147,7 @@ sub checkauth {
 
                 if( $patron->password_expired ){
                     $loggedin = 0;
-                    $info{password_has_expired};
+                    $info{password_has_expired} = 1;
                     C4::Context->_unset_userenv($sessionID);
                 }
 
