@@ -296,6 +296,14 @@ date the patron was added to Koha (YYYY-MM-DD)
 
 date the patron/borrower's card is set to expire (YYYY-MM-DD)
 
+=head2 password_expiration_date
+
+  data_type: 'date'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
+date the patron/borrower's password is set to expire (YYYY-MM-DD)
+
 =head2 date_renewed
 
   data_type: 'date'
@@ -687,6 +695,8 @@ __PACKAGE__->add_columns(
   "dateenrolled",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "dateexpiry",
+  { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "password_expiration_date",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "date_renewed",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
@@ -1865,8 +1875,8 @@ Composing rels: L</aqorder_users> -> ordernumber
 __PACKAGE__->many_to_many("ordernumbers", "aqorder_users", "ordernumber");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-06-07 05:28:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CgLzd4URQdNSXTgd7QnFFg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-02-25 11:49:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aqVB5ddQZeIBwbTOncnIGw
 
 __PACKAGE__->add_columns(
     '+anonymized'    => { is_boolean => 1 },
