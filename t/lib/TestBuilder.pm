@@ -554,6 +554,7 @@ sub _gen_default_values {
             lost           => undef,
             debarred       => undef,
             borrowernotes  => '',
+            password_expiration_date => undef,
         },
         Item => {
             notforloan         => 0,
