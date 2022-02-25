@@ -158,7 +158,7 @@ sub process {
 
     $args ||= {};
 
-    return $derived_class->process({job_id => $self->id, %$args});
+    return $derived_class->process( $args );
 }
 
 =head3 job_type
@@ -213,7 +213,7 @@ sub additional_report {
 
     my $derived_class = $self->_derived_class;
 
-    return $derived_class->additional_report({job_id => $self->id});
+    return $derived_class->additional_report;
 }
 
 =head3 cancel
@@ -243,7 +243,7 @@ sub _derived_class {
         unless $class;
 
     eval "require $class";
-    return $class->new;
+    return $class->_new_from_dbic( $self->_result );
 }
 
 =head3 type_to_class_mapping
