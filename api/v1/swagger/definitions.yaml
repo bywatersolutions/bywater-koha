@@ -1,4 +1,6 @@
 ---
+item_group:
+  $ref: ./definitions/item_group.yaml
 account_line:
   $ref: definitions/account_line.yaml
 advancededitormacro:
