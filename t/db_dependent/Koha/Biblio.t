@@ -17,7 +17,7 @@
 
 use Modern::Perl;
 
-use Test::More tests => 19;
+use Test::More tests => 22; # +1
 use Test::Warn;
 
 use C4::Biblio qw( AddBiblio ModBiblio ModBiblioMarc );
@@ -855,6 +855,178 @@ subtest 'current_checkouts() and old_checkouts() tests' => sub {
 
     is( $current_checkouts->count, 2, 'Count is correct for current checkouts' );
     is( $old_checkouts->count, 1, 'Count is correct for old checkouts' );
+
+    $schema->storage->txn_rollback;
+};
+
+subtest 'get_marc_authors() tests' => sub {
+
+    plan tests => 1;
+
+    $schema->storage->txn_begin;
+
+    my $biblio = $builder->build_sample_biblio;
+    my $record = $biblio->metadata->record;
+
+    # add author information
+    my $field = MARC::Field->new('700','1','','a' => 'Jefferson, Thomas');
+    $record->append_fields($field);
+    $field = MARC::Field->new('700','1','','d' => '1743-1826');
+    $record->append_fields($field);
+    $field = MARC::Field->new('700','1','','e' => 'former owner.');
+    $record->append_fields($field);
+    $field = MARC::Field->new('700','1','','5' => 'MH');
+    $record->append_fields($field);
+
+    # get record
+    C4::Biblio::ModBiblio( $record, $biblio->biblionumber );
+    $biblio = Koha::Biblios->find( $biblio->biblionumber );
+
+    is( 4, @{$biblio->get_marc_authors}, 'get_marc_authors retrieves correct number of author subfields' );
+    $schema->storage->txn_rollback;
+};
+
+subtest 'Recalls tests' => sub {
+
+    plan tests => 13;
+
+    $schema->storage->txn_begin;
+
+    my $item1 = $builder->build_sample_item;
+    my $biblio = $item1->biblio;
+    my $branchcode = $item1->holdingbranch;
+    my $patron1 = $builder->build_object({ class => 'Koha::Patrons', value => { branchcode => $branchcode } });
+    my $patron2 = $builder->build_object({ class => 'Koha::Patrons', value => { branchcode => $branchcode } });
+    my $patron3 = $builder->build_object({ class => 'Koha::Patrons', value => { branchcode => $branchcode } });
+    my $item2 = $builder->build_object({ class => 'Koha::Items', value => { holdingbranch => $branchcode, homebranch => $branchcode, biblionumber => $biblio->biblionumber, itype => $item1->effective_itemtype } });
+    t::lib::Mocks::mock_userenv({ patron => $patron1 });
+
+    my $recall1 = Koha::Recall->new(
+        {   borrowernumber    => $patron1->borrowernumber,
+            recalldate        => \'NOW()',
+            biblionumber      => $biblio->biblionumber,
+            branchcode        => $branchcode,
+            itemnumber        => $item1->itemnumber,
+            expirationdate    => undef,
+            item_level_recall => 1
+        }
+    )->store;
+    my $recall2 = Koha::Recall->new(
+        {   borrowernumber    => $patron2->borrowernumber,
+            recalldate        => \'NOW()',
+            biblionumber      => $biblio->biblionumber,
+            branchcode        => $branchcode,
+            itemnumber        => undef,
+            expirationdate    => undef,
+            item_level_recall => 0
+        }
+    )->store;
+    my $recall3 = Koha::Recall->new(
+        {   borrowernumber    => $patron3->borrowernumber,
+            recalldate        => \'NOW()',
+            biblionumber      => $biblio->biblionumber,
+            branchcode        => $branchcode,
+            itemnumber        => $item1->itemnumber,
+            expirationdate    => undef,
+            item_level_recall => 1
+        }
+    )->store;
+
+    my $recalls = $biblio->recalls;
+    is( $recalls->count, 3, 'Correctly get number of recalls for biblio' );
+
+    $recall1->set_cancelled;
+    $recall2->set_expired({ interface => 'COMMANDLINE' });
+
+    is( $recalls->count, 3, 'Correctly get number of recalls for biblio' );
+    is( $recalls->filter_by_current->count, 1, 'Correctly get number of active recalls for biblio' );
+
+    t::lib::Mocks::mock_preference('UseRecalls', 0);
+    is( $biblio->can_be_recalled({ patron => $patron1 }), 0, "Can't recall with UseRecalls disabled" );
+
+    t::lib::Mocks::mock_preference("UseRecalls", 1);
+    $item1->update({ notforloan => 1 });
+    is( $biblio->can_be_recalled({ patron => $patron1 }), 0, "Can't recall with no available items" );
+
+    $item1->update({ notforloan => 0 });
+    Koha::CirculationRules->set_rules({
+        branchcode => $branchcode,
+        categorycode => $patron1->categorycode,
+        itemtype => $item1->effective_itemtype,
+        rules => {
+            recalls_allowed => 0,
+            recalls_per_record => 1,
+            on_shelf_recalls => 'all',
+        },
+    });
+    is( $biblio->can_be_recalled({ patron => $patron1 }), 0, "Can't recall if recalls_allowed = 0" );
+
+    Koha::CirculationRules->set_rules({
+        branchcode => $branchcode,
+        categorycode => $patron1->categorycode,
+        itemtype => $item1->effective_itemtype,
+        rules => {
+            recalls_allowed => 1,
+            recalls_per_record => 1,
+            on_shelf_recalls => 'all',
+        },
+    });
+    is( $biblio->can_be_recalled({ patron => $patron1 }), 0, "Can't recall if patron has more existing recall(s) than recalls_allowed" );
+    is( $biblio->can_be_recalled({ patron => $patron1 }), 0, "Can't recall if patron has more existing recall(s) than recalls_per_record" );
+
+    $recall1->set_cancelled;
+    C4::Circulation::AddIssue( $patron1->unblessed, $item2->barcode );
+    is( $biblio->can_be_recalled({ patron => $patron1 }), 0, "Can't recall if patron has already checked out an item attached to this biblio" );
+
+    is( $biblio->can_be_recalled({ patron => $patron1 }), 0, "Can't recall if on_shelf_recalls = all and items are still available" );
+
+    Koha::CirculationRules->set_rules({
+        branchcode => $branchcode,
+        categorycode => $patron1->categorycode,
+        itemtype => $item1->effective_itemtype,
+        rules => {
+            recalls_allowed => 1,
+            recalls_per_record => 1,
+            on_shelf_recalls => 'any',
+        },
+    });
+    C4::Circulation::AddReturn( $item2->barcode, $branchcode );
+    is( $biblio->can_be_recalled({ patron => $patron1 }), 0, "Can't recall if no items are checked out" );
+
+    $recall2->set_cancelled;
+    C4::Circulation::AddIssue( $patron2->unblessed, $item2->barcode );
+    C4::Circulation::AddIssue( $patron2->unblessed, $item1->barcode );
+    is( $biblio->can_be_recalled({ patron => $patron1 }), 2, "Can recall two items" );
+
+    $item1->update({ withdrawn => 1 });
+    is( $biblio->can_be_recalled({ patron => $patron1 }), 1, "Can recall one item" );
+
+    $schema->storage->txn_rollback;
+};
+
+subtest 'item_groups() tests' => sub {
+
+    plan tests => 6;
+
+    $schema->storage->txn_begin;
+
+    my $biblio = $builder->build_sample_biblio();
+
+    my @item_groups = $biblio->item_groups->as_list;
+    is( scalar(@item_groups), 0, 'Got zero item groups');
+
+    my $item_group_1 = Koha::Biblio::ItemGroup->new( { biblio_id => $biblio->id } )->store();
+
+    @item_groups = $biblio->item_groups->as_list;
+    is( scalar(@item_groups), 1, 'Got one item group');
+    is( $item_groups[0]->id, $item_group_1->id, 'Got correct item group');
+
+    my $item_group_2 = Koha::Biblio::ItemGroup->new( { biblio_id => $biblio->id } )->store();
+
+    @item_groups = $biblio->item_groups->as_list;
+    is( scalar(@item_groups), 2, 'Got two item groups');
+    is( $item_groups[0]->id, $item_group_1->id, 'Got correct item group 1');
+    is( $item_groups[1]->id, $item_group_2->id, 'Got correct item group 2');
 
     $schema->storage->txn_rollback;
 };
