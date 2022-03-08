@@ -30,6 +30,7 @@ use C4::Reserves;
 use C4::ClassSource qw( GetClassSort );
 use C4::Log qw( logaction );
 
+use Koha::Biblio::ItemGroups;
 use Koha::Checkouts;
 use Koha::CirculationRules;
 use Koha::CoverImages;
@@ -394,6 +395,27 @@ sub checkout {
     my $checkout_rs = $self->_result->issue;
     return unless $checkout_rs;
     return Koha::Checkout->_new_from_dbic( $checkout_rs );
+}
+
+=head3 item_group
+
+my $item_group = $item->item_group;
+
+Return the item group for this item
+
+=cut
+
+sub item_group {
+    my ( $self ) = @_;
+
+    my $item_group_item = $self->_result->item_group_item;
+    return unless $item_group_item;
+
+    my $item_group_rs = $item_group_item->item_group;
+    return unless $item_group_rs;
+
+    my $item_group = Koha::Biblio::ItemGroup->_new_from_dbic( $item_group_rs );
+    return $item_group;
 }
 
 =head3 holds
