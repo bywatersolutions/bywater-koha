@@ -437,6 +437,12 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
                 my $hiddencount   = 0;
                 my $num_alreadyheld = 0;
 
+                if ( C4::Context->preference('EnableVolumeHolds') ) {
+                    my $volumes = Koha::Biblio::Volumes->search(
+                        { biblionumber => $biblionumber } );
+                    $biblioitem->{volumes} = $volumes;
+                }
+
                 $biblioitem->{force_hold_level} = $force_hold_level;
 
                 if ( $biblioitem->{biblioitemnumber} ne $biblionumber ) {
@@ -664,12 +670,6 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
                 bibitemloop         => \@bibitemloop,
                 available_itemtypes => \@available_itemtypes
             );
-        }
-
-        if ( C4::Context->preference('EnableVolumeHolds') ) {
-            my $volumes = Koha::Biblio::Volumes->search(
-                { biblionumber => $biblionumber } );
-            $biblioitem->{volumes} = $volumes;
         }
 
         # existingreserves building
