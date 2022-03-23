@@ -1793,19 +1793,19 @@ subtest "GetHoldsQueueItems" => sub {
         ($itemnumber_3,$biblionumber_3,'','','',42,'','')
      " );
 
-    my $queue_items = GetHoldsQueueItems();
+    my $queue_items = C4::HoldsQueue::GetHoldsQueueItems();
     is( scalar @$queue_items, $count + 3, 'Three items added to queue' );
 
-    $queue_items = GetHoldsQueueItems( { itemtypeslimit => $item_1->itype } );
+    $queue_items = C4::HoldsQueue::GetHoldsQueueItems( { itemtypeslimit => $item_1->itype } );
     is( scalar @$queue_items,
         3, 'Three items of same itemtype found when itemtypeslimit passed' );
 
-    $queue_items = GetHoldsQueueItems(
+    $queue_items = C4::HoldsQueue::GetHoldsQueueItems(
         { itemtypeslimit => $item_1->itype, ccodeslimit => $item_2->ccode } );
     is( scalar @$queue_items,
         2, 'Two items of same collection found when ccodeslimit passed' );
 
-    @$queue_items = GetHoldsQueueItems(
+    @$queue_items = C4::HoldsQueue::GetHoldsQueueItems(
         {
             itemtypeslimit => $item_1->itype,
             ccodeslimit    => $item_2->ccode,
