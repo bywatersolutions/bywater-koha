@@ -305,6 +305,7 @@ sub _ProcessBiblios {
     }
 
     my $do_not_lock = ( exists $ENV{_} && $ENV{_} =~ m|prove| ) || $ENV{KOHA_TESTING};
+    my $dbh = C4::Context->dbh;
     $dbh->{AutoCommit} = 0 unless $do_not_lock;
     $dbh->do("DELETE FROM tmp_holdsqueue");  # clear the old tables for new info
     $dbh->do("DELETE FROM hold_fill_targets");
