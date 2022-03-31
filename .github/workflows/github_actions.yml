@@ -220,6 +220,12 @@ jobs:
             - name: Echo KOHA_BRANCH from previous step
               run: echo "${{ steps.extracted_variables.outputs.KOHA_BRANCH }}"
 
+            - name: Create dir for base.tgz
+              run: mkdir /tmp/basetgz
+
+            - name: Create base.tgz
+              run: docker run --volume=/tmp/basetgz:/output --privileged quay.io/bywatersolutions/koha-build-base-tgz:latest
+
             - name: Create dir for debian packages
               run: mkdir /tmp/debs
 
@@ -228,7 +234,7 @@ jobs:
 
             - name: Run koha-dpkg-docker
               run: |
-                  docker run --volume=${{ steps.extracted_variables.outputs.KOHACLONE }}:/koha --volume=/tmp/debs:/debs --privileged --env VERSION="${{ steps.extracted_variables.outputs.MMM_VERSION }}~${{ steps.extracted_variables.outputs.SHORTNAME }}~${{ steps.extracted_variables.outputs.MARK }}" koha/koha-dpkg:21.11
+                  docker run --volume=/tmp/basetgz/base.tgz:/var/cache/pbuilder/base.tgz --volume=${{ steps.extracted_variables.outputs.KOHACLONE }}:/koha --volume=/tmp/debs:/debs --privileged --env VERSION="${{ steps.extracted_variables.outputs.MMM_VERSION }}~${{ steps.extracted_variables.outputs.SHORTNAME }}~${{ steps.extracted_variables.outputs.MARK }}" koha/koha-dpkg:21.11
 
             - name: List file in debs dir
               run: ls -alh /tmp/debs
