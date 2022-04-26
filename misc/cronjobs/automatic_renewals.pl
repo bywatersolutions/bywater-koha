@@ -134,7 +134,7 @@ $verbose = 1 unless $verbose or $confirm;
 print "Test run only\n" unless $confirm;
 
 print "getting auto renewals\n" if $verbose;
-my @auto_renews = Koha::Checkouts->search({ auto_renew => 1, 'patron.autorenew_checkouts' => 1 },{ join => 'patron', order_by => 'me.borrowernumber'})->as_list;
+my @auto_renews = Koha::Checkouts->search({ auto_renew => 1, 'borrower.autorenew_checkouts' => 1 },{ join => 'borrower', order_by => 'me.borrowernumber'})->as_list;
 print "found " . scalar @auto_renews . " auto renewals\n" if $verbose;
 
 my $renew_digest = {};
