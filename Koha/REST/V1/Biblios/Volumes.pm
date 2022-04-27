@@ -44,7 +44,8 @@ sub list {
     my $c = shift->openapi->valid_input or return;
 
     return try {
-        my $volumes_set = Koha::Biblio::Volumes->new;
+        my $biblio_id = $c->validation->param('biblio_id');
+        my $volumes_set = Koha::Biblio::Volumes->search({ biblionumber => $biblio_id });
         my $volumes     = $c->objects->search( $volumes_set );
         return $c->render(
             status  => 200,
