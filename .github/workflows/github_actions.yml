@@ -308,7 +308,8 @@ jobs:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_KYLE_WEBHOOK }}
 
     build_docker:
-        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-futureNOT'
+        #if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-futureNOT'
+        if: false
         name: Build Docker image
         needs: build_debs
         runs-on: ubuntu-latest
