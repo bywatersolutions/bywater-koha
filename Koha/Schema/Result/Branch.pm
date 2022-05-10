@@ -199,6 +199,18 @@ the ability to act as a pickup location
 
 whether this library should show in the opac
 
+=head2 itembarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
+=head2 patronbarcodeprefix
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 10
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -250,6 +262,10 @@ __PACKAGE__->add_columns(
   { data_type => "tinyint", default_value => 1, is_nullable => 0 },
   "public",
   { data_type => "tinyint", default_value => 1, is_nullable => 0 },
+  "itembarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
+  "patronbarcodeprefix",
+  { data_type => "varchar", is_nullable => 1, size => 10 },
 );
 
 =head1 PRIMARY KEY
@@ -867,8 +883,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-11-19 14:20:11
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v83MNP0UpFzlnax8rSQWSA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-05-10 18:12:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gf9ln8oAKApnuKsk2f7iag
 
 __PACKAGE__->add_columns(
     '+pickup_location' => { is_boolean => 1 },
