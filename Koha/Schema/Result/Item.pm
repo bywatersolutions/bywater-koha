@@ -729,6 +729,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 item_group_item
+
+Type: might_have
+
+Related object: L<Koha::Schema::Result::ItemGroupItem>
+
+=cut
+
+__PACKAGE__->might_have(
+  "item_group_item",
+  "Koha::Schema::Result::ItemGroupItem",
+  { "foreign.item_id" => "self.itemnumber" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 items_last_borrower
 
 Type: might_have
@@ -865,8 +880,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2021-08-27 08:42:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SjZn3haOtUZWu1jrMigjNQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-05-27 11:01:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:K6TqcTctf/266OwVJRhG4w
 
 __PACKAGE__->belongs_to( biblioitem => "Koha::Schema::Result::Biblioitem", "biblioitemnumber" );
 
