@@ -19,12 +19,13 @@
 
 use Modern::Perl;
 
-use Test::More tests => 6;
+use Test::More tests => 8;
 use Test::Warn;
 
 use C4::Circulation qw( AddIssue );
 use C4::Reserves qw( AddReserve ModReserve ModReserveCancelAll );
 use Koha::AuthorisedValueCategory;
+use Koha::Biblio::ItemGroups;
 use Koha::Database;
 use Koha::Holds;
 
@@ -521,6 +522,34 @@ subtest 'get_items_that_can_fill' => sub {
     is( $no_items->count, 0, "Object is empty when called on no holds");
 
 };
+
+
+subtest 'Test Koha::Hold::item_group' => sub {
+    plan tests => 1;
+    my $library    = $builder->build_object( { class => 'Koha::Libraries' } );
+    my $patron = $builder->build_object({ class => 'Koha::Patrons' });
+    my $item = $builder->build_sample_item;
+    my $item_group = $builder->build_object(
+        {
+            class => 'Koha::Biblio::ItemGroups',
+            value => { biblionumber => $item->biblionumber }
+        }
+    );
+    my $reserve_id = AddReserve(
+        {
+            branchcode       => $library->branchcode,
+            borrowernumber   => $patron->borrowernumber,
+            biblionumber     => $item->biblionumber,
+            itemnumber       => $item->itemnumber,
+            item_group_id    => $item_group->id,
+        }
+    );
+
+    my $hold = Koha::Holds->find($reserve_id);
+    is( $hold->item_group_id, $item_group->id,
+        'Koha::Hold::item_group returns the correct item_group' );
+};
+
 
 $schema->storage->txn_rollback;
 

@@ -326,6 +326,7 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
         my %biblioloopiter = ();
 
         my $biblio = Koha::Biblios->find( $biblionumber );
+
         unless ($biblio) {
             $biblioloopiter{noitems} = 1;
             $template->param('nobiblio' => 1);
@@ -333,6 +334,8 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
         }
 
         my $force_hold_level;
+        $biblioloopiter{object} = $biblio;
+
         if ( $patron ) {
             { # CanBookBeReserved
                 my $canReserve = CanBookBeReserved( $patron->borrowernumber, $biblionumber );
@@ -416,8 +419,9 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
         ## Here we go backwards again to create hash of biblioitemnumber to itemnumbers
         ## this is important when we have analytic items which may be on another record
         my ( $iteminfos_of );
-        while ( my $item = $items->next ) {
-            $item = $item->unblessed;
+        while ( my $object = $items->next ) {
+            my $item = $object->unblessed;
+            $item->{object} = $object;
             my $biblioitemnumber = $item->{biblioitemnumber};
             my $itemnumber = $item->{itemnumber};
             push( @{ $itemnumbers_of_biblioitem{$biblioitemnumber} }, $itemnumber );
