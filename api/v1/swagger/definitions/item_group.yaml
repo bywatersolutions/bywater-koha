@@ -3,11 +3,9 @@ type: object
 properties:
   item_group_id:
     type: integer
-    readOnly: true
     description: Internal identifier for the item group
   biblio_id:
     type: integer
-    readOnly: true
     description: Internal identifier for the parent bibliographic record
   description:
     type: string
@@ -18,18 +16,15 @@ properties:
   creation_date:
     type: string
     format: date-time
-    readOnly: true
     description: Date and time the item group was created
   modification_date:
     type: string
     format: date-time
-    readOnly: true
     description: Date and time the item group was last modified
   items:
     type:
     - array
     - 'null'
-    readOnly: true
     description: A list of items that belong to the volume (x-koha-embed)
 additionalProperties: false
 required:
