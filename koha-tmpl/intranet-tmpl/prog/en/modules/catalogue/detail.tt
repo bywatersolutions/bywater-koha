@@ -604,9 +604,8 @@ Note that permanent location is a code, and location may be an authval.
     </table>
 
 [% END %][%# end of block items_table %]
-
-<div id="holdings">
 [% IF Koha.Preference('EnableItemGroups') %]
+
     <div id="item_groups">
         [% IF CAN_user_editcatalogue_manage_item_groups %]
             <div class="item_groups_table_table_controls">
@@ -624,6 +623,8 @@ Note that permanent location is a code, and location may be an authval.
         </table>
     </div>
 [% END %]
+
+<div id="holdings">
 
 [% IF ( Koha.Preference('NovelistSelectStaffEnabled') && Koha.Preference('NovelistSelectStaffProfile') && Koha.Preference('NovelistSelectStaffView') == 'above' ) %]
     <span class="results_summary NovelistSelect" style="display:none;">
