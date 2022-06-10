@@ -147,9 +147,39 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 old_reserves
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-05-27 11:50:53
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yhbXq1pbstr2yxregiIocQ
+Type: has_many
+
+Related object: L<Koha::Schema::Result::OldReserve>
+
+=cut
+
+__PACKAGE__->has_many(
+  "old_reserves",
+  "Koha::Schema::Result::OldReserve",
+  { "foreign.item_group_id" => "self.item_group_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 reserves
+
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Reserve>
+
+=cut
+
+__PACKAGE__->has_many(
+  "reserves",
+  "Koha::Schema::Result::Reserve",
+  { "foreign.item_group_id" => "self.item_group_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-06-10 10:56:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yul5u3vpF2INXwQX28lb5Q
 
 sub koha_objects_class {
     'Koha::Biblio::ItemGroups';
