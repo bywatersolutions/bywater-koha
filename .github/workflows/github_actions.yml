@@ -254,13 +254,12 @@ jobs:
 
             - name: Create Release
               id: create_release
-              uses: bywatersolutions/github-action-create-release@master
-              env:
-                  GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+              uses: softprops/action-gh-release@v1
               with:
+                  token: ${{ secrets.OUR_GITHUB_TOKEN }}
                   tag_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
-                  release_name: Release ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
-                  target: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+                  name: Release ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+                  target_commitish: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
                   draft: false
                   prerelease: false
 
