@@ -254,12 +254,12 @@ jobs:
 
             - name: Create Release
               id: create_release
-              uses: softprops/action-gh-release@v1
+              uses: ncipollo/release-action@v1
               with:
                   token: ${{ secrets.OUR_GITHUB_TOKEN }}
-                  tag_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+                  tag: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
                   name: Release ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
-                  target_commitish: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+                  commit: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
                   draft: false
                   prerelease: false
 
