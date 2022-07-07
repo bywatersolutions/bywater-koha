@@ -262,7 +262,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
               with:
-                  tag_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+                  tag_name: ${{ steps.extracted_variables.outputs.TAG_NAME }}
                   release_name: Release ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
                   target: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
                   draft: false
@@ -271,7 +271,7 @@ jobs:
             - name: Upload assets
               uses: softprops/action-gh-release@v1
               with:
-                tag_name: ${{ steps.extracted_variables.outputs.KOHA_BRANCH }}
+                tag_name: ${{ steps.extracted_variables.outputs.TAG_NAME }}
                 files: |
                   /tmp/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.zip
                   /tmp/debs/${{ steps.find_koha_common.outputs.KOHA_COMMON_DEB }}
