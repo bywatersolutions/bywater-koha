@@ -216,6 +216,10 @@ jobs:
                   MARK=${BRANCH_PARTS[2]}
                   echo "MARK: $MARK"
                   echo ::set-output name=MARK::$MARK
+                  # Generate tag name
+                  TAG_NAME="${SHORTNAME}_v${MMM_VERSION}-${MARK}"
+                  echo "TAG NAME: $TAG_NAME"
+                  echo ::set-output name="TAG_NAME::$TAG_NAME"
 
             - name: Echo KOHA_BRANCH from previous step
               run: echo "${{ steps.extracted_variables.outputs.KOHA_BRANCH }}"
