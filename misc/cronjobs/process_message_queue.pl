@@ -32,6 +32,7 @@ my $limit    = undef;
 my $method = 'LOGIN';
 my $help = 0;
 my $verbose = 0;
+my $where;
 my @type;
 my @letter_code;
 
@@ -44,6 +45,7 @@ GetOptions(
     'v|verbose'         => \$verbose,
     't|type:s'          => \@type,
     'c|code:s'          => \@letter_code,
+    'w|where:s'         => \$where,
 );
 my $usage = << 'ENDUSAGE';
 
@@ -62,6 +64,7 @@ This script has the following parameters :
     -m --method: authentication method required by SMTP server (See perldoc Sendmail.pm for supported authentication types.)
     -h --help: this message
     -v --verbose: provides verbose output to STDOUT
+    -w --where: filter messages to send with additional conditions in the where clause
 ENDUSAGE
 
 die $usage if $help;
@@ -114,6 +117,7 @@ C4::Letters::SendQueuedMessages(
         limit       => $limit,
         type        => \@type,
         letter_code => \@letter_code,
+        where       => $where,
     }
 );
 
