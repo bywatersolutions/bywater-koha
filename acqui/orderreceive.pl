@@ -170,39 +170,26 @@ if ( $suggestion ) {
 }
 
 my $patron = Koha::Patrons->find( $loggedinuser )->unblessed;
-my @budget_loop;
-my $periods = GetBudgetPeriods( );
-foreach my $period (@$periods) {
-    if ($period->{'budget_period_id'} == $budget->{'budget_period_id'}) {
-        $template->{'VARS'}->{'budget_period_description'} = $period->{'budget_period_description'};
+my %budget_loops;
+my $budgets = GetBudgetHierarchy( undef, undef, undef, 1 );
+foreach my $budget (@{$budgets}) {
+    next unless (CanUserUseBudget($patron, $budget, $userflags));
+    unless ( defined $budget_loops{$budget->{budget_period_id}} ){
+        $budget_loops{$budget->{budget_period_id}}->{description} = $budget->{budget_period_description};
+        $budget_loops{$budget->{budget_period_id}}->{active} = $budget->{budget_period_active};
+        $budget_loops{$budget->{budget_period_id}}->{funds} = [];
     }
-    next if $period->{'budget_period_locked'} || !$period->{'budget_period_description'};
-    my $budget_hierarchy = GetBudgetHierarchy( $period->{'budget_period_id'}, undef, undef, 1 );
-    my @funds;
-    foreach my $r ( @{$budget_hierarchy} ) {
-        next unless ( CanUserUseBudget( $patron, $r, $userflags ) );
-        if ( !defined $r->{budget_amount} || $r->{budget_amount} == 0 ) {
-            next;
-        }
-        push @funds,
-          {
-            b_id  => $r->{budget_id},
-            b_txt => $r->{budget_name},
-            b_sel => ( $r->{budget_id} == $order->budget_id ) ? 1 : 0,
-          };
-    }
-
-    @funds = sort { uc( $a->{b_txt} ) cmp uc( $b->{b_txt} ) } @funds;
-
-    push @budget_loop,
-      {
-        'id'          => $period->{'budget_period_id'},
-        'description' => $period->{'budget_period_description'},
-        'funds'       => \@funds
-      };
+    push @{$budget_loops{$budget->{budget_period_id}}->{funds}}, {
+        b_id  => $budget->{budget_id},
+        b_txt => $budget->{budget_name},
+        b_sort1_authcat => $budget->{'sort1_authcat'},
+        b_sort2_authcat => $budget->{'sort2_authcat'},
+        b_active => $budget->{budget_period_active},
+        b_sel => ( $budget->{budget_id} == $order->budget_id ) ? 1 : 0,
+        b_level => $budget->{budget_level},
+    };
 }
-
-$template->{'VARS'}->{'budget_loop'} = \@budget_loop;
+$template->{'VARS'}->{'budget_loops'} = \%budget_loops;
 
 my $op = $input->param('op');
 if ($op and $op eq 'edit'){
