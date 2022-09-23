@@ -401,6 +401,18 @@ __PACKAGE__->add_columns(
     '+non_priority'    => { is_boolean => 1 }
 );
 
+__PACKAGE__->belongs_to(
+  "patron",
+  "Koha::Schema::Result::Borrower",
+  { borrowernumber => "borrowernumber" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "SET NULL",
+    on_update     => "SET NULL",
+  },
+);
+
 sub koha_object_class {
     'Koha::Old::Hold';
 }
