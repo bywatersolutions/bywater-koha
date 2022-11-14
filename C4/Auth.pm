@@ -945,6 +945,7 @@ sub checkauth {
                 $cookie = $cookie_mgr->clear_unless( $query->cookie, @$cookie );
                 C4::Context::_unset_userenv($sessionID);
                 $sessionID = undef;
+                undef $userid; # IMPORTANT: this assures us a new session in code below
             } elsif (!$logout) {
 
                 $cookie = $cookie_mgr->replace_in_list( $cookie, $query->cookie(
@@ -1350,7 +1351,7 @@ sub checkauth {
             $uri->query_param_delete('password');
             $uri->query_param_delete('koha_login_context');
             print $query->redirect(-uri => $uri->as_string, -cookie => $cookie, -status=>'303 See other');
-            exit;
+            safe_exit;
         }
 
         return ( $userid, $cookie, $sessionID, $flags );
