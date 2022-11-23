@@ -458,7 +458,7 @@
                                                                             [% itemLoo.waitingdate | $KohaDates %]
                                                                         [% ELSE %]
                                                                             [% IF ( itemLoo.reservedate ) %]
-                                                                                [% itemLoo.reservedate | html %]
+                                                                                [% itemLoo.reservedate | $KohaDates %]
                                                                             [% END %]
                                                                         [% END %].
                                                                     </span>
