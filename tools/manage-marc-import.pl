@@ -98,6 +98,7 @@ if ($op eq "") {
     } else {
         my $framework = $input->param('framework');
         my $overlay_framework = $input->param('overlay_framework');
+        $overlay_framework = undef if $overlay_framework = '_USE_ORIG';
         commit_batch($template, $import_batch_id, $framework, $overlay_framework);
     }
     import_records_list($template, $import_batch_id, $offset, $results_per_page);
