@@ -522,6 +522,7 @@ sub get_order_infos {
 sub edi_close_and_order {
     my $confirm = $query->param('confirm') || $confirm_pref eq '2';
     if ($confirm) {
+        warn "CLOSING BASKET $basketno TO SEND EDI ORDER FOR EAN $ean";
         my $edi_params = {
             basketno => $basketno,
             ean    => $ean,

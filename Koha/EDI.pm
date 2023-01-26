@@ -67,6 +67,11 @@ sub create_edi_order {
     my $ean        = $parameters->{ean};
     my $branchcode = $parameters->{branchcode};
     my $noingest   = $parameters->{noingest};
+
+    my $logger = Log::Log4perl->get_logger();
+    $logger->warn( "Koha::EDI::create_edi_order called with params: "
+          . Data::Dumper::Dumper($parameters) );
+
     if ( !$basketno || !$ean ) {
         carp 'create_edi_order called with no basketno or ean';
         return;
