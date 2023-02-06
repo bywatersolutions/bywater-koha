@@ -360,9 +360,6 @@ subtest "BatchCommitRecords overlay into framework" => sub {
     is( $biblio->frameworkcode, "QQ", "Framework set on overlay" );
 };
 
-
-
-
 sub get_import_record {
     my $id_import_batch = shift;
     return $dbh->do('SELECT * FROM import_records WHERE import_batch_id = ?', undef, $id_import_batch);
