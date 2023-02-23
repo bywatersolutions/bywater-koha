@@ -168,7 +168,7 @@ if ( $op eq 'edititem' || $op eq 'dupeitem' ) {
 my $patron = Koha::Patrons->find( $loggedinuser );
 
 my $item = $itemnumber ? Koha::Items->find( $itemnumber ) : undef;
-if ( $item && !$patron->can_edit_item( $item ) ) {
+if ( $item && !$patron->can_edit_items_from( $item->homebranch ) ) {
     print $input->redirect("/cgi-bin/koha/catalogue/detail.pl?biblionumber=$biblionumber");
     exit;
 }
@@ -648,7 +648,7 @@ if ($op) {
 my @items;
 for my $item ( $biblio->items->as_list, $biblio->host_items->as_list ) {
     my $i = $item->columns_to_str;
-    $i->{nomod} = 1 unless $patron->can_edit_item($item);
+    $i->{nomod} = 1 unless $patron->can_edit_items_from($item->homebranch);
     push @items, $i;
 }
 
