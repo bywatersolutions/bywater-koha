@@ -1548,50 +1548,23 @@ sub libraries_where_can_see_patrons {
     );
 }
 
-=head3 can_edit_item
-
-my $can_edit = $patron->can_edit_item( $item );
-
-Return true if the patron (usually the logged in user) can edit the given item
-
-The parameter can be a Koha::Item, an item hashref, or a branchcode.
-
-=cut
-
-sub can_edit_item {
-    my ( $self, $item ) = @_;
-
-    my $userenv = C4::Context->userenv();
-
-    my $ref = ref($item);
-
-    my $branchcode =
-        $ref eq 'Koha::Item' ? $item->homebranch
-      : $ref eq 'HASH'       ? $item->{homebranch}
-      : $ref eq q{}          ? $item
-      :                        undef;
-
-    return unless $branchcode;
-
-    return 1 if C4::Context->IsSuperLibrarian();
-
-    if ( $userenv && C4::Context->preference('IndependentBranches') ) {
-        return $userenv->{branch} eq $branchcode;
-    }
-
-    return $self->can_edit_items_from($branchcode);
-}
-
 =head3 can_edit_items_from
 
-my $can_edit = $patron->can_edit_items_from( $branchcode );
+    my $can_edit = $patron->can_edit_items_from( $branchcode );
 
-Return true if this user can edit items from the give home branchcode
+Return true if the I<Koha::Patron> can edit items from the given branchcode
 
 =cut
 
 sub can_edit_items_from {
     my ( $self, $branchcode ) = @_;
+
+    return 1 if C4::Context->IsSuperLibrarian();
+
+    my $userenv = C4::Context->userenv();
+    if ( $userenv && C4::Context->preference('IndependentBranches') ) {
+        return $userenv->{branch} eq $branchcode;
+    }
 
     return $self->can_see_things_from(
         {
@@ -1636,9 +1609,12 @@ Return true if this "patron" ( usually the logged in user ) can perform some act
 
 sub can_see_things_from {
     my ( $self, $params ) = @_;
+
     my $branchcode    = $params->{branchcode};
     my $permission    = $params->{permission};
     my $subpermission = $params->{subpermission};
+
+    return 1 if C4::Context->IsSuperLibrarian();
 
     my $can = 0;
     if ( $self->branchcode eq $branchcode ) {
