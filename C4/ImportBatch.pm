@@ -761,7 +761,7 @@ sub BatchCommitItems {
             $duplicate_barcode &&
             ( $item_match = Koha::Items->find({ barcode => $item->{'barcode'} }) )
         ) {
-            my $itemnumber = $duplicate_barcode->itemnumber;
+            my $itemnumber = $item_match->itemnumber;
             ModItemFromMarc( $item_marc, $item_match->biblionumber, $itemnumber );
             $updsth->bind_param( 1, 'imported' );
             $updsth->bind_param( 2, $item->{itemnumber} );
