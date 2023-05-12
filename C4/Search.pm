@@ -1871,6 +1871,7 @@ sub searchResults {
                 ( $item->{$hbranch} ? $item->{$hbranch} . '--' : q{} )
               . ( $item->{location} ? $item->{location} : q{} )
               . ( $item->{itype}    ? $item->{itype}    : q{} )
+              . ( $item->{ccode}    ? $item->{ccode}    : q{} )
               . ( $item->{itemcallnumber} ? $item->{itemcallnumber} : q{} );
 # For each grouping of items (onloan, available, unavailable), we build a key to store relevant info about that item
             if ( $item->{onloan}
@@ -1887,6 +1888,7 @@ sub searchResults {
                 $onloan_items->{$key}->{description}    = $item->{description};
                 $onloan_items->{$key}->{imageurl} =
                   getitemtypeimagelocation( $search_context->{'interface'}, $itemtypes{ $item->{itype} }->{imageurl} );
+                $onloan_items->{$key}->{collectioncode} = GetAuthorisedValueDesc('','',$item->{ccode},'','','CCODE');
 
                 # if something's checked out and lost, mark it as 'long overdue'
                 if ( $item->{itemlost} ) {
@@ -1986,6 +1988,7 @@ sub searchResults {
                     $other_items->{$key}->{location} = $shelflocations->{ $item->{location} } if $item->{location};
                     $other_items->{$key}->{description} = $item->{description};
                     $other_items->{$key}->{imageurl} = getitemtypeimagelocation( $search_context->{'interface'}, $itemtypes{ $item->{itype}//q{} }->{imageurl} );
+                    $other_items->{$key}->{collectioncode} = GetAuthorisedValueDesc('','',$item->{ccode},'','','CCODE');
                 }
                 # item is available
                 else {
@@ -1996,6 +1999,7 @@ sub searchResults {
                     }
                     $available_items->{$prefix}->{location} = $shelflocations->{ $item->{location} } if $item->{location};
                     $available_items->{$prefix}->{imageurl} = getitemtypeimagelocation( $search_context->{'interface'}, $itemtypes{ $item->{itype}//q{} }->{imageurl} );
+                    $available_items->{$prefix}->{collectioncode} = GetAuthorisedValueDesc('','',$item->{ccode},'','','CCODE');
                 }
             }
         }    # notforloan, item level and biblioitem level
