@@ -500,18 +500,20 @@ sub bookings {
 
 =head3 find_booking
 
-Find any booking that would conflict with this passed checkout dates
+Find the first booking that would conflict with the passed checkout dates
 
 =cut
 
 sub find_booking {
     my ( $self, $params ) = @_;
+    warn "Finding bookings";
 
     my $checkout_date = $params->{checkout_date};
-    my $due_date = $params->{due_date};
+    my $due_date      = $params->{due_date};
+    my $biblio        = $self->biblio;
 
-    my $dtf = Koha::Database->new->schema->storage->datetime_parser;
-    my $bookings = $self->biblio->bookings(
+    my $dtf      = Koha::Database->new->schema->storage->datetime_parser;
+    my $bookings = $biblio->bookings(
         [
             # Checkout starts during booked period
             start_date => {
@@ -520,6 +522,7 @@ sub find_booking {
                     $dtf->format_datetime($due_date)
                 ]
             },
+
             # Checkout is due during booked period
             end_date => {
                 '-between' => [
@@ -527,6 +530,7 @@ sub find_booking {
                     $dtf->format_datetime($due_date)
                 ]
             },
+
             # Checkout contains booked period
             {
                 start_date => { '<' => $dtf->format_datetime($checkout_date) },
@@ -538,32 +542,45 @@ sub find_booking {
         }
     );
 
-    my $loanable_items = $self->biblio->items->count;
-
-    my $booked;
-    while ( my $booking = $bookings->next ) {
-
-        # Decrement loanable items for each booking found
-        $loanable_items--;
-
-        # Set booked to current booking
-        $booked = $booking;
-
-        if ( !defined($booking->patron_id) && $booking->patron_id == $params->{patron_id} ) {
-            # This user booked it
-            $loanable_items = 0;
-            last;
-        }
-
-        if ( defined($booking->item_id) && $booking->item_id == $self->itemnumber ) {
-            # Might fulfil this booking, check patron after return
-            $loanable_items = 0;
-            last;
+    my $checkouts      = {};
+    my $loanable_items = {};
+    my $bookable_items = $biblio->bookable_items;
+    while ( my $item = $bookable_items->next ) {
+        $loanable_items->{ $item->itemnumber } = 1;
+        if ( my $checkout = $item->checkout ) {
+            $checkouts->{ $item->itemnumber } =
+              dt_from_string( $checkout->date_due );
         }
     }
 
-    return $booked unless $loanable_items;
-    return 0;
+    while ( my $booking = $bookings->next ) {
+        use Data::Printer;
+        warn np( $booking->unblessed, colored => 1 );
+
+        # Booking for this item
+        if ( defined( $booking->item_id )
+            && $booking->item_id == $self->itemnumber )
+        {
+            warn "Found item specific booking for THIS ITEM";
+            return $booking;
+        }
+
+        # Booking for another item
+        elsif ( defined( $booking->item_id ) ) {
+            warn "Found item specific booking for ANOTHER ITEM";
+            # Due for another booking, remove from pool
+            delete $loanable_items->{ $booking->item_id };
+            next;
+
+        }
+
+        # Booking for any item
+        else {
+            # Can another item satisfy this booking?
+            warn "Found biblio level booking";
+        }
+    }
+    return;
 }
 
 =head3 check_booking
