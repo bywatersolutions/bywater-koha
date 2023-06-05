@@ -357,7 +357,7 @@ jobs:
                   echo ::set-output name=DOWNLOAD_PATH::$DOWNLOAD_PATH
                   echo "DOWNLOAD PATH: $DOWNLOAD_PATH"
                   # Set the base path of the URL, TODO: needs to change for bywater-koha-future
-                  BASE_URL="https://github.com/bywatersolutions/bywater-koha/releases/download/"
+                  BASE_URL="https://github.com/bywatersolutions/${{github.repository}}/releases/download/"
                   DEB_URL="${BASE_URL}${DOWNLOAD_PATH}"
                   echo "DEB_URL: $DEB_URL"
                   echo ::set-output name=DEB_URL::$DEB_URL
