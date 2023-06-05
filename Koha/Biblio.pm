@@ -39,6 +39,7 @@ use Koha::Cache::Memory::Lite;
 use Koha::Checkouts;
 use Koha::CirculationRules;
 use Koha::Exceptions;
+use Koha::Illrequests;
 use Koha::Item::Transfer::Limits;
 use Koha::Items;
 use Koha::Libraries;
@@ -147,6 +148,21 @@ sub active_orders {
     my ( $self ) = @_;
 
     return $self->orders->search({ datecancellationprinted => undef });
+}
+
+=head3 ill_requests
+
+    my $ill_requests = $biblio->ill_requests();
+
+Returns a Koha::Illrequests object
+
+=cut
+
+sub ill_requests {
+    my ( $self ) = @_;
+
+    my $ill_requests = $self->_result->ill_requests;
+    return Koha::Illrequests->_new_from_dbic($ill_requests);
 }
 
 =head3 item_groups
