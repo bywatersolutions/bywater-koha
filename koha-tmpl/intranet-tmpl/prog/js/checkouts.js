@@ -1,6 +1,8 @@
 /* global __ */
 
 $(document).ready(function() {
+    var loadIssuesTableDelayTimeoutId;
+
     var barcodefield = $("#barcode");
 
     var onHoldDueDateSet = false;
@@ -242,6 +244,7 @@ $(document).ready(function() {
         barcodefield.focus();
     });
     $('#issues-table-load-now-button').click(function(){
+        if ( loadIssuesTableDelayTimeoutId ) clearTimeout(loadIssuesTableDelayTimeoutId);
         LoadIssuesTable();
         barcodefield.focus();
         return false;
@@ -252,8 +255,14 @@ $(document).ready(function() {
     });
 
     if ( Cookies.get("issues-table-load-immediately-" + script) == "true" ) {
-        LoadIssuesTable();
+        if ( LoadCheckoutsTableDelay ) {
+            loadIssuesTableDelayTimeoutId = setTimeout( function(){ LoadIssuesTable() }, LoadCheckoutsTableDelay * 1000);
+        } else {
+            LoadIssuesTable();
+        }
         $('#issues-table-load-immediately').prop('checked', true);
+    } else {
+        $('#issues-table-load-delay').hide();
     }
     $('#issues-table-load-immediately').on( "change", function(){
         Cookies.set("issues-table-load-immediately-" + script, $(this).is(':checked'), { expires: 365, sameSite: 'Lax'  });
