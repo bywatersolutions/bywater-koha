@@ -537,6 +537,8 @@ sub BatchCommitRecords {
     $progress_interval = 0 unless $progress_interval && $progress_interval =~ /^\d+$/;
     $progress_interval = 0 unless ref($progress_callback) eq 'CODE';
 
+    SetImportBatchStatus($batch_id, 'importing');
+
     my $schema = Koha::Database->schema;
     $schema->txn_begin;
     # NOTE: Moved this transaction to the front of the routine. Note that inside the while loop below
