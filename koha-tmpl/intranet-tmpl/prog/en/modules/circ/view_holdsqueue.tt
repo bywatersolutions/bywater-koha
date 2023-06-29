@@ -187,11 +187,11 @@
                         <td class="hq-enumchron">[% itemsloo.enumchron | html %]</td>
                         <td class="hq-barcode">
                             [% IF ( itemsloo.item_level_request ) %]
-                                <em>Only item:</em> <strong>[% itemsloo.barcode | html %]</strong>
+                                <em>Only item:</em> <strong><a href="/cgi-bin/koha/catalogue/moredetail.pl?itemnumber=[% itemsloo.itemnumber | uri %]&biblionumber=[% itemsloo.biblionumber | uri %]#item[% itemsloo.itemnumber | uri %]">[% itemsloo.barcode | html %]</a></strong>
                             [% ELSIF itemsloo.item_group_id %]
-                                <strong>[% itemsloo.barcode | html %]</strong> <em>or any item from item group <strong>[% itemsloo.item_group_description | html %]</strong></em>
+                                <strong><a href="/cgi-bin/koha/catalogue/moredetail.pl?itemnumber=[% itemsloo.itemnumber | uri %]&biblionumber=[% itemsloo.biblionumber | uri %]#item[% itemsloo.itemnumber | uri %]">[% itemsloo.barcode | html %]</a></strong> <em>or any item from item group <strong>[% itemsloo.item_group_description | html %]</strong></em>
                             [% ELSE %]
-                                <strong>[% itemsloo.barcode | html %]</strong> <em>or any available</em>
+                                <strong><a href="/cgi-bin/koha/catalogue/moredetail.pl?itemnumber=[% itemsloo.itemnumber | uri %]&biblionumber=[% itemsloo.biblionumber | uri %]#item[% itemsloo.itemnumber | uri %]">[% itemsloo.barcode | html %]</a></strong> <em>or any available</em>
                             [% END %]
                         </td>
                         <td class="hq-patron">
