@@ -485,6 +485,7 @@ sub get_template_and_user {
             intranetcolorstylesheet                                                    => C4::Context->preference("intranetcolorstylesheet"),
             IntranetFavicon                                                            => C4::Context->preference("IntranetFavicon"),
             intranetreadinghistory                                                     => C4::Context->preference("intranetreadinghistory"),
+            intranetReadingHistoryHolds                                                => C4::Context->preference("intranetReadingHistoryHolds"),
             intranetstylesheet                                                         => C4::Context->preference("intranetstylesheet"),
             IntranetUserCSS                                                            => C4::Context->preference("IntranetUserCSS"),
             IntranetUserJS                                                             => C4::Context->preference("IntranetUserJS"),
