@@ -72,7 +72,7 @@
                 <ul class="dropdown-menu">
                     [% FOREACH t IN templates %]
                         <li>
-                            <a id="runreport" class="btn btn-default" href="/cgi-bin/koha/reports/guided_reports.pl?reports=[% id | html %]&amp;phase=Run%20this%20report&amp;template=[% t.id | html %]">
+                            <a id="runreport" class="btn btn-default" href="/cgi-bin/koha/reports/guided_reports.pl?reports=[% id | html %]&amp;phase=Run%20this%20report&amp;template=[% t.id | html %][% PROCESS params %]">
                                 [% t.name | html %]
                             </a>
                         </li>
