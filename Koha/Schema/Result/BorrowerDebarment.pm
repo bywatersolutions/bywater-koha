@@ -158,12 +158,12 @@ __PACKAGE__->belongs_to(
   "type",
   "Koha::Schema::Result::RestrictionType",
   { code => "type" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "CASCADE" },
+  { is_deferrable => 1, on_delete => "RESTRICT", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2022-08-19 17:53:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kDCkA7XrjKXlrFG5lk8Lgg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2023-08-18 16:41:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2HwwHfx1q0kpxEeJsE3miw
 
 sub koha_objects_class {
     'Koha::Patron::Restrictions';
