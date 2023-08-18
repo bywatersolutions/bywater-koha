@@ -303,6 +303,7 @@ my $target_map = {
   './app.psgi'                  => 'SCRIPT_DIR',
   './authorities'               => 'INTRANET_CGI_DIR',
   './basket'                    => 'INTRANET_CGI_DIR',
+  './bookings'                  => 'INTRANET_CGI_DIR',
   './bin'                       => { target => 'SCRIPT_DIR', trimdir => -1 },
   './C4'                        => 'PERL_MODULE_DIR',
   './C4/SIP/t'                  => 'NONE',
