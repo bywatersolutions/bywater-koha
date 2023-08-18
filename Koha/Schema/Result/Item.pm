@@ -964,8 +964,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07049 @ 2023-08-18 16:41:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RGeQgZ2TCDI95b/yrgLrEg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2023-08-18 17:03:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2W98kJhqRXlzDLhBBZmr1A
 
 __PACKAGE__->belongs_to( biblioitem => "Koha::Schema::Result::Biblioitem", "biblioitemnumber" );
 
