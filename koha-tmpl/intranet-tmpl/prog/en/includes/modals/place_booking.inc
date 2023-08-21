@@ -20,7 +20,7 @@
                                 <select name="booking_patron_id" id="booking_patron_id" required="required">
                                     <option></option>
                                     [% IF patron %]
-                                    <option value="[% borrowernumber | uri %]" selected="selected">[% patron.firstname | html %] [% patron.surname %] ([% patron.cardnumber %] )</option>
+                                    <option value="[% borrowernumber | uri %]" selected="selected">[% patron.firstname | html %] [% patron.surname | html %] ([% patron.cardnumber | html %] )</option>
                                     [% END %]
                                 </select>
                             </li>
