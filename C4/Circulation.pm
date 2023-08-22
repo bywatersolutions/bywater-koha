@@ -3070,10 +3070,10 @@ sub CanBookBeRenewed {
             foreach my $possible_hold (@possible_holds) {
                 my $fillable = 0;
                 my $patron_with_reserve = Koha::Patrons->find($possible_hold->borrowernumber);
-                my $items_any_available = ItemsAnyAvailableAndNotRestricted({
-                    biblionumber => $item->biblionumber,
-                    patron => $patron_with_reserve
-                });
+#               my $items_any_available = ItemsAnyAvailableAndNotRestricted({
+#                   biblionumber => $item->biblionumber,
+#                   patron => $patron_with_reserve
+#               });
 
                 # FIXME: We are not checking whether the item we are renewing can fill the hold
 
