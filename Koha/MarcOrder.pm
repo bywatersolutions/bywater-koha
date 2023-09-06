@@ -89,11 +89,6 @@ sub create_order_lines_from_file {
 
     my $vendor_record = Koha::Acquisition::Booksellers->find({ id => $vendor_id });
 
-    my $basket_id = _create_basket_for_file({
-        filename  => $filename,
-        vendor_id => $vendor_id
-    });
-
     my $format = index($filename, '.mrc') != -1 ? 'ISO2709' : 'MARCXML';
     my $params = {
         record_type                => $profile->record_type,
@@ -129,7 +124,6 @@ sub create_order_lines_from_file {
 
             my $order_line_details = add_items_from_import_record({
                 record_result   => $result->{record_result},
-                basket_id       => $basket_id,
                 vendor          => $vendor_record,
                 budget_id       => $budget_id,
                 agent           => $agent,
@@ -564,8 +558,8 @@ sub add_items_from_import_record {
     my ( $args ) = @_;
 
     my $record_result      = $args->{record_result};
-    my $basket_id          = $args->{basket_id};
     my $budget_id          = $args->{budget_id};
+    my $basket_id          = $args->{basket_id};
     my $vendor             = $args->{vendor};
     my $agent              = $args->{agent};
     my $client_item_fields = $args->{client_item_fields} || undef;
@@ -591,6 +585,13 @@ sub add_items_from_import_record {
                 $mapped_budget = $budget_id;
             }
         }
+
+        my $new_basket_id = _create_basket_for_file(
+            {
+                filename  => $sort1,
+                vendor_id => $vendor->id
+            }
+        );
 
         my $marc_item_fields_to_order = _get_MarcItemFieldsToOrder_syspref_data('MarcItemFieldsToOrder', $marcrecord, ['homebranch', 'holdingbranch', 'itype', 'nonpublic_note', 'public_note', 'loc', 'ccode', 'notforloan', 'uri', 'copyno', 'price', 'replacementprice', 'itemcallnumber', 'quantity', 'budget_code']);
         my $item_homebranch           = $marc_item_fields_to_order->{homebranch};
@@ -642,7 +643,7 @@ sub add_items_from_import_record {
 
             my %order_detail_hash = (
                 biblionumber => $biblionumber,
-                basketno     => $basket_id,
+                basketno     => $new_basket_id,
                 itemnumbers   => ($item->itemnumber),
                 quantity     => 1,
                 budget_id    => $item_budget_id,
@@ -669,7 +670,7 @@ sub add_items_from_import_record {
         if(!$itemcreation) {
             my %order_detail_hash = (
                 biblionumber       => $biblionumber,
-                basketno           => $basket_id,
+                basketno           => $new_basket_id,
                 quantity           => $quantity,
                 budget_id          => $mapped_budget,
                 uncertainprice     => 1,
