@@ -143,7 +143,7 @@ jobs:
                   curl -X POST -H 'Content-type: application/json' --data '{ "blocks": [{"type": "section","text": {  "type": "mrkdwn","text": "@here, new release notes are here! https://github.com/bywatersolutions/bywater-koha-release-notes/blob/master/${{ steps.extracted_variables.outputs.KOHA_BRANCH }}.md"}}]}' ${{ secrets.SLACK_RELEASE_NOTES_WEBHOOK }}
 
     auto-rebase:
-        if: startsWith( github.ref, 'refs/heads/bywater-v' ) && github.repository == 'bywatersolutions/bywater-koha'
+        if: false #startsWith( github.ref, 'refs/heads/bywater-v' ) && github.repository == 'bywatersolutions/bywater-koha'
         name: Rebase custom codebases
         needs: [unit-test, is-a-mark]
         runs-on: ubuntu-latest
