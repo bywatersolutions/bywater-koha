@@ -68,7 +68,7 @@ return {
         }
 
         if ( ( $dbh->selectrow_array('SELECT COUNT(*) FROM additional_contents WHERE location=?', undef, 'CatalogConcernTemplate') )[0] == 0 ) { # Check to make idempotent
-            my $cc_template = <<~ 'END_TEMPLATE';
+            my $cc_template = q{
             **Describe the concern**
             A clear and concise description of what the concern is.
 
@@ -81,7 +81,7 @@ return {
 
             **Expected behavior**
             A clear and concise description of what you expected to happen.
-            END_TEMPLATE
+            };
 
             $dbh->do(
                 qq{
