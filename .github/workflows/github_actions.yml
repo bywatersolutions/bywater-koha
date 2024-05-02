@@ -64,6 +64,9 @@ jobs:
                   mkdir -p env
                   wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/23.05/env/defaults.env
                   cp env/defaults.env .env
+                  echo -e "\nSKIP_L10N=yes" >> .env
+                  echo "ENV FILE:"
+                  cat .env
                   docker-compose pull
 
             #    - name: Setup Debug Session
@@ -433,7 +436,7 @@ jobs:
                   wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/23.05/env/defaults.env
                   cp env/defaults.env .env
                   docker-compose pull
-                  docker-compose -f docker-compose.yml -p koha up --detach
+                  docker-compose docker-compose.yml -p koha up --detach
                   echo "SLEEPING 3 MINUTES"
                   sleep 60
                   echo "1 MINUTE DONE"
