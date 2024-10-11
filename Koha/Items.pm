@@ -64,11 +64,10 @@ sub filter_by_for_hold {
     my $default_rule = Koha::CirculationRules->get_effective_rule(
         {
             rule_name    => 'holdallowed',
-            rule_value   => 'not_allowed',
         }
     );
     my @hold_not_allowed_itypes;
-    if ($default_rule) {
+    if ( defined $default_rule && $default_rule->rule_value eq 'not_allowed' ) {
         @hold_not_allowed_itypes = Koha::ItemTypes->search->get_column('itemtype');
         my @hold_allowed_itypes = Koha::CirculationRules->search(
             {
