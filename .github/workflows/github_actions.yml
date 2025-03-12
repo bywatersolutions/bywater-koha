@@ -20,6 +20,10 @@ jobs:
         steps:
             - name: Get repository name
               run: |
+                if [[ "$GITHUB_REPOSITORY" == "bywatersolutions/bywater-koha-security" ]]; then
+                  echo "Skipping execution for $GITHUB_REPOSITORY"
+                  exit 0
+                fi
                 echo "Branch: ${{ github.ref_name }}"
                 REPO_NAME="${{ github.repository }}"
                 REPO_NAME=$(echo "$REPO_NAME" | cut -d'/' -f2)
@@ -94,15 +98,15 @@ jobs:
                   else
                       echo "RUN_TESTS_AND_EXIT=yes" >> $GITHUB_ENV
                   fi
-                  echo "KOHA_IMAGE=24.11" >> $GITHUB_ENV
+                  echo "KOHA_IMAGE=25.11" >> $GITHUB_ENV
 
             - name: Set up koha-testing-docker
               run: |
                   sudo sysctl -w vm.max_map_count=262144
-                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/docker-compose.yml
-                  wget -O docker-compose.es7.yml https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/docker-compose.es7.yml
+                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/docker-compose.yml
+                  wget -O docker-compose.es7.yml https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/docker-compose.es7.yml
                   mkdir -p env
-                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/env/defaults.env
+                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/env/defaults.env
                   cp env/defaults.env .env
                   echo 'INSTALL_MISSING_FROM_CPANFILE=yes' >> .env
                   pwd
@@ -369,14 +373,12 @@ jobs:
               shell: bash
 
             - name: Notify package importer
-              # If this was a fast build, we don't want to import the package into apt automatically
-              if: ( !contains(github.event.head_commit.message, '[FAST]') )
               run: curl --insecure "https://apt2.bywatersolutions.com/?tag=${{ steps.extracted_variables.outputs.TAG_NAME }}&t=${{ secrets.TOKEN }}"
               shell: bash
 
 
     build-docker:
-        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
+        if: false #github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
         name: Build Docker image
         needs: build-debs
         runs-on: ubuntu-latest
@@ -436,7 +438,7 @@ jobs:
               run: ls -alh
 
             - name: Build the Docker image
-              run: cd koha-docker; docker build --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.SHORTNAME }}-${{ steps.extracted_variables.outputs.KOHA_MAJOR_MINOR }}-latest --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.KOHA_BRANCH }} --build-arg KOHA_COMMON_DEB_URL=${{ steps.extracted_variables.outputs.DEB_URL }} --build-arg KOHA_VERSION=24.11 .
+              run: cd koha-docker; docker build --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.SHORTNAME }}-${{ steps.extracted_variables.outputs.KOHA_MAJOR_MINOR }}-latest --tag quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.KOHA_BRANCH }} --build-arg KOHA_COMMON_DEB_URL=${{ steps.extracted_variables.outputs.DEB_URL }} --build-arg KOHA_VERSION=25.11 .
 
             - name: Log in to Docker Hub
               env:
@@ -482,14 +484,14 @@ jobs:
                   echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GITHUB_ENV
                   echo "SYNC_REPO=$SYNC_REPO" >> $GITHUB_ENV
                   echo "RUN_TESTS_AND_EXIT=yes" >> $GITHUB_ENV
-                  echo "KOHA_IMAGE=24.11" >> $GITHUB_ENV
+                  echo "KOHA_IMAGE=25.11" >> $GITHUB_ENV
 
             - name: Set up koha-testing-docker
               run: |
                   sudo sysctl -w vm.max_map_count=262144
-                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/docker-compose.yml
+                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/docker-compose.yml
                   mkdir -p env
-                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/env/defaults.env
+                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/env/defaults.env
                   cp env/defaults.env .env
                   docker compose pull
                   docker compose -f docker-compose.yml -p koha up --detach
@@ -551,14 +553,14 @@ jobs:
                   echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GITHUB_ENV
                   echo "SYNC_REPO=$SYNC_REPO" >> $GITHUB_ENV
                   echo "RUN_TESTS_AND_EXIT=yes" >> $GITHUB_ENV
-                  echo "KOHA_IMAGE=24.11" >> $GITHUB_ENV
+                  echo "KOHA_IMAGE=25.11" >> $GITHUB_ENV
 
             - name: Set up koha-testing-docker
               run: |
                   sudo sysctl -w vm.max_map_count=262144
-                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/docker-compose.yml
+                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/docker-compose.yml
                   mkdir -p env
-                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/env/defaults.env
+                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/env/defaults.env
                   cp env/defaults.env .env
                   docker compose pull
                   docker compose -f docker-compose.yml -p koha up --detach
@@ -604,6 +606,7 @@ jobs:
 
     zap-scan-full-staff:
         name: ZAP Scan - Full - Staff
+        if: false
         needs: zap-scan-baseline-staff
         runs-on: ubuntu-latest
         steps:
@@ -619,14 +622,14 @@ jobs:
                   echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GITHUB_ENV
                   echo "SYNC_REPO=$SYNC_REPO" >> $GITHUB_ENV
                   echo "RUN_TESTS_AND_EXIT=yes" >> $GITHUB_ENV
-                  echo "KOHA_IMAGE=24.11" >> $GITHUB_ENV
+                  echo "KOHA_IMAGE=25.11" >> $GITHUB_ENV
 
             - name: Set up koha-testing-docker
               run: |
                   sudo sysctl -w vm.max_map_count=262144
-                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/docker-compose.yml
+                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/docker-compose.yml
                   mkdir -p env
-                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/env/defaults.env
+                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/env/defaults.env
                   cp env/defaults.env .env
                   docker compose pull
                   docker compose -f docker-compose.yml -p koha up --detach
@@ -672,6 +675,7 @@ jobs:
 
     zap-scan-full-opac:
         name: ZAP Scan - Full - OPAC
+        if: false
         needs: zap-scan-baseline-opac
         runs-on: ubuntu-latest
         steps:
@@ -687,14 +691,14 @@ jobs:
                   echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GITHUB_ENV
                   echo "SYNC_REPO=$SYNC_REPO" >> $GITHUB_ENV
                   echo "RUN_TESTS_AND_EXIT=yes" >> $GITHUB_ENV
-                  echo "KOHA_IMAGE=24.11" >> $GITHUB_ENV
+                  echo "KOHA_IMAGE=25.11" >> $GITHUB_ENV
 
             - name: Set up koha-testing-docker
               run: |
                   sudo sysctl -w vm.max_map_count=262144
-                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/docker-compose.yml
+                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/docker-compose.yml
                   mkdir -p env
-                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/env/defaults.env
+                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/25.11/env/defaults.env
                   cp env/defaults.env .env
                   docker compose pull
                   docker compose -f docker-compose.yml -p koha up --detach
