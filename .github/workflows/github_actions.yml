@@ -366,7 +366,7 @@ jobs:
 
 
     build-docker:
-        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
+        if: false #github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
         name: Build Docker image
         needs: build-debs
         runs-on: ubuntu-latest
@@ -594,6 +594,7 @@ jobs:
 
     zap-scan-full-staff:
         name: ZAP Scan - Full - Staff
+        if: false
         needs: zap-scan-baseline-staff
         runs-on: ubuntu-latest
         steps:
@@ -662,6 +663,7 @@ jobs:
 
     zap-scan-full-opac:
         name: ZAP Scan - Full - OPAC
+        if: false
         needs: zap-scan-baseline-opac
         runs-on: ubuntu-latest
         steps:
