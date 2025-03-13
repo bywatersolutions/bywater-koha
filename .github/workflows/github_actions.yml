@@ -359,8 +359,6 @@ jobs:
               shell: bash
 
             - name: Notify package importer
-              # If this was a fast build, we don't want to import the package into apt automatically
-              if: ( !contains(github.event.head_commit.message, '[FAST]') )
               run: curl --insecure "https://apt2.bywatersolutions.com/?tag=${{ steps.extracted_variables.outputs.TAG_NAME }}&t=${{ secrets.TOKEN }}"
               shell: bash
 
