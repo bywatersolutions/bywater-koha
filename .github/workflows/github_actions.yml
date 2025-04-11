@@ -92,6 +92,7 @@ jobs:
                   mkdir -p env
                   wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/24.11/env/defaults.env
                   cp env/defaults.env .env
+                  echo 'INSTALL_MISSING_FROM_CPANFILE=yes' >> .env
                   pwd
                   ls -alh
 
