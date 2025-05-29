@@ -109,8 +109,8 @@ jobs:
               run: |
                   docker compose -f docker-compose.es7.yml -f docker-compose.yml pull
 
-            #    - name: Setup Debug Session
-            #      uses: csexton/debugger-action@master
+            - name: Setup Debug Session
+              uses: csexton/debugger-action@master
 
             - name: Create kohanet
               run: |
