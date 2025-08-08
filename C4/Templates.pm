@@ -89,7 +89,9 @@ sub new {
         }
     ) or die Template->error();
 
-    $Template::Stash::PRIVATE = undef; ## Enable access to private methods like _result/_resultset
+    $Template::Stash::PRIVATE = undef;    ## Enable access to private methods like _result/_resultset
+    if ($Template::Stash::PRIVATE) { warn "Noooooo!" }
+    ;                                     # Suppress error from xt/pl_valid.t
 
     my $self = {
         TEMPLATE => $template,
