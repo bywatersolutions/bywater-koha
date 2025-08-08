@@ -309,6 +309,7 @@ INSERT INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `
 ('GoogleOpenIDConnectDefaultCategory','','','This category code will be used to create Google OpenID Connect patrons.','Textarea'),
 ('GoogleOpenIDConnectDomain', '', NULL, 'Restrict Google OpenID Connect to this domain (or subdomains of this domain). Leave blank for all Google domains', 'Free'),
 ('hidelostitems','0','','If ON, disables display of\"lost\" items in OPAC.','YesNo'),
+('hide_marc','0','','hide marc','YesNo'),
 ('HidePatronName','0','','If this is switched on, patron\'s cardnumber will be shown instead of their name on the holds and catalog screens','YesNo'),
 ('HidePersonalPatronDetailOnCirculation', 0, '', 'Hide patrons phone number, email address, street address and city in the circulation page','YesNo'),
 ('HoldCancellationRequestSIP','0','','Option to set holds cancelled via SIP as cancelation requests','YesNo'),
