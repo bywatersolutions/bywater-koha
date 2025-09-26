@@ -216,6 +216,8 @@ if [ $# -gt 0 ]; then
 
         if is_instance $name; then
 
+            batch_size=$(get_es_indexer_batch_size ${name})
+
             case $op in
                 "start")
                     start_es_indexer $name
