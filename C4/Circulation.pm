@@ -3315,7 +3315,7 @@ sub CanBookBeRenewed {
                         unless CanItemBeReserved(
                         $patron_with_reserve, $other_item, undef,
                         { ignore_hold_counts => 1 }
-                    )->{status} eq 'OK';
+                        )->{status} eq 'OK';
 
                     # NOTE: At checkin we call 'CheckReserves' which checks hold 'policy'
                     # CanItemBeReserved checks 'rules' and 'policies' which means
@@ -3334,7 +3334,7 @@ sub CanBookBeRenewed {
     # CHECK FOR BOOKINGS
     if ( $item->bookings->count ) {
         my $startdate =
-            ( C4::Context->preference('RenewalPeriodBase') eq 'date_due' )
+            ( C4::Context->preference('ManualRenewalPeriodBase') eq 'date_due' )
             ? dt_from_string( $issue->date_due, 'sql' )
             : dt_from_string();
         my $datedue = CalcDateDue( $startdate, $item->effective_itemtype, $branchcode, $patron, 'is a renewal' );
@@ -3474,12 +3474,12 @@ sub AddRenewal {
 
             # If the due date wasn't specified, calculate it by adding the
             # book's loan length to today's date or the current due date
-            # based on the value of the RenewalPeriodBase syspref.
+            # based on the value of the ManualRenewalPeriodBase syspref.
             my $itemtype = $item_object->effective_itemtype;
             unless ($datedue) {
 
                 $datedue =
-                    ( C4::Context->preference('RenewalPeriodBase') eq 'date_due' )
+                    ( C4::Context->preference('ManualRenewalPeriodBase') eq 'date_due' )
                     ? dt_from_string( $issue->date_due, 'sql' )
                     : dt_from_string();
                 $datedue = CalcDateDue( $datedue, $itemtype, $circ_library->branchcode, $patron, 'is a renewal' );
