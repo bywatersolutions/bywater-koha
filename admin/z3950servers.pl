@@ -98,7 +98,7 @@ if ( $op eq 'cud-delete_confirmed' && $id ) {
 
 # Now list multiple records, or edit one record
 
-if ( $op eq 'add' ) {
+if ( $op eq 'add_form' ) {
     my $server;
 
     if ($id) {
@@ -116,7 +116,7 @@ if ( $op eq 'add' ) {
         op     => $op,
         type   => lc $type
     );
-} elsif ( $op eq 'edit' ) {
+} elsif ( $op eq 'edit_form' ) {
     my $server = Koha::Z3950Servers->find($id);
     $template->param(
         server => $server,
