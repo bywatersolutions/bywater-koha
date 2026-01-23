@@ -18,7 +18,7 @@
 use Modern::Perl;
 
 use Test::NoWarnings;
-use Test::More tests => 109;
+use Test::More tests => 111;
 use Test::MockModule;
 use Test::Mojo;
 use t::lib::Mocks;
@@ -268,6 +268,10 @@ $t->get_ok( "//$userid:$password@/api/v1/checkouts/" . $issue2->issue_id . "/all
         error            => 'too_many'
     }
     );
+
+#Confirm we can get a checkout with a note
+$issue1->note("Test")->notedate( dt_from_string() )->store;
+$t->get_ok("//$userid:$password@/api/v1/checkouts")->status_is(200);
 
 $schema->storage->txn_rollback;
 
