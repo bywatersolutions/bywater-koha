@@ -109,6 +109,11 @@ jobs:
                   wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/25.05/env/defaults.env
                   cp env/defaults.env .env
                   echo 'INSTALL_MISSING_FROM_CPANFILE=yes' >> .env
+                  echo 'TEST_SUITE=all-perl-tests' >> .env
+                  echo "Setting TEST_SUITE in docker-compose.yml"
+                  sed -i.bak 's|TEST_SUITE: ${TEST_SUITE:-full}|TEST_SUITE: all-perl-tests|' docker-compose.yml
+                  echo "docker-compose.yml is now:" 
+                  cat docker-compose.yml
                   pwd
                   ls -alh
 
