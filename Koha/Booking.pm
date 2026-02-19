@@ -129,25 +129,33 @@ sub store {
                 value     => $self->biblio_id,
             ) unless ( $self->biblio );
 
-            # Throw exception for item level booking clash
-            Koha::Exceptions::Booking::Clash->throw()
-                if $self->item_id && !$self->item->check_booking(
-                {
-                    start_date => $self->start_date,
-                    end_date   => $self->end_date,
-                    booking_id => $self->in_storage ? $self->booking_id : undef
-                }
-                );
+            # Skip clash detection when transitioning to a final
+            # status.  During checkout C4::Circulation sets status
+            # to 'completed' and calls ->store; the clash checks
+            # are irrelevant at that point and can produce false
+            # positives.
+            unless ( $self->_is_final_status_transition ) {
 
-            # Throw exception for biblio level booking clash
-            Koha::Exceptions::Booking::Clash->throw()
-                if !$self->biblio->check_booking(
-                {
-                    start_date => $self->start_date,
-                    end_date   => $self->end_date,
-                    booking_id => $self->in_storage ? $self->booking_id : undef
-                }
-                );
+                # Throw exception for item level booking clash
+                Koha::Exceptions::Booking::Clash->throw()
+                    if $self->item_id && !$self->item->check_booking(
+                    {
+                        start_date => $self->start_date,
+                        end_date   => $self->end_date,
+                        booking_id => $self->in_storage ? $self->booking_id : undef
+                    }
+                    );
+
+                # Throw exception for biblio level booking clash
+                Koha::Exceptions::Booking::Clash->throw()
+                    if !$self->biblio->check_booking(
+                    {
+                        start_date => $self->start_date,
+                        end_date   => $self->end_date,
+                        booking_id => $self->in_storage ? $self->booking_id : undef
+                    }
+                    );
+            }
 
             # FIXME: We should be able to combine the above two functions into one
 
@@ -280,6 +288,112 @@ sub to_api_mapping {
 }
 
 =head2 Internal methods
+
+=head3 _is_final_status_transition
+
+    my $bool = $self->_is_final_status_transition;
+
+Returns true when the booking is being transitioned to a final status
+(cancelled or completed).  Used to skip clash detection that is only
+meaningful for active bookings.
+
+=cut
+
+sub _is_final_status_transition {
+    my ($self) = @_;
+
+    return 0 unless $self->in_storage;
+
+    my $updated_columns = { $self->_result->get_dirty_columns };
+    my $new_status      = $updated_columns->{status};
+
+    return 0 unless $new_status;
+    return 1 if any { $_ eq $new_status } qw( cancelled completed );
+    return 0;
+}
+
+=head3 _select_optimal_item
+
+    my $item_id = $self->_select_optimal_item($available_items);
+
+Selects the optimal item from a set of available items by choosing the item
+with the longest future availability after the booking ends.
+
+This maximizes future booking opportunities by preserving items with shorter
+future availability for bookings that specifically need them.
+
+=cut
+
+sub _select_optimal_item {
+    my ( $self, $available_items ) = @_;
+
+    return unless $available_items && $available_items->count > 0;
+
+    # If only one item available, return it immediately
+    return $available_items->next if $available_items->count == 1;
+
+    my $check_date = dt_from_string( $self->end_date )->add( days => 1 );
+    my $dtf        = Koha::Database->new->schema->storage->datetime_parser;
+
+    # Get item IDs from the available items
+    my @item_ids = map { $_->itemnumber } $available_items->as_list;
+
+    # Find the item with the latest (furthest in future) next booking start date
+    # Items with no future bookings will have NULL and sort first (most desirable)
+    my $search_conditions = {
+        item_id    => { '-in'     => \@item_ids },
+        start_date => { '>='      => $dtf->format_datetime($check_date) },
+        status     => { '-not_in' => [ 'cancelled', 'completed' ] }
+    };
+
+    # Exclude current booking if we're editing
+    if ( $self->in_storage ) {
+        $search_conditions->{booking_id} = { '!=' => $self->booking_id };
+    }
+
+    # Query to find the earliest future booking for each item
+    my $rs = Koha::Bookings->search(
+        $search_conditions,
+        {
+            select   => [ 'item_id', { min => 'start_date', -as => 'next_booking_start' } ],
+            as       => [ 'item_id', 'next_booking_start' ],
+            group_by => ['item_id'],
+        }
+    );
+
+    # Get items that have future bookings, sorted by next booking date (desc = later is better)
+    my %next_booking_by_item;
+    while ( my $row = $rs->next ) {
+        $next_booking_by_item{ $row->get_column('item_id') } = $row->get_column('next_booking_start');
+    }
+
+    # Find the best item: items without future bookings first, then by latest next booking
+    my $best_item_id;
+    my $latest_next_booking;
+
+    foreach my $item_id (@item_ids) {
+        my $next_booking = $next_booking_by_item{$item_id};
+
+        # Items with no future bookings are best (infinite availability)
+        if ( !defined $next_booking ) {
+            $best_item_id = $item_id;
+            last;
+        }
+
+        # Otherwise, prefer items with later (further in future) next bookings
+        if ( !defined $latest_next_booking || $next_booking gt $latest_next_booking ) {
+            $latest_next_booking = $next_booking;
+            $best_item_id        = $item_id;
+        }
+    }
+
+    # Return the optimal item
+    return Koha::Items->find($best_item_id) if $best_item_id;
+
+    # Fallback: shouldn't reach here, but return first available item
+    $available_items->reset;
+    return $available_items->next;
+}
 
 =head3 _send_notice
 
