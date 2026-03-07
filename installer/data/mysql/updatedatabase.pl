@@ -44,7 +44,6 @@ use Koha;
 use Koha::DateUtils qw( dt_from_string output_pref );
 use Koha::Caches;
 use Koha::Installer::Output qw ( say_failure );
-use Koha::Plugins;
 
 use MARC::Record;
 use MARC::File::XML ( BinaryEncoding => 'utf8' );
@@ -23036,6 +23035,7 @@ if ( CheckVersion($DBversion) ) {
         );
     }
 
+    require Koha::Plugins;
     Koha::Plugins->new( { enable_plugins => 1 } )->InstallPlugins;
 
     SetVersion($DBversion);
