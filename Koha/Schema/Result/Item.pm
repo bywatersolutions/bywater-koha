@@ -833,7 +833,7 @@ Related object: L<Koha::Schema::Result::ItemsLastBorrower>
 
 =cut
 
-__PACKAGE__->has_many(
+__PACKAGE__->might_have(
   "items_last_borrower",
   "Koha::Schema::Result::ItemsLastBorrower",
   { "foreign.itemnumber" => "self.itemnumber" },
@@ -991,8 +991,8 @@ __PACKAGE__->might_have(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2025-04-28 16:41:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hGbnnGBWKaKzsVipsyN7ww
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2026-03-20 17:09:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:q7KOeKejSyzlljrhfmmH4g
 
 __PACKAGE__->belongs_to( biblioitem => "Koha::Schema::Result::Biblioitem", "biblioitemnumber" );
 
