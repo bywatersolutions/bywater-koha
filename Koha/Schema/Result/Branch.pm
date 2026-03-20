@@ -995,9 +995,34 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 z3950servers_branches
 
-# Created by DBIx::Class::Schema::Loader v0.07051 @ 2024-05-03 13:13:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HiH1QNlDqKcq9GeM85Pu0A
+Type: has_many
+
+Related object: L<Koha::Schema::Result::Z3950serversBranch>
+
+=cut
+
+__PACKAGE__->has_many(
+  "z3950servers_branches",
+  "Koha::Schema::Result::Z3950serversBranch",
+  { "foreign.branchcode" => "self.branchcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 servers
+
+Type: many_to_many
+
+Composing rels: L</z3950servers_branches> -> server
+
+=cut
+
+__PACKAGE__->many_to_many("servers", "z3950servers_branches", "server");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07051 @ 2026-03-20 17:24:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oTl+HCiA3rEqvYxHS6wHww
 
 __PACKAGE__->has_many(
     "additional_field_values",
