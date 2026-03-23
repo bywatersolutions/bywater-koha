@@ -1,15 +1,5 @@
 # Rotate log files for all Koha instances.
 
-/var/log/koha/*/sip*.log {
-    rotate 31
-    daily
-    missingok
-    copytruncate
-    compress
-    delaycompress
-    notifempty
-}
-
 /var/log/koha/*/*.log {
     rotate 5
     weekly
