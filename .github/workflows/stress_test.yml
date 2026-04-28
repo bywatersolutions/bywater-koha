@@ -167,7 +167,7 @@ jobs:
                   rm -rf env .env
 
             - name: Notify Slack
-              if: always()
+              if: failure()
               uses: slackapi/slack-github-action@v3
               with:
                   webhook: ${{ secrets.SLACK_WEBHOOK_URL_DEVOPS }}
