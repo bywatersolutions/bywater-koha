@@ -1,14 +1,82 @@
-name: CI
+name: Unit Tests
 on:
     push:
         branches:
             - "**"
         tags-ignore:
             - "**"
+    pull_request_target:
+      types: [opened, reopened, synchronize]
+    workflow_dispatch:
+        inputs:
+          debug:
+            description: 'Enable debug session (true/false)'
+            required: false
+            default: 'false'
+env:
+    DEBUG_SESSION: ${{github.event.input.debug}}
 jobs:
+    check-commit-messages:
+        name: Check PR commit messages start with "BWS-PKG - "
+        if: github.event_name == 'pull_request_target'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Verify all commits start with "BWS-PKG - "
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_NUMBER: ${{ github.event.pull_request.number }}
+                  REPO: ${{ github.repository }}
+              run: |
+                  set -e
+                  bad=$(gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/commits" \
+                      --jq '.[] | select(.commit.message | startswith("BWS-PKG - ") | not) | "\(.sha[0:7]) \(.commit.message | split("\n")[0])"')
+                  if [ -n "$bad" ]; then
+                      echo "::error::The following commits do not start with 'BWS-PKG - ':"
+                      echo "$bad"
+                      exit 1
+                  fi
+                  echo "All commits start with 'BWS-PKG - '"
+
+    check-repo:
+        name: Check for correct repo
+        runs-on: ubuntu-latest
+        steps:
+            - name: Get repository name
+              run: |
+                if [[ "${{ github.event_name }}" == "pull_request_target" ]]; then
+                  echo "Skipping repo/version check for pull request"
+                  exit 0
+                fi
+                if [[ "$GITHUB_REPOSITORY" == "bywatersolutions/bywater-koha-security" ]]; then
+                  echo "Skipping execution for $GITHUB_REPOSITORY"
+                  exit 0
+                fi
+                if [[ "$GITHUB_REPOSITORY" == "bywatersolutions/bywater-koha-devel" ]]; then
+                  echo "Skipping execution for $GITHUB_REPOSITORY"
+                  exit 0
+                fi
+                echo "Branch: ${{ github.ref_name }}"
+                REPO_NAME="${{ github.repository }}"
+                REPO_NAME=$(echo "$REPO_NAME" | cut -d'/' -f2)
+                echo "$REPO_NAME"
+                echo "REPO NAME: $REPO_NAME"
+                URL="https://raw.githubusercontent.com/bywatersolutions/bywater-koha-versions/main/$REPO_NAME"
+                echo "URL: $URL"
+                curl -o version.txt $URL
+                CORRECT_KOHA_VERSION=$(cat version.txt)
+                echo "CORRECT KOHA VERSION: $CORRECT_KOHA_VERSION" 
+                if [[ "${{ github.ref_name }}" == *"$CORRECT_KOHA_VERSION"* ]]; then
+                  echo "Koha version pushed matches the current Koha version for repo $REPO_NAME"
+                  exit 0
+                else
+                  echo "Koha version pushed *does not match* the current Koha version for repo $REPO_NAME"
+                  exit 1
+                fi
+
     is-a-mark:
         if: "contains(github.event.head_commit.message, ' - Set bwsbranch to')"
         name: Check for mark
+        needs: [check-repo]
         runs-on: ubuntu-latest
         steps:
             - name: Print commit message
@@ -17,6 +85,7 @@ jobs:
 
     has-ncip-version:
         name: Has a matching NCIP server version
+        needs: [check-repo]
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v1
@@ -35,52 +104,115 @@ jobs:
 
             - name: Check to see if there is a matching NCIP server tag on Docker Hub
               run: |
-                  wget -q https://registry.hub.docker.com/v1/repositories/bywater/koha-ncip-server/tags -O -  | sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  | awk -F: '{print $3}' | grep "v${{ steps.extracted_variables.outputs.MAJOR_MINOR_VERSION }}-latest"
+                  curl --silent "https://registry.hub.docker.com/v2/repositories/bywater/koha-ncip-server/tags?page_size=1000" | jq -r ".results[].name" | sort --version-sort | grep "v${{ steps.extracted_variables.outputs.MAJOR_MINOR_VERSION }}-latest"
 
-    unit-test:
-        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
-        name: Run unit tests
+    unit-test-perl:
+        # Fast builds will skip unit tests and go straight to building a debian package
+        if: (!contains(github.event.head_commit.message, '[FAST]')) && (github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future' || github.repository == 'bywatersolutions/bywater-koha-security' || github.repository == 'bywatersolutions/bywater-koha-devel')
+        name: Run Perl unit tests (${{ matrix.koha_image }} shard ${{ matrix.shard.name }})
+        needs: [check-repo]
         runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                # 21.11 only ships a single koha-testing image, so there is no bookworm /
+                # trixie split to run every shard against here.
+                koha_image: [21.11]
+                # Four Elasticsearch shards hold the bulk of the suite. 21.11 requires
+                # Search::Elasticsearch 6.00, and its ES6 client dies against an ES7
+                # server, so these run es6 -- the version KTD paired with 21.11. A separate
+                # Zebra shard runs the few tests that drive the live search UI and need
+                # Zebra ( they use t::lib::Mocks::Zebra ), which can't share the ES
+                # instance with the rest.
+                # KTD maps es6 to koha/elasticsearch-icu:6, a tag that was never pushed
+                # ( only 6.x exists ), so 'ktd pull' fails without an image override. The
+                # Zebra shard needs no image and leaves the override empty.
+                shard:
+                    - { name: "0", engine: es6, image: "koha/elasticsearch-icu:6.x", index: 0, total: 4 }
+                    - { name: "1", engine: es6, image: "koha/elasticsearch-icu:6.x", index: 1, total: 4 }
+                    - { name: "2", engine: es6, image: "koha/elasticsearch-icu:6.x", index: 2, total: 4 }
+                    - { name: "3", engine: es6, image: "koha/elasticsearch-icu:6.x", index: 3, total: 4 }
+                    - { name: zebra, engine: zebra, image: "", index: 0, total: 4 }
         steps:
             - uses: actions/checkout@v1
 
             - name: Export additional variables needed by koha-testing-docker
               run: |
-                  export LOCAL_USER_ID="$(id -u)" # Needed for koha-testing-docker
                   KOHA_BRANCH=${GITHUB_REF##*/}
                   echo "BRANCH: $KOHA_BRANCH"
-                  export SYNC_REPO=.
-                  echo "LOCAL_USER_ID=$LOCAL_USER_ID" >> $GITHUB_ENV
                   echo "KOHA_BRANCH=$KOHA_BRANCH" >> $GITHUB_ENV
-                  echo "SYNC_REPO=$SYNC_REPO" >> $GITHUB_ENV
-                  echo "RUN_TESTS_AND_EXIT=yes" >> $GITHUB_ENV
-                  echo "KOHA_IMAGE=21.11" >> $GITHUB_ENV
+                  echo "KOHA_IMAGE=${{ matrix.koha_image }}" >> $GITHUB_ENV
 
-            - name: Set up koha-testing-docker
-              run: |
-                  sudo sysctl -w vm.max_map_count=262144
-                  wget -O docker-compose.yml https://gitlab.com/koha-community/koha-testing-docker/raw/21.11/docker-compose.yml
-                  mkdir -p env
-                  wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/21.11/env/defaults.env
-                  cp env/defaults.env .env
-                  docker-compose pull
-
-            #    - name: Setup Debug Session
-            #      uses: csexton/debugger-action@master
+            - name: Setup Debug Session
+              if: env.DEBUG_SESSION == 'true'
+              uses: csexton/debugger-action@master
 
             - name: Run tests
+              env:
+                  SHARD: ${{ matrix.shard.name }}
+                  ENGINE: ${{ matrix.shard.engine }}
+                  SHARD_INDEX: ${{ matrix.shard.index }}
+                  SHARD_TOTAL: ${{ matrix.shard.total }}
+                  # KTD's main branch defaults to MariaDB 11, far newer than anything 21.11
+                  # was built against. Pin the 10.5 series KTD paired with 21.11, down to the
+                  # patch release so a moving tag can't change what CI tests against.
+                  DB_IMAGE: mariadb:10.5.29
+                  KOHA_SEARCH_ENGINE_IMAGE: ${{ matrix.shard.image }}
               run: |
-                  docker-compose -f docker-compose.yml -p koha up --abort-on-container-exit --no-color
-                  cat $GITHUB_WORKSPACE/testing.success
+                  sudo apt-get update
+                  sudo apt-get install -y cpanminus
+                  sudo cpanm Modern::Perl IPC::Cmd
 
-            - name: Post test cleanup
-              run: |
-                  docker-compose down
-                  docker rm -f $(docker ps -a -f "name=koha_" -q)
-                  docker volume prune -f
-                  docker image  prune -f
-                  rm docker-compose.yml
-                  rm -rf env .env
+                  # Tests excluded from the shards. These are infrastructure/environment
+                  # limitations, not customization failures, and they currently run nowhere
+                  # else ( there is no full-suite job ) -- revisit if that changes:
+                  #   - search_utf8.t restarts Plack itself, which fails against a live KTD.
+                  #   - the selenium tests below are flaky here / need a browser.
+                  EXCLUDE=$(printf '%s\n' \
+                      't/db_dependent/www/search_utf8.t' \
+                      't/db_dependent/selenium/basic_workflow.t' \
+                      't/db_dependent/selenium/patrons_search.t')
+
+                  # Tests that only pass under Zebra, on top of the ones that ask for it by
+                  # using t::lib::Mocks::Zebra. authority_hooks.t asserts with warning_like,
+                  # which wants exactly one warning, but indexing the empty MARC::Record it
+                  # builds adds 'Cannot determine authority type for record' under
+                  # Elasticsearch.
+                  ZEBRA_ONLY=$(printf '%s\n' \
+                      't/db_dependent/Koha/Plugins/authority_hooks.t')
+
+                  # Tests that drive the live search UI and rely on Zebra ( they use
+                  # t::lib::Mocks::Zebra ). They run in a dedicated Zebra shard; every
+                  # Elasticsearch shard excludes them so no test runs against the wrong
+                  # search engine.
+                  ZEBRA_TESTS=$( { grep -rl 't::lib::Mocks::Zebra' t --include='*.t'; printf '%s\n' "$ZEBRA_ONLY"; } | sort -u )
+
+                  if [ "$SHARD" = "zebra" ]; then
+                      FILES=$(printf '%s\n' "$ZEBRA_TESTS" | grep -vxF -f <(printf '%s\n' "$EXCLUDE") | tr '\n' ' ')
+                  else
+                      # Everything except the Zebra set and the excluded tests, round-robin across the Elasticsearch shards
+                      FILES=$(find t -name '*.t' | sort \
+                          | grep -vxF -f <(printf '%s\n' "$ZEBRA_TESTS") \
+                          | grep -vxF -f <(printf '%s\n' "$EXCLUDE") \
+                          | awk -v t="$SHARD_TOTAL" -v s="$SHARD_INDEX" 'NR % t == s' | tr '\n' ' ')
+                  fi
+
+                  # Ask for the shard's engine explicitly. Without this the runner defaults
+                  # to es8, which 21.11 doesn't support.
+                  ENGINE_ARG="--search-engine $ENGINE"
+
+                  # Run the fast xt check once, on the first Elasticsearch shard. It scans
+                  # the tree ( no DB needed ) and guards our custom code against missing
+                  # output filters.
+                  if [ "$SHARD" != "zebra" ] && [ "$SHARD_INDEX" = "0" ]; then
+                      FILES="$FILES xt/find-missing-filters.t"
+                  fi
+
+                  echo "Excluded from the shards ( not run anywhere ): $(echo $EXCLUDE | tr '\n' ' ')"
+                  echo "Shard '${SHARD}' (engine ${ENGINE}) -- $(echo $FILES | wc -w) test files:"
+                  echo "$FILES" | tr ' ' '\n'
+
+                  perl .github/workflows/koha_tests_runner.pl $ENGINE_ARG --files "$FILES"
 
             - uses: bywatersolutions/action-slack@v3
               with:
@@ -88,12 +220,97 @@ jobs:
                 fields: ref,workflow # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
-              if: always() # Pick up events even if the job fails or is canceled.
+              if: failure() # Only notify on job failures.
+
+    # There is no Cypress job here on purpose: 21.11 predates Koha's Cypress suite, so
+    # this branch has no specs to run.
+
+    dbic-check:
+        # Regenerate Koha/Schema with dbic and fail if kohastructure.sql drift produces changes
+        if: (!contains(github.event.head_commit.message, '[FAST]')) && (github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future' || github.repository == 'bywatersolutions/bywater-koha-security' || github.repository == 'bywatersolutions/bywater-koha-devel')
+        name: Check DBIx::Class schema is up-to-date
+        needs: [check-repo]
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+
+            - name: Export variables needed by koha-testing-docker
+              run: |
+                  echo "KOHA_IMAGE=21.11" >> $GITHUB_ENV
+                  echo "LOCAL_USER_ID=$(id -u)" >> $GITHUB_ENV
+                  echo "SYNC_REPO=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+                  # Same pinned MariaDB as the test shards, so both jobs introspect and test
+                  # against one reproducible version rather than a floating tag.
+                  echo "DB_IMAGE=mariadb:10.5.29" >> $GITHUB_ENV
+
+            - name: Clone koha-testing-docker
+              run: |
+                  git clone --branch main --single-branch --depth 1 https://gitlab.com/koha-community/koha-testing-docker.git "$HOME/ktd"
+                  echo "KTD_HOME=$HOME/ktd" >> $GITHUB_ENV
+
+            - name: Ensure proxy network exists
+              run: |
+                  docker network inspect proxy >/dev/null 2>&1 || docker network create proxy
+
+            - name: Start koha-testing-docker
+              run: |
+                  export PATH=$KTD_HOME/bin:$PATH
+                  cp $KTD_HOME/env/defaults.env $KTD_HOME/.env
+                  ktd --proxy --name dbic-check --search-engine zebra pull -q
+                  ktd --proxy --name dbic-check --search-engine zebra up -d
+
+                  # 'ktd --wait-ready' waits for the /ktd_ready marker file, which the
+                  # 21.11 image never writes, so poll for a listening staff interface and
+                  # message broker instead. Bash opens the connections itself, so this needs
+                  # nothing installed in the container.
+                  for i in $(seq 1 300); do
+                      if [ "$(docker inspect -f '{{.State.Running}}' dbic-check-koha-1 2>/dev/null)" = "false" ]; then
+                          echo "::error::Container dbic-check-koha-1 has stopped or died"
+                          exit 1
+                      fi
+                      if docker exec dbic-check-koha-1 bash -c ': </dev/tcp/localhost/8081 && : </dev/tcp/localhost/5672' >/dev/null 2>&1; then
+                          echo "KTD ready after ${i}s"
+                          exit 0
+                      fi
+                      sleep 1
+                  done
+                  echo "::error::Timed out waiting for KTD to be ready"
+                  exit 1
+
+            - name: Run dbic and check for schema drift
+              run: |
+                  export PATH=$KTD_HOME/bin:$PATH
+                  ktd --name dbic-check --shell --run "/kohadevbox/bin/dbic"
+                  if [ -n "$(git status --porcelain)" ]; then
+                      echo "::error::Running dbic produced file changes. kohastructure.sql and Koha/Schema/ have drifted. Run dbic locally and commit the regenerated schema files."
+                      echo "--- git status ---"
+                      git status
+                      echo "--- git diff (tracked) ---"
+                      git diff
+                      echo "--- untracked files ---"
+                      git ls-files --others --exclude-standard
+                      exit 1
+                  fi
+                  echo "No DBIx::Class schema drift detected."
+
+            - name: Stop koha-testing-docker
+              if: always()
+              run: |
+                  export PATH=$KTD_HOME/bin:$PATH
+                  ktd --name dbic-check down || true
+
+            - uses: bywatersolutions/action-slack@v3
+              with:
+                status: ${{ job.status }}
+                fields: ref,workflow
+              env:
+                SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }}
+              if: failure()
 
     release-notes: # This container checks out the branch on it's own, so no need for the GitHub checkout action
-        if: github.repository == 'bywatersolutions/bywater-koha'
+        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-security'
         name: Build release notes
-        needs: [unit-test, is-a-mark]
+        needs: [build-debs, is-a-mark]
         runs-on: ubuntu-latest
         steps:
             - name: Export additional variables needed by bywater-koha-custom-rebaser
@@ -145,7 +362,7 @@ jobs:
     auto-rebase:
         if: startsWith( github.ref, 'refs/heads/bywater-v' ) && github.repository == 'bywatersolutions/bywater-koha'
         name: Rebase custom codebases
-        needs: [unit-test, is-a-mark]
+        needs: [build-debs, is-a-mark]
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v1
@@ -172,12 +389,14 @@ jobs:
                 fields: ref,workflow # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
-              if: always() # Pick up events even if the job fails or is canceled.
+              if: failure() # Only notify on job failures.
 
     build-debs:
-        if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
+        # Fast builds will skip unit tests and go straight to building a debian package
+        # If it is fast build, we still want to honor cancellation and stop on failures
+        if: ( success() || ( contains(github.event.head_commit.message, '[FAST]') && !cancelled() && !contains(needs.*.result, 'failure') ) ) && (github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future' || github.repository == 'bywatersolutions/bywater-koha-security')
         name: Build Debian packages
-        needs: [unit-test, is-a-mark]
+        needs: [unit-test-perl, is-a-mark, dbic-check]
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v1
@@ -224,12 +443,6 @@ jobs:
             - name: Echo KOHA_BRANCH from previous step
               run: echo "${{ steps.extracted_variables.outputs.KOHA_BRANCH }}"
 
-            - name: Create dir for base.tgz
-              run: mkdir /tmp/basetgz
-
-            - name: Create base.tgz
-              run: docker run --volume=/tmp/basetgz:/output --privileged quay.io/bywatersolutions/koha-build-base-tgz:latest
-
             - name: Create dir for debian packages
               run: mkdir /tmp/debs
 
@@ -238,7 +451,7 @@ jobs:
 
             - name: Run koha-dpkg-docker
               run: |
-                  docker run --volume=/tmp/basetgz/base.tgz:/var/cache/pbuilder/base.tgz --volume=${{ steps.extracted_variables.outputs.KOHACLONE }}:/koha --volume=/tmp/debs:/debs --privileged --env VERSION="${{ steps.extracted_variables.outputs.MMM_VERSION }}~${{ steps.extracted_variables.outputs.SHORTNAME }}~${{ steps.extracted_variables.outputs.MARK }}" koha/koha-dpkg:21.11
+                  docker run --volume=${{ steps.extracted_variables.outputs.KOHACLONE }}:/koha --volume=/tmp/debs:/debs --privileged --env VERSION="${{ steps.extracted_variables.outputs.MMM_VERSION }}~${{ steps.extracted_variables.outputs.SHORTNAME }}~${{ steps.extracted_variables.outputs.MARK }}" --env RELEASE="${{ steps.extracted_variables.outputs.MAJOR_MINOR_VERSION }}" --env DEB_BUILD_OPTIONS="nocheck" koha/koha-dpkg:main
 
             - name: List file in debs dir
               run: ls -alh /tmp/debs
@@ -284,7 +497,7 @@ jobs:
                 fields: ref,workflow # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
-              if: always() # Pick up events even if the job fails or is canceled.
+              if: failure() # Only notify on job failures.
 
             - uses: bywatersolutions/action-slack@v3
               with:
@@ -311,9 +524,65 @@ jobs:
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_KYLE_WEBHOOK }}
 
+            - name: Sleep for 30 seconds
+              run: sleep 30s
+              shell: bash
+
+            - name: Notify package importer
+              run: |
+                curl --insecure --fail -w "\nHTTP Response Code: %{http_code}\n" "https://apt2.bywatersolutions.com/?tag=${{ steps.extracted_variables.outputs.TAG_NAME }}&t=${{ secrets.KOHA_IMPORT_GITHUB_RELEASES_TOKEN }}"
+              shell: bash
+
+
+    lock-release-branch:
+        name: Lock release branch after successful build
+        needs: [build-debs]
+        if: |
+            success() &&
+            startsWith(github.event.head_commit.message, 'BWS-PKG - Set bwsbranch to') &&
+            (github.repository == 'bywatersolutions/bywater-koha' ||
+             github.repository == 'bywatersolutions/bywater-koha-future' ||
+             github.repository == 'bywatersolutions/bywater-koha-security')
+        runs-on: ubuntu-latest
+        steps:
+            - name: Mint GitHub App token
+              id: app-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ secrets.BRANCH_LOCK_APP_ID }}
+                  private-key: ${{ secrets.BRANCH_LOCK_APP_PRIVATE_KEY }}
+
+            - name: Create ruleset to lock branch
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+                  BRANCH: ${{ github.ref_name }}
+                  REPO: ${{ github.repository }}
+              run: |
+                  set -e
+                  cat > /tmp/ruleset.json <<EOF
+                  {
+                    "name": "lock-${BRANCH}",
+                    "target": "branch",
+                    "enforcement": "active",
+                    "conditions": {
+                      "ref_name": {
+                        "include": ["refs/heads/${BRANCH}"],
+                        "exclude": []
+                      }
+                    },
+                    "rules": [
+                      {"type": "update"},
+                      {"type": "deletion"},
+                      {"type": "non_fast_forward"}
+                    ],
+                    "bypass_actors": []
+                  }
+                  EOF
+                  gh api --method POST "repos/${REPO}/rulesets" --input /tmp/ruleset.json
+
+
     build-docker:
-        #if: github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-futureNOT'
-        if: false
+        if: false #github.repository == 'bywatersolutions/bywater-koha' || github.repository == 'bywatersolutions/bywater-koha-future'
         name: Build Docker image
         needs: build-debs
         runs-on: ubuntu-latest
@@ -355,7 +624,7 @@ jobs:
                   echo ::set-output name=DOWNLOAD_PATH::$DOWNLOAD_PATH
                   echo "DOWNLOAD PATH: $DOWNLOAD_PATH"
                   # Set the base path of the URL, TODO: needs to change for bywater-koha-future
-                  BASE_URL="https://github.com/bywatersolutions/bywater-koha/releases/download/"
+                  BASE_URL="https://github.com/${{github.repository}}/releases/download/"
                   DEB_URL="${BASE_URL}${DOWNLOAD_PATH}"
                   echo "DEB_URL: $DEB_URL"
                   echo ::set-output name=DEB_URL::$DEB_URL
@@ -387,9 +656,24 @@ jobs:
             - name: Push to Quay.io - tag 'latest'
               run: docker push quay.io/bywatersolutions/koha:${{ steps.extracted_variables.outputs.SHORTNAME }}-${{ steps.extracted_variables.outputs.KOHA_MAJOR_MINOR }}-latest
 
+    set-default-branch:
+      name: Set default branch
+      if: startsWith( github.ref, 'refs/heads/bywater-v' ) && github.repository == 'bywatersolutions/bywater-koha'
+      needs: [build-debs, is-a-mark]
+      runs-on: ubuntu-latest
+      steps:
+        - run: |
+              KOHA_BRANCH=${GITHUB_REF##*/}
+              echo "KOHA_BRANCH: $KOHA_BRANCH";
+              gh repo edit bywatersolutions/bywater-koha --default-branch $KOHA_BRANCH
+          env:
+            GITHUB_TOKEN: ${{ secrets.OUR_GITHUB_TOKEN }}
+            BRANCH: ${GITHUB_REF##*/}
+
     zap-scan-baseline-opac:
         name: ZAP Scan - Baseline - OPAC
-        needs: unit-test
+        if: false
+        needs: unit-test-perl
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v1
@@ -413,8 +697,8 @@ jobs:
                   mkdir -p env
                   wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/21.11/env/defaults.env
                   cp env/defaults.env .env
-                  docker-compose pull
-                  docker-compose -f docker-compose.yml -p koha up --detach
+                  docker compose pull
+                  docker compose -f docker-compose.yml -p koha up --detach
                   echo "SLEEPING 3 MINUTES"
                   sleep 60
                   echo "1 MINUTE DONE"
@@ -424,7 +708,7 @@ jobs:
                   echo "3 MINUTES DONE"
                   echo "WAKING UP"
                   echo "DOCKER LOGS"
-                  docker logs koha_koha_1 2>&1
+                  docker logs koha-koha-1 2>&1
                   echo "/DOCKER LOGS"
 
             #    - name: Setup Debug Session
@@ -440,7 +724,7 @@ jobs:
 
             - name: Post test cleanup
               run: |
-                  docker-compose down
+                  docker compose down
                   docker rm -f $(docker ps -a -f "name=koha_" -q)
                   docker volume prune -f
                   docker image  prune -f
@@ -453,11 +737,12 @@ jobs:
                 fields: ref,workflow # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
-              if: always() # Pick up events even if the job fails or is canceled.
+              if: failure() # Only notify on job failures.
 
     zap-scan-baseline-staff:
         name: ZAP Scan - Baseline - Staff
-        needs: unit-test
+        if: false
+        needs: unit-test-perl
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v1
@@ -481,8 +766,8 @@ jobs:
                   mkdir -p env
                   wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/21.11/env/defaults.env
                   cp env/defaults.env .env
-                  docker-compose pull
-                  docker-compose -f docker-compose.yml -p koha up --detach
+                  docker compose pull
+                  docker compose -f docker-compose.yml -p koha up --detach
                   echo "SLEEPING 3 MINUTES"
                   sleep 60
                   echo "1 MINUTE DONE"
@@ -492,7 +777,7 @@ jobs:
                   echo "3 MINUTES DONE"
                   echo "WAKING UP"
                   echo "DOCKER LOGS"
-                  docker logs koha_koha_1 2>&1
+                  docker logs koha-koha-1 2>&1
                   echo "/DOCKER LOGS"
 
             #    - name: Setup Debug Session
@@ -508,7 +793,7 @@ jobs:
 
             - name: Post test cleanup
               run: |
-                  docker-compose down
+                  docker compose down
                   docker rm -f $(docker ps -a -f "name=koha_" -q)
                   docker volume prune -f
                   docker image  prune -f
@@ -521,10 +806,11 @@ jobs:
                 fields: ref,workflow # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
-              if: always() # Pick up events even if the job fails or is canceled.
+              if: failure() # Only notify on job failures.
 
     zap-scan-full-staff:
         name: ZAP Scan - Full - Staff
+        if: false
         needs: zap-scan-baseline-staff
         runs-on: ubuntu-latest
         steps:
@@ -549,8 +835,8 @@ jobs:
                   mkdir -p env
                   wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/21.11/env/defaults.env
                   cp env/defaults.env .env
-                  docker-compose pull
-                  docker-compose -f docker-compose.yml -p koha up --detach
+                  docker compose pull
+                  docker compose -f docker-compose.yml -p koha up --detach
                   echo "SLEEPING 3 MINUTES"
                   sleep 60
                   echo "1 MINUTE DONE"
@@ -560,7 +846,7 @@ jobs:
                   echo "3 MINUTES DONE"
                   echo "WAKING UP"
                   echo "DOCKER LOGS"
-                  docker logs koha_koha_1 2>&1
+                  docker logs koha-koha-1 2>&1
                   echo "/DOCKER LOGS"
 
             #    - name: Setup Debug Session
@@ -576,7 +862,7 @@ jobs:
 
             - name: Post test cleanup
               run: |
-                  docker-compose down
+                  docker compose down
                   docker rm -f $(docker ps -a -f "name=koha_" -q)
                   docker volume prune -f
                   docker image  prune -f
@@ -589,10 +875,11 @@ jobs:
                 fields: ref,workflow # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
-              if: always() # Pick up events even if the job fails or is canceled.
+              if: failure() # Only notify on job failures.
 
     zap-scan-full-opac:
         name: ZAP Scan - Full - OPAC
+        if: false
         needs: zap-scan-baseline-opac
         runs-on: ubuntu-latest
         steps:
@@ -617,8 +904,8 @@ jobs:
                   mkdir -p env
                   wget -O env/defaults.env https://gitlab.com/koha-community/koha-testing-docker/raw/21.11/env/defaults.env
                   cp env/defaults.env .env
-                  docker-compose pull
-                  docker-compose -f docker-compose.yml -p koha up --detach
+                  docker compose pull
+                  docker compose -f docker-compose.yml -p koha up --detach
                   echo "SLEEPING 3 MINUTES"
                   sleep 60
                   echo "1 MINUTE DONE"
@@ -628,7 +915,7 @@ jobs:
                   echo "3 MINUTES DONE"
                   echo "WAKING UP"
                   echo "DOCKER LOGS"
-                  docker logs koha_koha_1 2>&1
+                  docker logs koha-koha-1 2>&1
                   echo "/DOCKER LOGS"
 
             #    - name: Setup Debug Session
@@ -644,8 +931,7 @@ jobs:
 
             - name: Post test cleanup
               run: |
-                  docker-compose down
-                  docker rm -f $(docker ps -a -f "name=koha_" -q)
+                  docker compose down
                   docker volume prune -f
                   docker image  prune -f
                   rm docker-compose.yml
@@ -657,13 +943,13 @@ jobs:
                 fields: ref,workflow # selectable (default: repo,message)
               env:
                 SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEVOPS_WEBHOOK }} # required
-              if: always() # Pick up events even if the job fails or is canceled.
+              if: failure() # Only notify on job failures.
 
     auto-rebase-xslt:
         if: false
         #if: startsWith( github.ref, 'refs/heads/bywater-v' )
         name: Rebase XSLT
-        needs: [unit-test, is-a-mark]
+        needs: [unit-test-perl, is-a-mark]
         runs-on: ubuntu-latest
         strategy:
             fail-fast: false
