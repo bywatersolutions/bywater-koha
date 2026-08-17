@@ -1750,7 +1750,9 @@ subtest 'filter_by_visible_in_opac() tests' => sub {
     $rules = { itemlost => ['AB'] };
     my $c = Koha::Items->filter_by_visible_in_opac->count;
     my @warnings = C4::Context->dbh->selectrow_array('SHOW WARNINGS');
-    is( $warnings[2], q{Truncated incorrect DOUBLE value: 'AB'});
+
+    # MariaDB says DOUBLE up to 10.5.13 and DECIMAL from 10.5.19 on, so accept either
+    like( $warnings[2], qr{Truncated incorrect (DOUBLE|DECIMAL) value: 'AB'} );
 
     $schema->storage->txn_rollback;
 };
