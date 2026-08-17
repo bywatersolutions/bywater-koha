@@ -43,6 +43,7 @@ jobs:
         steps:
             - name: Get repository name
               run: |
+                exit 0
                 if [[ "${{ github.event_name }}" == "pull_request_target" ]]; then
                   echo "Skipping repo/version check for pull request"
                   exit 0
