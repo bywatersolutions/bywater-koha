@@ -17,7 +17,6 @@ Environment=PERL5LIB=/usr/share/koha/lib
 ExecStart=/usr/share/koha/bin/workers/background_jobs_worker.pl --queue long_tasks
 Slice=koha-%i.slice
 LimitDATA=3G
-MemoryHigh=25%
 MemoryMax=30%
 MemorySwapMax=256M
 OOMPolicy=kill
