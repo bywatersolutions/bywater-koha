@@ -30,6 +30,11 @@ ExecStart=/usr/bin/starman \
     --listen /run/koha/%i/plack.sock \
     ${PLACK_PSGIFILE}
 ExecReload=/bin/kill -HUP $MAINPID
+Slice=koha-%i.slice
+LimitDATA=3G
+MemoryHigh=85%
+MemoryMax=88%
+OOMPolicy=continue
 ProtectSystem=full
 ProtectHome=yes
 PrivateTmp=yes

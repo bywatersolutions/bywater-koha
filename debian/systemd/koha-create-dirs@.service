@@ -3,6 +3,7 @@ Description=Create directories for Koha instance %i
 PartOf=koha@%i.target
 
 [Service]
+Slice=koha-%i.slice
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=+/usr/sbin/koha-create-dirs %i

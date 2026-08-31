@@ -25,6 +25,7 @@ ExecStart=/usr/bin/zebrasrv \
     -m '%%FT%%T' \
     -p /run/koha/%i/zebra.pid \
     -D
+Slice=koha-%i.slice
 ProtectSystem=full
 ProtectHome=yes
 PrivateTmp=yes
