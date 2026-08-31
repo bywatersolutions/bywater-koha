@@ -25,6 +25,7 @@ ExecStart=/usr/share/koha/bin/z3950_responder.pl \
     -D \
     -d %i-koha-z3950 \
     -l /var/log/koha/%i/z3950.log
+Slice=koha-%i.slice
 ProtectSystem=full
 ProtectHome=yes
 PrivateTmp=yes
