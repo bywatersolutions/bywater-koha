@@ -19,6 +19,7 @@ Slice=koha-%i.slice
 LimitDATA=3G
 MemoryHigh=25%
 MemoryMax=30%
+MemorySwapMax=256M
 OOMPolicy=kill
 ProtectSystem=full
 ProtectHome=yes
