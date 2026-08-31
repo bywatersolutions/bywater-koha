@@ -34,7 +34,7 @@ plan( skip_all => 'debian/systemd not found' )
 opendir( my $dh, $units_dir ) or die "Cannot open $units_dir: $!";
 my @units =
     sort
-    grep { /\.(service|target|socket|timer)$/ } readdir $dh;
+    grep { /\.(service|target|socket|timer|slice)$/ } readdir $dh;
 closedir $dh;
 
 plan( skip_all => 'No unit files found in debian/systemd' ) unless @units;
