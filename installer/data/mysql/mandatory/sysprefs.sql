@@ -723,6 +723,7 @@ INSERT INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `
 ('SCOAllowCheckin','0',NULL,'If enabled, patrons may return items through the Web-based Self Checkout','YesNo'),
 ('SCOBatchCheckoutsValidCategories','',NULL,'Patron categories allowed to checkout in a batch while logged into Self Checkout','Free'),
 ('SCOLoadCheckoutsByDefault','1',NULL,'If enabled, load the list of a patrons checkouts when they log in to the Self Checkout','YesNo'),
+('SCOLoadHoldsByDefault','1', NULL, 'Load holds by default on self checkout', 'YesNo'),
 ('SCOUserCSS','',NULL,'Add CSS to be included in the SCO module in an embedded <style> tag.','Free'),
 ('SCOUserJS','',NULL,'Define custom javascript for inclusion in the SCO module','Free'),
 ('SearchCancelledAndInvalidISBNandISSN','0',NULL,'Enable search for cancelled or invalid forms of ISBN/ISSN when performing ISBN/ISSN search (when using ES)','YesNo'),
