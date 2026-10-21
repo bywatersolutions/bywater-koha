@@ -16,25 +16,25 @@ package Koha::Template::Plugin::SafeURL;
 # along with Koha; if not, see <https://www.gnu.org/licenses>.
 
 use Modern::Perl;
-use Scalar::Util qw( weaken );
+use Scalar::Util qw( isweak weaken );
 use URI;
 use base 'Template::Plugin::Filter';
 
 sub init {
     my $self = shift;
     my $name = 'safe_url';
-    $self->{_DYNAMIC} = 1;
     $self->install_filter($name);
 
     # install_filter stores a closure over this object in the context's filter
     # provider and this object holds the context, so without breaking that
     # cycle the whole template context survives every request that uses the filter
-    weaken $self->{_CONTEXT};
+    weaken $self->{_CONTEXT}
+        if ref $self->{_CONTEXT} && !isweak $self->{_CONTEXT};
     return $self;
 }
 
 sub filter {
-    my ( $self, $text, $args, $config ) = @_;
+    my ( $self, $text ) = @_;
     my $uri = URI->new($text);
     if ($uri) {
         return $uri;
@@ -63,7 +63,7 @@ is stringified in a safe format.
 
 =head2 init
 
-This method installs the filter name and declares it as a dynamic filter
+This method installs the filter name
 
 =head2 filter
 
