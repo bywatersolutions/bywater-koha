@@ -2157,6 +2157,11 @@ sub checkpw_internal {
         if Encode::is_utf8($password);
 
     my $patron = Koha::Patrons->find_by_identifier($identifier);
+
+    # The identifier can be one patron's userid and another patron's cardnumber, so try the cardnumber match too
+    $patron = Koha::Patrons->find( { cardnumber => $identifier } )
+        if $patron && !checkpw_hash( $password, $patron->password );
+
     if ($patron) {
         if ( checkpw_hash( $password, $patron->password ) ) {
             my $borrowernumber = $patron->borrowernumber;
