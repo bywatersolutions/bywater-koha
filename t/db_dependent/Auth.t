@@ -1641,7 +1641,7 @@ subtest 'AutoSelfCheckAllowed' => sub {
 
 subtest 'checkpw for users with shared cardnumber / userid ' => sub {
 
-    plan tests => 8;
+    plan tests => 11;
 
     t::lib::Mocks::mock_preference( 'RequireStrongPassword', 0 );
     my $library  = $builder->build_object( { class => 'Koha::Libraries' } );
@@ -1661,6 +1661,12 @@ subtest 'checkpw for users with shared cardnumber / userid ' => sub {
     is( $cardnumber, $patron_2->cardnumber, 'checkpw returns correct cardnumber' );
     is( $userid,     $patron_2->userid,     'checkpw returns correct userid' );
     is( $patron->id, $patron_2->id,         'checkpw returns correct patron' );
+
+    # patron_1's cardnumber is also patron_2's userid, patron_1's password must still log patron_1 in
+    ( $checkpw, $cardnumber, $userid ) = checkpw( $patron_1->cardnumber, "OnePassword", undef, undef, 1 );
+    ok( $checkpw, 'checkpw returns true for right password when cardnumber matches another patron userid' );
+    is( $cardnumber, $patron_1->cardnumber, 'checkpw returns correct cardnumber' );
+    is( $userid,     $patron_1->userid,     'checkpw returns correct userid' );
 
 };
 
