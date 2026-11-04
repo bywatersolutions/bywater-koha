@@ -2129,9 +2129,20 @@ sub checkpw {
             } elsif ( $patron->password_expired ) {
                 @return = ( -2, $patron );
             }
-        } else {
-            $patron->update( { login_attempts => $patron->login_attempts + 1 } );
         }
+    }
+
+    if ( $patron && !$passwd_ok ) {
+
+        # The identifier may refer to several patrons, it is a failed attempt for each of them,
+        # even if the first one is locked: the others must not be left free to be guessed
+        my @failed = ($patron);
+        if ( defined $userid ) {
+            push @failed,
+                grep { $_->borrowernumber != $patron->borrowernumber }
+                Koha::Patrons->search_by_identifier($userid)->as_list;
+        }
+        $_->update( { login_attempts => $_->login_attempts + 1 } ) for grep { !$_->account_locked } @failed;
     }
 
     # Optionally log success or failure
@@ -2156,21 +2167,18 @@ sub checkpw_internal {
     $password = Encode::encode( 'UTF-8', $password )
         if Encode::is_utf8($password);
 
-    my $patron = Koha::Patrons->find_by_identifier($identifier);
+    # The identifier can be the userid of a patron and the cardnumber of another,
+    # we login the user for which the password matches
+    my $matches = Koha::Patrons->search_by_identifier($identifier);
+    while ( my $patron = $matches->next ) {
+        next unless checkpw_hash( $password, $patron->password );
 
-    # The identifier can be one patron's userid and another patron's cardnumber, so try the cardnumber match too
-    $patron = Koha::Patrons->find( { cardnumber => $identifier } )
-        if $patron && !checkpw_hash( $password, $patron->password );
-
-    if ($patron) {
-        if ( checkpw_hash( $password, $patron->password ) ) {
-            my $borrowernumber = $patron->borrowernumber;
-            C4::Context->set_userenv(
-                "$borrowernumber",  $patron->userid,  $patron->cardnumber,
-                $patron->firstname, $patron->surname, $patron->branchcode, $patron->library->branchname, $patron->flags
-            ) unless $no_set_userenv;
-            return 1, $patron->cardnumber, $patron->userid, $patron;
-        }
+        my $borrowernumber = $patron->borrowernumber;
+        C4::Context->set_userenv(
+            "$borrowernumber",  $patron->userid,  $patron->cardnumber,
+            $patron->firstname, $patron->surname, $patron->branchcode, $patron->library->branchname, $patron->flags
+        ) unless $no_set_userenv;
+        return 1, $patron->cardnumber, $patron->userid, $patron;
     }
     return 0;
 }

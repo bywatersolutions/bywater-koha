@@ -20,7 +20,7 @@
 use Modern::Perl;
 
 use Test::NoWarnings;
-use Test::More tests => 52;
+use Test::More tests => 53;
 use Test::Warn;
 use Test::Exception;
 use Test::MockModule;
@@ -3902,6 +3902,65 @@ subtest 'filter_by_expired_opac_registrations' => sub {
     is(
         Koha::Patrons->filter_by_expired_opac_registrations->filter_by_safe_to_delete->count, 1,
         "filter_by_safe_to_delete does delete borrower with no fines and no checkouts"
+    );
+
+    $schema->storage->txn_rollback;
+};
+
+subtest 'search_by_identifier() tests' => sub {
+
+    plan tests => 10;
+
+    $schema->storage->txn_begin;
+
+    my $ids_for = sub {
+        [ map { $_->id } Koha::Patrons->search_by_identifier( $_[0] )->as_list ]
+    };
+
+    my $patron_1 = $builder->build_object( { class => 'Koha::Patrons' } );
+    is_deeply( $ids_for->( $patron_1->userid ),     [ $patron_1->id ], 'Matches the userid' );
+    is_deeply( $ids_for->( $patron_1->cardnumber ), [ $patron_1->id ], 'Matches the cardnumber' );
+
+    isa_ok( Koha::Patrons->search_by_identifier( $patron_1->userid ), 'Koha::Patrons', 'A set of patrons is returned' );
+    is_deeply( $ids_for->(''),                   [], 'Nothing matches the empty identifier' );
+    is_deeply( $ids_for->(undef),                [], 'Nothing matches an undefined identifier' );
+    is_deeply( $ids_for->('NO_SUCH_IDENTIFIER'), [], 'Nothing matches an unknown identifier' );
+
+    # The identifier is the userid of a patron and the cardnumber of another
+    my $userid_owner = $builder->build_object( { class => 'Koha::Patrons', value => { userid => 'SHARED_ID_1' } } );
+    my $cardnumber_owner =
+        $builder->build_object( { class => 'Koha::Patrons', value => { cardnumber => 'SHARED_ID_1' } } );
+    is_deeply(
+        $ids_for->('SHARED_ID_1'), [ $userid_owner->id, $cardnumber_owner->id ],
+        'The userid owner comes first, then the cardnumber owner'
+    );
+
+    # A patron that matches both ways is only returned once
+    my $same_patron = $builder->build_object(
+        { class => 'Koha::Patrons', value => { userid => 'SHARED_ID_2', cardnumber => 'SHARED_ID_2' } } );
+    is_deeply( $ids_for->('SHARED_ID_2'), [ $same_patron->id ], 'A patron is only returned once' );
+
+    # Unique attributes are only used when nothing else matches
+    my $unique_code = 'UA_' . int( rand(100000) );
+    Koha::Patron::Attribute::Type->new(
+        { code => $unique_code, description => 'Unique Attribute', unique_id => 1, repeatable => 0 } )->store;
+    my $attribute_owner = $builder->build_object( { class => 'Koha::Patrons' } );
+    Koha::Patron::Attribute->new(
+        { borrowernumber => $attribute_owner->id, code => $unique_code, attribute => 'SHARED_ID_1' } )->store;
+    is_deeply(
+        $ids_for->('SHARED_ID_1'), [ $userid_owner->id, $cardnumber_owner->id ],
+        'The owner of a unique attribute is not returned when others match'
+    );
+
+    my $other_owner = $builder->build_object( { class => 'Koha::Patrons' } );
+    my $other_code  = 'UB_' . int( rand(100000) );
+    Koha::Patron::Attribute::Type->new(
+        { code => $other_code, description => 'Unique Attribute', unique_id => 1, repeatable => 0 } )->store;
+    Koha::Patron::Attribute->new(
+        { borrowernumber => $other_owner->id, code => $other_code, attribute => 'ATTR_ONLY_1' } )->store;
+    is_deeply(
+        $ids_for->('ATTR_ONLY_1'), [ $other_owner->id ],
+        'The owner of a unique attribute is returned when nothing else matches'
     );
 
     $schema->storage->txn_rollback;

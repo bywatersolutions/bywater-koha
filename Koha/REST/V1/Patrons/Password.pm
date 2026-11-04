@@ -108,7 +108,9 @@ sub set_public {
             return $c->render( status => 400, openapi => { error => "Passwords don't match" } );
         }
 
-        unless ( checkpw_internal( $user->userid, $old_password ) ) {
+        # The userid can also be the cardnumber of another patron, it is the password of this patron that is needed
+        my ( $valid, undef, undef, $checked_patron ) = checkpw_internal( $user->userid, $old_password );
+        unless ( $valid && $checked_patron->borrowernumber == $user->borrowernumber ) {
             return $c->render(
                 status  => 400,
                 openapi => { error => "Invalid password" }

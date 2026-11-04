@@ -5,7 +5,7 @@
 
 use Modern::Perl;
 use Test::NoWarnings;
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 use t::lib::Mocks;
 use t::lib::TestBuilder;
@@ -32,6 +32,34 @@ is( defined $sip_patron, 1, "Patron is valid" );
 $schema->resultset('Borrower')->search( { cardnumber => $card } )->delete;
 my $sip_patron2 = C4::SIP::ILS::Patron->new($card);
 is( $sip_patron2, undef, "Patron is not valid (anymore)" );
+
+subtest 'check_password tests' => sub {
+    plan tests => 4;
+
+    $schema->storage->txn_begin;
+
+    t::lib::Mocks::mock_preference( 'RequireStrongPassword', 0 );
+
+    # The userid of the patron is the cardnumber of another patron
+    my $shared = 'SHARED_' . int( rand(100000) );
+    my $patron = $builder->build_object( { class => 'Koha::Patrons', value => { userid     => $shared } } );
+    my $other  = $builder->build_object( { class => 'Koha::Patrons', value => { cardnumber => $shared } } );
+    $patron->set_password( { password => 'PasswordPatron', skip_validation => 1 } );
+    $other->set_password( { password => 'PasswordOther', skip_validation => 1 } );
+
+    my $sip_patron = C4::SIP::ILS::Patron->new( $patron->cardnumber );
+    ok( $sip_patron->check_password('PasswordPatron'), 'The password of the patron is valid' );
+    ok(
+        !$sip_patron->check_password('PasswordOther'),
+        'The password of another patron that has the userid as cardnumber is not'
+    );
+    ok( !$sip_patron->check_password('WrongPassword'), 'A wrong password is not valid' );
+
+    my $sip_other = C4::SIP::ILS::Patron->new( { borrowernumber => $other->borrowernumber } );
+    ok( $sip_other->check_password('PasswordOther'), 'The password of the other patron is valid for them' );
+
+    $schema->storage->txn_rollback;
+};
 
 subtest "new tests" => sub {
 

@@ -42,6 +42,39 @@ Koha::Patron - Koha Patron Object class
 
 =cut
 
+=head3 search_by_identifier
+
+    my $patrons = Koha::Patrons->search_by_identifier($identifier);
+
+Returns the patrons an identifier can refer to: the ones that have it as userid or as cardnumber, the one
+that has it as userid first. If there are none, the ones that have it as a unique patron attribute are
+returned. Nothing is returned for an empty identifier.
+
+The identifier is not unique across userids and cardnumbers: it can be the userid of a patron and the
+cardnumber of another.
+
+=cut
+
+sub search_by_identifier {
+    my ( $self, $identifier ) = @_;
+
+    return $self->new->empty unless defined $identifier && $identifier ne '';
+
+    my $patrons = $self->search(
+        { -or      => [ userid => $identifier, cardnumber => $identifier ] },
+        { order_by => { -desc => \[ 'userid = ?', $identifier ] } }
+    );
+    return $patrons if $patrons->count;
+
+    return $self->search(
+        {
+            'borrower_attributes.attribute' => $identifier,
+            'code.unique_id'                => 1,
+        },
+        { join => { 'borrower_attributes' => 'code' } }
+    );
+}
+
 =head3 find_by_identifier
 
     my $patron = Koha::Patrons->find_by_identifier($identifier);
@@ -49,36 +82,15 @@ Koha::Patron - Koha Patron Object class
 Find a patron by either userid or cardnumber. Returns the first patron found
 or undef if no patron matches the identifier.
 
-This method searches first by userid, then by cardnumber if no match is found.
+This method searches first by userid, then by cardnumber, then by unique patron
+attributes. See L</search_by_identifier> to get every patron the identifier can refer to.
 
 =cut
 
 sub find_by_identifier {
     my ( $self, $identifier ) = @_;
 
-    return unless defined $identifier && $identifier ne '';
-
-    # First try to find by userid
-    my $patron = $self->search( { userid => $identifier } )->next;
-
-    # If not found by userid, try cardnumber
-    $patron = $self->search( { cardnumber => $identifier } )->next unless $patron;
-
-    # If not found by cardnumber, try unique patron attributes
-    unless ($patron) {
-        $patron = $self->search(
-            {
-                'borrower_attributes.attribute' => $identifier,
-                'code.unique_id'                => 1,
-            },
-            {
-                join => { 'borrower_attributes' => 'code' },
-                rows => 1,
-            }
-        )->single;
-    }
-
-    return $patron;
+    return $self->search_by_identifier($identifier)->next;
 }
 
 =head3 search_limited

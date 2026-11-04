@@ -7,7 +7,7 @@ use CGI qw ( -utf8 );
 use Test::MockObject;
 use Test::MockModule;
 use List::MoreUtils qw/all any none/;
-use Test::More tests => 25;
+use Test::More tests => 26;
 use Test::NoWarnings;
 use Test::Warn;
 use t::lib::Mocks;
@@ -1668,6 +1668,101 @@ subtest 'checkpw for users with shared cardnumber / userid ' => sub {
     is( $cardnumber, $patron_1->cardnumber, 'checkpw returns correct cardnumber' );
     is( $userid,     $patron_1->userid,     'checkpw returns correct userid' );
 
+};
+
+subtest 'checkpw for an identifier that matches several patrons' => sub {
+
+    plan tests => 14;
+
+    $schema->storage->txn_begin;
+
+    t::lib::Mocks::mock_preference( 'RequireStrongPassword', 0 );
+    t::lib::Mocks::mock_preference( 'FailedLoginAttempts',   3 );
+
+    # userid_owner's userid is the cardnumber of cardnumber_owner
+    my $shared = 'SHARED_ID_' . int( rand(100000) );
+    my $userid_owner =
+        $builder->build_object( { class => 'Koha::Patrons', value => { userid => $shared, login_attempts => 0 } } );
+    my $cardnumber_owner =
+        $builder->build_object( { class => 'Koha::Patrons', value => { cardnumber => $shared, login_attempts => 0 } } );
+    my $attribute_owner = $builder->build_object( { class => 'Koha::Patrons', value => { login_attempts => 0 } } );
+    my $attribute_value = 'ATTR_' . int( rand(100000) );
+    my $other           = $builder->build_object( { class => 'Koha::Patrons', value => { login_attempts => 0 } } );
+    $userid_owner->set_password( { password => 'PasswordUserid' } );
+    $cardnumber_owner->set_password( { password => 'PasswordCardnumber' } );
+    $attribute_owner->set_password( { password => 'PasswordAttribute' } );
+    $other->set_password( { password => 'PasswordOther' } );
+
+    my $unique_code = 'UA_' . int( rand(100000) );
+    Koha::Patron::Attribute::Type->new(
+        { code => $unique_code, description => 'Unique', unique_id => 1, repeatable => 0 } )->store;
+    Koha::Patron::Attribute->new(
+        { borrowernumber => $attribute_owner->id, code => $unique_code, attribute => $attribute_value } )->store;
+
+    my $logged_in_as = sub {
+        my ( $identifier, $password ) = @_;
+        my ( $ok, undef, undef, $patron ) = checkpw( $identifier, $password, undef, undef, 1 );
+        return $ok ? $patron->id : 0;
+    };
+    my $attempts = sub {
+        map { $_->get_from_storage->login_attempts } @_;
+    };
+
+    is( $logged_in_as->( $shared, 'PasswordUserid' ),     $userid_owner->id,     'The userid owner can log in' );
+    is( $logged_in_as->( $shared, 'PasswordCardnumber' ), $cardnumber_owner->id, 'The cardnumber owner can log in' );
+    is(
+        $logged_in_as->( $attribute_value, 'PasswordAttribute' ), $attribute_owner->id,
+        'The owner of a unique attribute can log in'
+    );
+    is( $logged_in_as->( $shared, 'WrongPassword' ), 0, 'A wrong password is refused' );
+
+    # A wrong password counts against everyone the identifier could have been
+    is_deeply(
+        [ $attempts->( $userid_owner, $cardnumber_owner, $attribute_owner, $other ) ], [ 1, 1, 0, 0 ],
+        'The failed attempt is counted for each patron it matches'
+    );
+
+    # A successful login only resets the one who logged in
+    $logged_in_as->( $shared, 'PasswordCardnumber' );
+    is_deeply(
+        [ $attempts->( $userid_owner, $cardnumber_owner ) ], [ 1, 0 ],
+        'Only the patron that logged in is reset'
+    );
+
+    # They are all locked when the identifier is guessed enough, also once the first one is: guessing the others is not free
+    $logged_in_as->( $shared, "Guess$_" ) for 1 .. 3;
+    ok( $userid_owner->get_from_storage->account_locked, 'The userid owner is locked' );
+    ok(
+        $cardnumber_owner->get_from_storage->account_locked,
+        'The cardnumber owner is locked, guessing their password is not free'
+    );
+    is(
+        $logged_in_as->( $shared, 'PasswordCardnumber' ), 0,
+        'A locked account cannot log in, even with the right password'
+    );
+
+    # Identifiers that match only one patron are unchanged
+    is( $logged_in_as->( $other->userid, 'PasswordOther' ), $other->id, 'A patron with a unique identifier logs in' );
+    is(
+        $logged_in_as->( $other->userid, 'Wrong' ), 0,
+        'A patron with a unique identifier is refused with a wrong password'
+    );
+    is_deeply( [ $attempts->($other) ], [1], 'The failed attempt is counted for that patron only' );
+
+    # The password is hashed once per patron the identifier matches, not once more for the lookup
+    my $hashes = 0;
+    my $orig   = \&C4::Auth::checkpw_hash;
+    my $auth   = Test::MockModule->new('C4::Auth');
+    $auth->mock( checkpw_hash => sub { $hashes++; $orig->(@_) } );
+    $logged_in_as->( $other->userid, 'PasswordOther' );
+    is( $hashes, 1, 'Logging in as a patron with a unique identifier hashes the password once' );
+    $hashes = 0;
+    $logged_in_as->( $other->userid, 'Wrong' );
+    is( $hashes, 1, 'A wrong password is hashed once' );
+
+    $auth->unmock('checkpw_hash');
+
+    $schema->storage->txn_rollback;
 };
 
 subtest 'DISABLE_SYSPREF permission tests' => sub {

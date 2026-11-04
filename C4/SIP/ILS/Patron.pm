@@ -341,8 +341,13 @@ sub check_password {
     # If the record has a NULL password, accept '' as match
     return $pwd eq q{} unless $self->{password};
 
-    my $ret = 0;
-    ($ret) = checkpw( $self->{userid}, $pwd, undef, undef, 1 );    # userid, query, type, no_set_userenv
+    my ( $ret, @checked ) = checkpw( $self->{userid}, $pwd, undef, undef, 1 );    # userid, query, type, no_set_userenv
+    return 0 unless $ret;
+
+    # The userid can also be the cardnumber of another patron, it is the password of this patron that is checked
+    my ($checked_patron) = grep { ref $_ && $_->isa('Koha::Patron') } @checked;
+    return 0 unless $checked_patron && $checked_patron->borrowernumber == $self->{borrowernumber};
+
     return $ret;
 }
 

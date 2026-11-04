@@ -18,7 +18,7 @@
 use Modern::Perl;
 
 use Test::NoWarnings;
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 use Test::Mojo;
 
@@ -33,6 +33,44 @@ my $builder = t::lib::TestBuilder->new;
 t::lib::Mocks::mock_preference( 'RESTBasicAuth', 1 );
 
 my $t = Test::Mojo->new('Koha::REST::V1');
+
+subtest 'set() when the userid is the cardnumber of another patron' => sub {
+
+    plan tests => 6;
+
+    $schema->storage->txn_begin;
+
+    my $shared = 'SHARED_' . int( rand(100000) );
+    my $patron = $builder->build_object( { class => 'Koha::Patrons', value => { userid     => $shared } } );
+    my $other  = $builder->build_object( { class => 'Koha::Patrons', value => { cardnumber => $shared } } );
+    $patron->set_password( { password => 'thePassword123', skip_validation => 1 } );
+    $other->set_password( { password => 'otherPassword123', skip_validation => 1 } );
+    $patron->category->change_password(1)->store;
+
+    t::lib::Mocks::mock_preference( 'RESTPublicAPI',         1 );
+    t::lib::Mocks::mock_preference( 'OpacPasswordChange',    1 );
+    t::lib::Mocks::mock_preference( 'minPasswordLength',     3 );
+    t::lib::Mocks::mock_preference( 'RequireStrongPassword', 0 );
+
+    # The old password has to be the one of the patron whose password is changed
+    $t->post_ok(
+        "//$shared:thePassword123@/api/v1/public/patrons/" . $patron->id . "/password" => json => {
+            password          => 'abc',
+            password_repeated => 'abc',
+            old_password      => 'otherPassword123'
+        }
+    )->status_is(400)->json_is( { error => "Invalid password" } );
+
+    $t->post_ok(
+        "//$shared:thePassword123@/api/v1/public/patrons/" . $patron->id . "/password" => json => {
+            password          => 'abc',
+            password_repeated => 'abc',
+            old_password      => 'thePassword123'
+        }
+    )->status_is(200)->json_is('');
+
+    $schema->storage->txn_rollback;
+};
 
 subtest 'set() (authorized user tests)' => sub {
 
