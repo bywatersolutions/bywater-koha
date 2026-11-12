@@ -43,6 +43,7 @@ BEGIN {
 use Carp qw( carp croak );
 use Template;
 use Module::Load::Conditional qw( can_load );
+use Scalar::Util              qw( blessed );
 
 use Try::Tiny;
 
@@ -51,9 +52,11 @@ use C4::Members;
 use C4::SMS;
 use C4::Templates;
 use Koha::Auth::TwoFactorAuth;
+use Koha::Database;
 use Koha::DateUtils qw( dt_from_string output_pref );
 use Koha::Email;
 use Koha::Exceptions;
+use Koha::Logger;
 use Koha::Notice::Messages;
 use Koha::Notice::Templates;
 use Koha::Notice::Util;
@@ -66,6 +69,15 @@ use Koha::Template::Plugin::KohaDates;
 use constant SERIALIZED_EMAIL_CONTENT_TYPE => 'message/rfc822';
 
 our $domain_limits = {};
+
+# Minutes to wait before trying again after each temporary failure from the mail server, once these run out the message is marked failed
+our @SMTP_RETRY_DELAYS = ( 10, 30, 60, 120 );
+
+# Notices that are no use once they have waited out the first delay, a one-time code is only valid for a minute. These are marked failed right away rather than being retried
+our @NO_RETRY_LETTER_CODES = ('2FA_OTP_TOKEN');
+
+# SMTP servers that turned a connection away during the current run, keyed like the transport cache in SendQueuedMessages
+our $unavailable_smtp_servers = {};
 
 =head1 NAME
 
@@ -1044,6 +1056,13 @@ The (optional) message_id, borrowernumber, letter_code, type and where
 parameter are used to select which pending messages will be processed. The
 limit parameter determines the volume of results, i.e. sent messages.
 
+Messages the mail server answered with a temporary failure ( such as a 421
+"Try again later" ) are left pending and tried again on later runs after an
+increasing delay, see @SMTP_RETRY_DELAYS. They are only marked failed once
+all the retries have been used up. Once a server has turned a connection
+away, the rest of the messages for it in that run are deferred without
+being tried, and without using up any of their retries.
+
 The optional verbose parameter can be used to generate debugging output.
 
 Returns number of messages sent.
@@ -1076,11 +1095,16 @@ sub SendQueuedMessages {
     }
 
     my $smtp_transports = {};
+    my $schema          = Koha::Database->new->schema;
 
     my $count_messages  = 0;
     my $unsent_messages = Koha::Notice::Messages->search(
         {
             status => 'pending',
+
+            # Skip messages that are still waiting out the delay from a temporary failure
+            retry_after =>
+                [ undef, { '<=' => $schema->storage->datetime_parser->format_datetime( dt_from_string() ) } ],
             $params->{message_id}     ? ( message_id     => $params->{message_id} )     : (),
             $params->{borrowernumber} ? ( borrowernumber => $params->{borrowernumber} ) : (),
 
@@ -1098,7 +1122,8 @@ sub SendQueuedMessages {
     );
     $unsent_messages = $unsent_messages->search( \$where ) if $where;
 
-    $domain_limits = Koha::Notice::Util->load_domain_limits;    # (re)initialize per run
+    $domain_limits            = Koha::Notice::Util->load_domain_limits;    # (re)initialize per run
+    $unavailable_smtp_servers = {};
     while ( ( my $message_object = $unsent_messages->next ) && ( !$limit || $count_messages < $limit ) ) {
         my $message = $message_object->unblessed;
 
@@ -1150,8 +1175,8 @@ sub SendQueuedMessages {
 
                 _update_message_to_address( $message->{'message_id'}, $message->{to_address} );
                 my $rv = _send_message_by_email(
-                    $message, $params->{'username'}, $params->{'password'},
-                    $params->{'method'}
+                    $message, $params->{'username'}, $params->{'password'}, $params->{'method'},
+                    $smtp_transports
                 );
                 $count_messages++ if $rv;
             } else {
@@ -1223,7 +1248,7 @@ sub GetQueuedMessages {
 
     my $dbh       = C4::Context->dbh();
     my $statement = <<'ENDSQL';
-SELECT message_id, borrowernumber, subject, content, message_transport_type, status, time_queued, updated_on, failure_code, from_address, to_address, cc_address
+SELECT message_id, borrowernumber, subject, content, message_transport_type, status, time_queued, updated_on, failure_code, send_attempts, retry_after, from_address, to_address, cc_address
 FROM message_queue
 ENDSQL
 
@@ -1278,7 +1303,7 @@ sub GetMessage {
     my $dbh = C4::Context->dbh;
     return $dbh->selectrow_hashref(
         q|
-        SELECT message_id, borrowernumber, subject, content, metadata, letter_code, message_transport_type, status, time_queued, updated_on, to_address, from_address, reply_address, content_type, failure_code
+        SELECT message_id, borrowernumber, subject, content, metadata, letter_code, message_transport_type, status, time_queued, updated_on, to_address, from_address, reply_address, content_type, failure_code, send_attempts, retry_after
         FROM message_queue
         WHERE message_id = ?
     |, {}, $message_id
@@ -1306,18 +1331,19 @@ sub ResendMessage {
     return unless $message;
     my $rv = 0;
     if ( $message->{status} ne 'pending' ) {
-        $rv = C4::Letters::_set_message_status(
-            {
-                message_id => $message_id,
-                status     => 'pending',
-            }
-        );
-        $rv = $rv > 0 ? 1 : 0;
+        my $notice = Koha::Notice::Messages->find($message_id) or return 0;
 
-        # Clear destination email address to force address update
-        _update_message_to_address( $message_id, undef )
-            if $rv
-            && $message->{message_transport_type} eq 'email';
+        # Start the retry schedule over, and for email clear the destination address to force an address update
+        $notice->set(
+            {
+                status        => 'pending',
+                failure_code  => '',
+                send_attempts => 0,
+                retry_after   => undef,
+                ( $message->{message_transport_type} eq 'email' ? ( to_address => undef ) : () ),
+            }
+        )->store;
+        $rv = 1;
     }
     return $rv;
 }
@@ -1638,8 +1664,16 @@ sub _send_message_by_email {
         if !$message->{to_address}
         || $message->{to_address} ne $email->email->header('To');
 
-    $smtp_transports->{ $smtp_server->id // 'default' } ||= $smtp_server->transport;
-    my $smtp_transport = $smtp_transports->{ $smtp_server->id // 'default' };
+    my $smtp_server_key = $smtp_server->id // 'default';
+
+    # Don't keep knocking on a server that already turned us away during this run
+    if ( $unavailable_smtp_servers->{$smtp_server_key} ) {
+        _defer_message($message);
+        return;
+    }
+
+    $smtp_transports->{$smtp_server_key} ||= $smtp_server->transport;
+    my $smtp_transport = $smtp_transports->{$smtp_server_key};
 
     _update_message_from_address( $message->{'message_id'}, $email->email->header('From') )
         if !$message->{from_address}
@@ -1657,17 +1691,76 @@ sub _send_message_by_email {
         );
         return 1;
     } catch {
-        _set_message_status(
-            {
-                message_id   => $message->{'message_id'},
-                status       => 'failed',
-                failure_code => 'SENDMAIL'
+        my $error = $_;
+
+        if ( _is_temporary_smtp_failure($error) ) {
+
+            # Expected while a mail server is busy or down and the message will be tried again, so this goes to the log rather than to every cron mail
+            my $logger = Koha::Logger->get;
+            $logger->warn(
+                "Message $message->{message_id} could not be sent, the mail server reported a temporary failure: $error"
+            );
+            _retry_message_later($message);
+
+            if ( _is_smtp_server_unavailable($error) ) {
+                $unavailable_smtp_servers->{$smtp_server_key} = 1;
+                $logger->warn( "SMTP server "
+                        . $smtp_server->host
+                        . " is unavailable, the remaining messages for it will be tried again later" );
             }
-        );
-        carp "$_";
-        carp "$Mail::Sendmail::error";
+        } else {
+            carp "$error";
+            _set_message_status(
+                {
+                    message_id   => $message->{'message_id'},
+                    status       => 'failed',
+                    failure_code => 'SENDMAIL'
+                }
+            );
+        }
         return;
     };
+}
+
+=head2 _is_temporary_smtp_failure
+
+  my $temporary = _is_temporary_smtp_failure($error);
+
+Returns true if an exception thrown while sending an email is the mail server's problem rather than the
+message's, so that sending is worth trying again later. That is a 4xx response (Email::Sender::Failure::Temporary),
+or a failure to connect at all.
+
+Email::Sender::Transport::SMTP reports a failure to connect, including a server that answers the connection
+with a 421 before EHLO, as a plain Email::Sender::Failure without a response code. The only thing telling it
+apart from a permanent failure is its message, 'unable to establish SMTP connection to ...', so that is matched
+here. This cannot tell a server that is down from one that is misconfigured, a wrong host is retried until the
+retries run out and then fails like any other message. t/db_dependent/Letters.t checks the message against
+the real transport, so a change in Email::Sender's wording is caught by the tests.
+
+=cut
+
+sub _is_temporary_smtp_failure {
+    my ($error) = @_;
+
+    return 0 unless blessed($error) && $error->isa('Email::Sender::Failure');
+    return 1 if $error->isa('Email::Sender::Failure::Temporary');
+    return $error->message =~ /^unable to establish SMTP connection/ ? 1 : 0;
+}
+
+=head2 _is_smtp_server_unavailable
+
+  my $unavailable = _is_smtp_server_unavailable($error);
+
+Given a temporary failure from L</_is_temporary_smtp_failure>, returns true if it means the server itself is
+unavailable, a refused connection or a 421. Any other 4xx response is only about the one message, and says nothing
+about the messages that follow it.
+
+=cut
+
+sub _is_smtp_server_unavailable {
+    my ($error) = @_;
+
+    return !$error->code || $error->code == 421 ? 1 : 0;
 }
 
 =head2 _wrap_html
@@ -1872,6 +1965,76 @@ sub _set_message_status {
         $params->{'message_id'}
     );
     return $result;
+}
+
+=head2 _retry_message_later
+
+  _retry_message_later($message);
+
+Records a temporary failure for a queued message. The message stays pending with a retry_after time
+taken from @SMTP_RETRY_DELAYS, or is marked failed once all the delays have been used up, or at once if
+it is one that cannot be retried, see L</_can_be_retried>.
+
+=cut
+
+sub _retry_message_later {
+    my ($message) = @_;
+
+    my $notice = Koha::Notice::Messages->find( $message->{message_id} ) or return;
+
+    my $send_attempts = $message->{send_attempts} + 1;
+    if ( $send_attempts > @SMTP_RETRY_DELAYS || !_can_be_retried($message) ) {
+        $notice->set( { send_attempts => $send_attempts, status => 'failed', failure_code => 'SENDMAIL' } )->store;
+        return;
+    }
+
+    $notice->set(
+        {
+            send_attempts => $send_attempts,
+            retry_after   => dt_from_string()->add( minutes => $SMTP_RETRY_DELAYS[ $send_attempts - 1 ] ),
+        }
+    )->store;
+    return;
+}
+
+=head2 _can_be_retried
+
+  my $can_be_retried = _can_be_retried($message);
+
+Returns false for a notice that is no use by the time a retry would reach the patron, see @NO_RETRY_LETTER_CODES.
+
+=cut
+
+sub _can_be_retried {
+    my ($message) = @_;
+
+    my $letter_code = $message->{letter_code} // '';
+    return !grep { $_ eq $letter_code } @NO_RETRY_LETTER_CODES;
+}
+
+=head2 _defer_message
+
+  _defer_message($message);
+
+Pushes back a queued message that was not tried because its SMTP server already turned us away
+during this run. Unlike L</_retry_message_later> this is not an attempt, so send_attempts is left
+alone and a long outage does not use up the retries of messages that never reached the server.
+
+=cut
+
+sub _defer_message {
+    my ($message) = @_;
+
+    unless ( _can_be_retried($message) ) {
+        _set_message_status( { message_id => $message->{message_id}, status => 'failed', failure_code => 'SENDMAIL' } );
+        return;
+    }
+
+    my $notice = Koha::Notice::Messages->find( $message->{message_id} ) or return;
+
+    my $delay = $SMTP_RETRY_DELAYS[ $message->{send_attempts} < @SMTP_RETRY_DELAYS ? $message->{send_attempts} : -1 ];
+    $notice->retry_after( dt_from_string()->add( minutes => $delay ) )->store;
+    return;
 }
 
 =head2 _process_tt
