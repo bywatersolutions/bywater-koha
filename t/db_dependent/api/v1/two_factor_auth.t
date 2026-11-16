@@ -21,11 +21,15 @@ use Test::More tests => 4;
 use Test::NoWarnings;
 use Test::Mojo;
 use Test::MockModule;
+use Test::Warn;
+
+use Email::Sender::Failure;
 
 use t::lib::TestBuilder;
 use t::lib::Mocks;
 
 use Koha::Database;
+use Koha::Notice::Messages;
 
 my $schema  = Koha::Database->new->schema;
 my $builder = t::lib::TestBuilder->new;
@@ -195,7 +199,7 @@ subtest 'Prevent overwriting an existing secret' => sub {
 
 subtest 'send_otp_token' => sub {
 
-    plan tests => 11;
+    plan tests => 16;
 
     $schema->storage->txn_begin;
 
@@ -254,6 +258,30 @@ subtest 'send_otp_token' => sub {
 
     # Everything is ok, the email will be sent
     $t->request_ok($tx)->status_is(200);
+
+    # A mail server that is temporarily unavailable means the code is not sent, and a one-time code is not retried later
+    $mocked_koha_email->mock(
+        'send_or_die',
+        sub {
+            Email::Sender::Failure->throw('unable to establish SMTP connection to (smtp.example.org) port 587');
+        }
+    );
+    $tx = $t->ua->build_tx( POST => "/api/v1/auth/otp/token_delivery" );
+    $tx->req->cookies( { name => 'CGISESSID', value => $session->id } );
+    $tx->req->env( { REMOTE_ADDR => $remote_address } );
+    warnings_are {
+        $t->request_ok($tx)->status_is(400)->json_is( { error => 'email_not_sent' } );
+    }
+    [], 'A temporary failure is logged rather than warned about';
+    is(
+        Koha::Notice::Messages->search(
+            { borrowernumber => $patron->borrowernumber, letter_code => '2FA_OTP_TOKEN' },
+            { order_by       => { -desc => 'message_id' } }
+        )->next->status,
+        'failed',
+        'The one-time code is marked failed, not left to be retried'
+    );
+    $mocked_koha_email->mock( 'send_or_die', sub { return 1; } );
 
     # Change flags: not enough authorization anymore
     $patron->flags(16)->store;
